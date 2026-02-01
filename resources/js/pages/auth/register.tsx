@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { GraduationCap } from 'lucide-react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -6,16 +7,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { login } from '@/routes';
+import { home, login } from '@/routes';
 import { store } from '@/routes/register';
 
 export default function Register() {
     return (
         <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account"
+            title="Create your account"
+            description="Join us today and start managing your education"
         >
             <Head title="Register" />
+
+            <div className="mb-6 flex justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg">
+                    <GraduationCap className="h-7 w-7" />
+                </div>
+            </div>
+
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -26,7 +34,7 @@ export default function Register() {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name">Full Name</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -35,7 +43,8 @@ export default function Register() {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Full name"
+                                    placeholder="John Michael Doe"
+                                    className="h-11"
                                 />
                                 <InputError
                                     message={errors.name}
@@ -52,7 +61,8 @@ export default function Register() {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="email@example.com"
+                                    placeholder="your.email@example.com"
+                                    className="h-11"
                                 />
                                 <InputError message={errors.email} />
                             </div>
@@ -66,7 +76,8 @@ export default function Register() {
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
-                                    placeholder="Password"
+                                    placeholder="Create a strong password"
+                                    className="h-11"
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -82,7 +93,8 @@ export default function Register() {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder="Confirm password"
+                                    placeholder="Re-enter your password"
+                                    className="h-11"
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
@@ -91,7 +103,7 @@ export default function Register() {
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full"
+                                className="h-11 w-full"
                                 tabIndex={5}
                                 data-test="register-user-button"
                             >
@@ -103,7 +115,13 @@ export default function Register() {
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
                             <TextLink href={login()} tabIndex={6}>
-                                Log in
+                                Sign in instead
+                            </TextLink>
+                        </div>
+
+                        <div className="text-center">
+                            <TextLink href={home()} className="text-sm">
+                                ← Back to home
                             </TextLink>
                         </div>
                     </>
