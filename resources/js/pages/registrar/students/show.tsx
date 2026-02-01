@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Mail, Phone } from 'lucide-react';
-import { route } from '@/wayfinder';
+import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -65,7 +65,7 @@ export default function ShowStudent({ student }: Props) {
             <div className="space-y-6 p-6">
                 <div className="flex items-center justify-between">
                     <Button variant="outline" asChild>
-                        <Link href={route('registrar.students.index')}>
+                        <Link href={studentsIndex.url()}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Students
                         </Link>
