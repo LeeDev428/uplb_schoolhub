@@ -91,26 +91,13 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::get('reports', function () {
         return Inertia::render('registrar/reports');
     })->name('reports');
-});
-
-    Route::get('deadlines', function () {
-        return Inertia::render('registrar/students');
-    })->name('deadlines');
-
-    Route::get('classes', function () {
-        return Inertia::render('registrar/students');
-    })->name('classes');
-
-    Route::get('reports', function () {
-        return Inertia::render('registrar/students');
-    })->name('reports');
 
     Route::get('archived', function () {
-        return Inertia::render('registrar/students');
+        return Inertia::render('registrar/archived');
     })->name('archived');
 
     Route::get('settings', function () {
-        return Inertia::render('registrar/students');
+        return Inertia::render('registrar/settings');
     })->name('settings');
 });
 
