@@ -1,7 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { route } from '@/wayfinder';
+import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { StudentStatCard } from '@/components/registrar/student-stat-card';
@@ -101,7 +101,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
 
     const handleDeleteStudent = (studentId: number) => {
         if (confirm('Are you sure you want to delete this student?')) {
-            router.delete(route('registrar.students.destroy', studentId), {
+            router.delete(destroyStudent.url({ student: studentId }), {
                 onSuccess: () => {
                     toast.success('Student deleted successfully!');
                 },
@@ -301,7 +301,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() => router.visit(route('registrar.students.show', student.id))}
+                                                        onClick={() => router.visit(showStudent.url({ student: student.id }))}
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
