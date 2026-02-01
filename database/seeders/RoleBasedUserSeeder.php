@@ -15,7 +15,7 @@ class RoleBasedUserSeeder extends Seeder
         // Create Owner
         User::create([
             'name' => 'System Owner',
-            'email' => 'owner@schoolhub.local',
+            'email' => 'owner@gmail.com',
             'password' => bcrypt('password'),
             'role' => User::ROLE_OWNER,
             'email_verified_at' => now(),
@@ -24,7 +24,7 @@ class RoleBasedUserSeeder extends Seeder
         // Create Registrar
         User::create([
             'name' => 'School Registrar',
-            'email' => 'registrar@schoolhub.local',
+            'email' => 'registrar@gmail.com',
             'password' => bcrypt('password'),
             'role' => User::ROLE_REGISTRAR,
             'email_verified_at' => now(),
@@ -34,7 +34,7 @@ class RoleBasedUserSeeder extends Seeder
         $students = [
             [
                 'name' => 'John Michael Doe Jr.',
-                'email' => 'john.doe@student.edu',
+                'email' => 'john.doe@gmail.com',
                 'student_id' => '2023-001',
                 'program' => 'BS Information Technology',
                 'year_level' => '3',
@@ -42,7 +42,7 @@ class RoleBasedUserSeeder extends Seeder
             ],
             [
                 'name' => 'Maria Cristina Santos',
-                'email' => 'maria.santos@student.edu',
+                'email' => 'student@gmail.com',
                 'student_id' => '2023-002',
                 'program' => 'BS Computer Science',
                 'year_level' => '2',
@@ -50,7 +50,7 @@ class RoleBasedUserSeeder extends Seeder
             ],
             [
                 'name' => 'Carlos Antonio Reyes',
-                'email' => 'carlos.reyes@student.edu',
+                'email' => 'carlos.reyes@gmail.com',
                 'student_id' => '2023-003',
                 'program' => 'BS Business Administration',
                 'year_level' => '4',
@@ -58,7 +58,7 @@ class RoleBasedUserSeeder extends Seeder
             ],
             [
                 'name' => 'Ana Marie Cruz',
-                'email' => 'ana.cruz@student.edu',
+                'email' => 'ana.cruz@gmail.com',
                 'student_id' => '2023-004',
                 'program' => 'BS Information Technology',
                 'year_level' => '1',
