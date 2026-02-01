@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
-import { route } from '@/wayfinder';
+import { index as studentsIndex } from '@/routes/registrar/students';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,8 +30,8 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
 
     const handleFilterChange = (key: string, value: string) => {
         router.get(
-            route('registrar.students.index'),
-            { ...filters, [key]: value },
+            studentsIndex.url({ query: { ...filters, [key]: value } }),
+            {},
             { preserveState: true, replace: true }
         );
     };
@@ -39,15 +39,15 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         router.get(
-            route('registrar.students.index'),
-            { ...filters, search: localSearch },
+            studentsIndex.url({ query: { ...filters, search: localSearch } }),
+            {},
             { preserveState: true, replace: true }
         );
     };
 
     const handleClearFilters = () => {
         setLocalSearch('');
-        router.get(route('registrar.students.index'));
+        router.get(studentsIndex.url());
     };
 
     return (
