@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { route } from '@/wayfinder';
 import { StudentFilters } from '@/components/registrar/student-filters';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { StudentStatCard } from '@/components/registrar/student-stat-card';
