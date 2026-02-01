@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
+import { route } from '@/wayfinder';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,9 +13,9 @@ import {
 } from '@/components/ui/select';
 
 interface StudentFiltersProps {
-    programs: string[];
-    yearLevels: string[];
-    filters: {
+    programs?: string[];
+    yearLevels?: string[];
+    filters?: {
         search?: string;
         type?: string;
         program?: string;
@@ -24,8 +25,8 @@ interface StudentFiltersProps {
     };
 }
 
-export function StudentFilters({ programs, yearLevels, filters }: StudentFiltersProps) {
-    const [localSearch, setLocalSearch] = useState(filters.search || '');
+export function StudentFilters({ programs = [], yearLevels = [], filters = {} }: StudentFiltersProps) {
+    const [localSearch, setLocalSearch] = useState(filters?.search || '');
 
     const handleFilterChange = (key: string, value: string) => {
         router.get(
