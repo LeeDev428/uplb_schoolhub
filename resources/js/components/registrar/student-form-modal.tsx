@@ -2,7 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState } from 'react';
-import { route } from '@/wayfinder';
+import { store as storeStudent, update as updateStudent } from '@/routes/registrar/students';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -86,7 +86,7 @@ export function StudentFormModal({
         };
 
         if (mode === 'create') {
-            post(route('registrar.students.store'), {
+            post(storeStudent.url(), {
                 onSuccess: () => {
                     toast.success('Student added successfully!');
                     reset();
@@ -98,7 +98,7 @@ export function StudentFormModal({
                 },
             });
         } else {
-            put(route('registrar.students.update', student.id), {
+            put(updateStudent.url({ student: student.id }), {
                 onSuccess: () => {
                     toast.success('Student updated successfully!');
                     onClose();
