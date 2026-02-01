@@ -25,8 +25,8 @@ export default function Login({
 }: Props) {
     return (
         <AuthLayout
-            title="Welcome back"
-            description="Sign in to your account to continue"
+            title=""
+            description=""
         >
             <Head title="Log in" />
 
