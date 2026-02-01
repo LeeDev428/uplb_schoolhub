@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -12,7 +13,7 @@ Route::get('/', function () {
 
 // Default dashboard - redirect based on role
 Route::get('dashboard', function () {
-    $user = auth()->user();
+    $user = Auth::user();
 
     if (! $user) {
         return redirect()->route('login');
