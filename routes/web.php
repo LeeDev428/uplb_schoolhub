@@ -21,7 +21,7 @@ Route::get('dashboard', function () {
 
     return match ($user->role) {
         'owner' => redirect()->route('owner.dashboard'),
-        'registrar' => redirect()->route('registrar.students'),
+        'registrar' => redirect()->route('registrar.dashboard'),
         default => Inertia::render('dashboard'),
     };
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -60,24 +60,38 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 // Registrar Routes
 Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 'role:registrar'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('registrar/students');
+        return Inertia::render('registrar/dashboard');
     })->name('dashboard');
 
-    Route::get('students', function () {
-        return Inertia::render('registrar/students');
-    })->name('students');
+    // Student CRUD Routes
+    Route::resource('students', \App\Http\Controllers\StudentController::class)->only([
+        'index', 'store', 'show', 'update', 'destroy'
+    ]);
 
     Route::get('requirements', function () {
-        return Inertia::render('registrar/students');
+        return Inertia::render('registrar/requirements');
     })->name('requirements');
 
     Route::get('documents/create', function () {
-        return Inertia::render('registrar/students');
+        return Inertia::render('registrar/documents/create');
     })->name('documents.create');
 
     Route::get('documents/requests', function () {
-        return Inertia::render('registrar/students');
+        return Inertia::render('registrar/documents/requests');
     })->name('documents.requests');
+
+    Route::get('deadlines', function () {
+        return Inertia::render('registrar/deadlines');
+    })->name('deadlines');
+
+    Route::get('classes', function () {
+        return Inertia::render('registrar/classes');
+    })->name('classes');
+
+    Route::get('reports', function () {
+        return Inertia::render('registrar/reports');
+    })->name('reports');
+});
 
     Route::get('deadlines', function () {
         return Inertia::render('registrar/students');
