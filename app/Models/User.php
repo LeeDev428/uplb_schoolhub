@@ -14,6 +14,15 @@ class User extends Authenticatable
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
+     * User role constants
+     */
+    public const ROLE_OWNER = 'owner';
+
+    public const ROLE_REGISTRAR = 'registrar';
+
+    public const ROLE_STUDENT = 'student';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -22,6 +31,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'student_id',
+        'phone',
+        'department',
+        'program',
+        'year_level',
     ];
 
     /**
@@ -48,5 +63,29 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Check if user is owner
+     */
+    public function isOwner(): bool
+    {
+        return $this->role === self::ROLE_OWNER;
+    }
+
+    /**
+     * Check if user is registrar
+     */
+    public function isRegistrar(): bool
+    {
+        return $this->role === self::ROLE_REGISTRAR;
+    }
+
+    /**
+     * Check if user is student
+     */
+    public function isStudent(): bool
+    {
+        return $this->role === self::ROLE_STUDENT;
     }
 }
