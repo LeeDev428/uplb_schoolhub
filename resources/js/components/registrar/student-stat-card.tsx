@@ -1,10 +1,8 @@
-import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type StatCardProps = {
     title: string;
     value: number;
-    icon: LucideIcon;
     color: 'blue' | 'green' | 'orange' | 'purple' | 'sky' | 'red';
     label: string;
 };
@@ -20,7 +18,7 @@ const colorVariants = {
     red: 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950',
 };
 
-const iconColorVariants = {
+const textColorVariants = {
     blue: 'text-blue-600 dark:text-blue-400',
     green: 'text-green-600 dark:text-green-400',
     orange: 'text-orange-600 dark:text-orange-400',
@@ -32,7 +30,6 @@ const iconColorVariants = {
 export function StudentStatCard({
     title,
     value,
-    icon: Icon,
     color,
     label,
 }: StatCardProps) {
@@ -48,15 +45,17 @@ export function StudentStatCard({
                     <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                         {label}
                     </p>
-                    <h3 className="mt-2 text-4xl font-bold text-foreground">
+                    <h3
+                        className={cn(
+                            'mt-2 text-4xl font-bold',
+                            textColorVariants[color],
+                        )}
+                    >
                         {value}
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
                         {title}
                     </p>
-                </div>
-                <div className={cn('rounded-lg p-3', iconColorVariants[color])}>
-                    <Icon className="h-7 w-7" />
                 </div>
             </div>
         </div>
