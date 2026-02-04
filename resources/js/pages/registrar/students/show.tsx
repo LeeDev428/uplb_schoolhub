@@ -19,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
-import { EnrollmentClearanceProgress } from './components/enrollment-clearance-progress';
+import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
 
 interface StudentRequirement {
     id: number;
