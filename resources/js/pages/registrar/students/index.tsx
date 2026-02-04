@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
@@ -238,13 +238,12 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                 <TableHead>Year & Section</TableHead>
                                 <TableHead>Requirements</TableHead>
                                 <TableHead>Enrollment Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {students.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-8">
+                                    <TableCell colSpan={7} className="text-center py-8">
                                         <p className="text-muted-foreground">No students found. Add your first student to get started.</p>
                                     </TableCell>
                                 </TableRow>
@@ -254,7 +253,11 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                     const yearSection = `${student.year_level}${student.section ? ' - ' + student.section : ''}`;
                                     
                                     return (
-                                        <TableRow key={student.id}>
+                                        <TableRow 
+                                            key={student.id}
+                                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                            onClick={() => router.visit(showStudent.url({ student: student.id }))}
+                                        >
                                             <TableCell>
                                                 <div className="flex items-center space-x-3">
                                                     <Avatar>
@@ -295,31 +298,6 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                                 <Badge className={getEnrollmentStatusColor(student.enrollment_status)}>
                                                     {formatStatus(student.enrollment_status)}
                                                 </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex justify-end space-x-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => router.visit(showStudent.url({ student: student.id }))}
-                                                    >
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleEditStudent(student)}
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleDeleteStudent(student.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-red-500" />
-                                                    </Button>
-                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     );
