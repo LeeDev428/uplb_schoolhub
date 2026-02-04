@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from '@inertiajs/react';
-import { FormEventHandler, useEffect } from 'react';
+import { FormEventHandler, useEffect, useState } from 'react';
 import { showSuccess, showError } from './registrar-messages';
 
 interface RequirementCategory {
@@ -49,6 +49,12 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
         is_required: true,
     });
 
+    // Simple local state for checkboxes
+    const [newEnrollee, setNewEnrollee] = useState(true);
+    const [transferee, setTransferee] = useState(false);
+    const [returning, setReturning] = useState(false);
+    const [required, setRequired] = useState(true);
+
     useEffect(() => {
         if (open) {
             if (requirement && mode === 'edit') {
@@ -63,8 +69,16 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                     applies_to_returning: requirement.applies_to_returning,
                     is_required: requirement.is_required,
                 });
+                setNewEnrollee(requirement.applies_to_new_enrollee);
+                setTransferee(requirement.applies_to_transferee);
+                setReturning(requirement.applies_to_returning);
+                setRequired(requirement.is_required);
             } else {
                 reset();
+                setNewEnrollee(true);
+                setTransferee(false);
+                setReturning(false);
+                setRequired(true);
             }
         }
     }, [open, requirement, mode]);
@@ -72,12 +86,40 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
+        // Set checkbox values before submitting
+        const formData = {
+            ...data,
+            applies_to_new_enrollee: newEnrollee,
+            applies_to_transferee: transferee,
+            applies_to_returning: returning,
+            is_required: required,
+        };
+
         if (mode === 'create') {
             post('/registrar/documents/requirements', {
+                data: formData,
                 onSuccess: () => {
                     showSuccess('Requirement created successfully!');
                     reset();
                     onClose();
+                },
+                onError: () => {
+                    showError('Failed to create requirement. Please check the form.');
+                },
+            });
+        } else if (requirement) {
+            put(`/registrar/documents/requirements/${requirement.id}`, {
+                data: formData,
+                onSuccess: () => {
+                    showSuccess('Requirement updated successfully!');
+                    onClose();
+                },
+                onError: () => {
+                    showError('Failed to update requirement. Please check the form.');
+                },
+            });
+        }
+    };
                 },
                 onError: () => {
                     showError('Failed to create requirement. Please check the form.');
@@ -198,8 +240,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                                 <input
                                     type="checkbox"
                                     id="new_enrollee"
-                                    checked={data.applies_to_new_enrollee}
-                                    onChange={(e) => setData('applies_to_new_enrollee', e.target.checked)}
+                                    checked={newEnrollee}
+                                    onChange={(e) => setNewEnrollee(e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
@@ -213,8 +255,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                                 <input
                                     type="checkbox"
                                     id="transferee"
-                                    checked={data.applies_to_transferee}
-                                    onChange={(e) => setData('applies_to_transferee', e.target.checked)}
+                                    checked={transferee}
+                                    onChange={(e) => setTransferee(e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
@@ -228,8 +270,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                                 <input
                                     type="checkbox"
                                     id="returning"
-                                    checked={data.applies_to_returning}
-                                    onChange={(e) => setData('applies_to_returning', e.target.checked)}
+                                    checked={returning}
+                                    onChange={(e) => setReturning(e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
@@ -247,8 +289,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                         <input
                             type="checkbox"
                             id="is_required"
-                            checked={data.is_required}
-                            onChange={(e) => setData('is_required', e.target.checked)}
+                            checked={required}
+                            onChange={(e) => setRequired(e.target.checked)}
                             className="h-4 w-4 rounded border-gray-300"
                         />
                         <label
