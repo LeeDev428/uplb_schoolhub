@@ -163,45 +163,4 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
             </div>
         </div>
     );
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Enrollment Status</SelectItem>
-                    <SelectItem value="not-enrolled">Not Enrolled</SelectItem>
-                    <SelectItem value="pending-registrar">Pending Registrar</SelectItem>
-                    <SelectItem value="pending-accounting">Pending Accounting</SelectItem>
-                    <SelectItem value="enrolled">Enrolled</SelectItem>
-                    <SelectItem value="graduated">Graduated</SelectItem>
-                    <SelectItem value="dropped">Dropped</SelectItem>
-                </SelectContent>
-            </Select>
-
-            <Select
-                value={filters.requirements_status || 'all'}
-                onValueChange={(value) => handleFilterChange('requirements_status', value)}
-            >
-                <SelectTrigger className="h-11">
-                    <SelectValue placeholder="All Requirements Status" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Requirements Status</SelectItem>
-                    <SelectItem value="complete">Complete</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="incomplete">Incomplete</SelectItem>
-                </SelectContent>
-            </Select>
-
-            <Button type="submit" className="h-11">
-                Search
-            </Button>
-
-            <Button
-                type="button"
-                variant="outline"
-                onClick={handleClearFilters}
-                className="h-11"
-            >
-                Clear
-            </Button>
-        </form>
-    );
 }
