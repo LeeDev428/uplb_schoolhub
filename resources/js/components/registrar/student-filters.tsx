@@ -127,7 +127,7 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
                 </Button>
             </form>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
                 <Select
                     value={filters.enrollment_status || 'all'}
                     onValueChange={(value) => handleFilterChange('enrollment_status', value)}
