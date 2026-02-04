@@ -48,7 +48,7 @@ class RequirementTrackingController extends Controller
         // Get all requirements
         $requirements = Requirement::active()->orderBy('order')->get();
 
-        return Inertia::render('registrar/requirements/tracking', [
+        return Inertia::render('registrar/requirements/index', [
             'students' => $students,
             'requirements' => $requirements,
             'filters' => [
