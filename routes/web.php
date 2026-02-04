@@ -59,9 +59,7 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 
 // Registrar Routes
 Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 'role:registrar'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('registrar/dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\RegistrarDashboardController::class, 'index'])->name('dashboard');
 
     // Student CRUD Routes
     Route::resource('students', \App\Http\Controllers\StudentController::class)->only([
