@@ -15,13 +15,16 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
+import { RequirementFormModal } from '@/components/registrar/requirement-form-modal';
 
 interface Requirement {
     id: number;
     name: string;
     description: string;
+    requirement_category_id: number;
     deadline_type: string;
     deadline_text: string;
+    custom_deadline?: string;
     applies_to_new_enrollee: boolean;
     applies_to_transferee: boolean;
     applies_to_returning: boolean;
@@ -42,12 +45,27 @@ interface Props {
     categories: RequirementCategory[];
 }
 
-export default function RequirementsIndex({ categories }: Props) {
+export default function CreateDocuments({ categories }: Props) {
     const [activeCategory, setActiveCategory] = useState(categories[0]?.slug || 'new-enrollee');
+    const [showModal, setShowModal] = useState(false);
+    const [editingRequirement, setEditingRequirement] = useState<Requirement | undefined>();
+    const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+
+    const handleAddRequirement = () => {
+        setEditingRequirement(undefined);
+        setModalMode('create');
+        setShowModal(true);
+    };
+
+    const handleEditRequirement = (requirement: Requirement) => {
+        setEditingRequirement(requirement);
+        setModalMode('edit');
+        setShowModal(true);
+    };
 
     const handleDeleteRequirement = (requirementId: number, requirementName: string) => {
         if (window.confirm(`Are you sure you want to delete "${requirementName}"?`)) {
-            router.delete(`/registrar/requirements/${requirementId}`, {
+            router.delete(`/registrar/documents/requirements/${requirementId}`, {
                 preserveScroll: true,
                 onSuccess: () => {
                     toast.success('Requirement deleted successfully');
@@ -90,7 +108,7 @@ export default function RequirementsIndex({ categories }: Props) {
                             Manage enrollment requirements by category
                         </p>
                     </div>
-                    <Button>
+                    <Button onClick={handleAddRequirement}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add New Requirement
                     </Button>
@@ -121,7 +139,7 @@ export default function RequirementsIndex({ categories }: Props) {
                                             <h3 className="text-lg font-semibold">Requirements for {category.name}</h3>
                                             <p className="text-sm text-muted-foreground">{category.description}</p>
                                         </div>
-                                        <Button variant="outline" size="sm">
+                                        <Button variant="outline" size="sm" onClick={handleAddRequirement}>
                                             <Plus className="mr-2 h-4 w-4" />
                                             Add Requirement
                                         </Button>
@@ -190,7 +208,11 @@ export default function RequirementsIndex({ categories }: Props) {
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div className="flex justify-end space-x-2">
-                                                                    <Button variant="ghost" size="icon">
+                                                                    <Button 
+                                                                        variant="ghost" 
+                                                                        size="icon"
+                                                                        onClick={() => handleEditRequirement(requirement)}
+                                                                    >
                                                                         <Edit className="h-4 w-4" />
                                                                     </Button>
                                                                     <Button 
@@ -287,7 +309,11 @@ export default function RequirementsIndex({ categories }: Props) {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex justify-end space-x-2">
-                                                    <Button variant="ghost" size="icon">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon"
+                                                        onClick={() => handleEditRequirement(requirement)}
+                                                    >
                                                         <Edit className="h-4 w-4" />
                                                     </Button>
                                                     <Button 
@@ -307,6 +333,14 @@ export default function RequirementsIndex({ categories }: Props) {
                     </CardContent>
                 </Card>
             </div>
+
+            <RequirementFormModal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                categories={categories}
+                requirement={editingRequirement}
+                mode={modalMode}
+            />
         </RegistrarLayout>
     );
 }
