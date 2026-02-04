@@ -51,125 +51,112 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
     };
 
     return (
-        <div className="space-y-4">
-            {/* First Row: Search and Main Filters */}
-            <form onSubmit={handleSearchSubmit} className="grid gap-4 md:grid-cols-6">
-                <div className="relative md:col-span-2">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search by name, email, or LRN"
-                        className="h-11 pl-10"
-                        value={localSearch}
-                        onChange={(e) => setLocalSearch(e.target.value)}
-                    />
-                </div>
-
-                <Select
-                    value={filters.type || 'all'}
-                    onValueChange={(value) => handleFilterChange('type', value)}
-                >
-                    <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="transferee">Transferee</SelectItem>
-                        <SelectItem value="returnee">Returnee</SelectItem>
-                    </SelectContent>
-                </Select>
-
-                <Select
-                    value={filters.program || 'all'}
-                    onValueChange={(value) => handleFilterChange('program', value)}
-                >
-                    <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Programs" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Programs</SelectItem>
-                        {programs.map((program) => (
-                            <SelectItem key={program} value={program}>
-                                {program}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <Select
-                    value={filters.year_level || 'all'}
-                    onValueChange={(value) => handleFilterChange('year_level', value)}
-                >
-                    <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Year Levels" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Year Levels</SelectItem>
-                        {yearLevels.map((level) => (
-                            <SelectItem key={level} value={level}>
-                                {level}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <Button 
-                    type="submit" 
-                    className="h-11 w-full"
-                >
-                    Search
-                </Button>
-            </form>
-
-            {/* Second Row: Additional Filters and Clear */}
-            <div className="flex gap-4">
-                <div className="flex-1">
-                    <Select
-                        value={filters.enrollment_status || 'all'}
-                        onValueChange={(value) => handleFilterChange('enrollment_status', value)}
-                    >
-                        <SelectTrigger className="h-11">
-                            <SelectValue placeholder="All Enrollment Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Enrollment Status</SelectItem>
-                            <SelectItem value="not-enrolled">Not Enrolled</SelectItem>
-                            <SelectItem value="pending-registrar">Pending Registrar</SelectItem>
-                            <SelectItem value="pending-accounting">Pending Accounting</SelectItem>
-                            <SelectItem value="enrolled">Enrolled</SelectItem>
-                            <SelectItem value="graduated">Graduated</SelectItem>
-                            <SelectItem value="dropped">Dropped</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="flex-1">
-                    <Select
-                        value={filters.requirements_status || 'all'}
-                        onValueChange={(value) => handleFilterChange('requirements_status', value)}
-                    >
-                        <SelectTrigger className="h-11">
-                            <SelectValue placeholder="All Requirements Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Requirements Status</SelectItem>
-                            <SelectItem value="complete">Complete</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="incomplete">Incomplete</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleClearFilters}
-                    className="h-11 whitespace-nowrap"
-                >
-                    Clear Filters
-                </Button>
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-9 gap-3">
+            <div className="relative col-span-2">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search by name, email, or LRN"
+                    className="h-11 pl-10"
+                    value={localSearch}
+                    onChange={(e) => setLocalSearch(e.target.value)}
+                />
             </div>
-        </div>
+
+            <Select
+                value={filters.type || 'all'}
+                onValueChange={(value) => handleFilterChange('type', value)}
+            >
+                <SelectTrigger className="h-11">
+                    <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="transferee">Transferee</SelectItem>
+                    <SelectItem value="returnee">Returnee</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <Select
+                value={filters.program || 'all'}
+                onValueChange={(value) => handleFilterChange('program', value)}
+            >
+                <SelectTrigger className="h-11">
+                    <SelectValue placeholder="All Programs" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Programs</SelectItem>
+                    {programs.map((program) => (
+                        <SelectItem key={program} value={program}>
+                            {program}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <Select
+                value={filters.year_level || 'all'}
+                onValueChange={(value) => handleFilterChange('year_level', value)}
+            >
+                <SelectTrigger className="h-11">
+                    <SelectValue placeholder="All Year Levels" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Year Levels</SelectItem>
+                    {yearLevels.map((level) => (
+                        <SelectItem key={level} value={level}>
+                            {level}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <Select
+                value={filters.enrollment_status || 'all'}
+                onValueChange={(value) => handleFilterChange('enrollment_status', value)}
+            >
+                <SelectTrigger className="h-11">
+                    <SelectValue placeholder="All Enrollment Status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Enrollment Status</SelectItem>
+                    <SelectItem value="not-enrolled">Not Enrolled</SelectItem>
+                    <SelectItem value="pending-registrar">Pending Registrar</SelectItem>
+                    <SelectItem value="pending-accounting">Pending Accounting</SelectItem>
+                    <SelectItem value="enrolled">Enrolled</SelectItem>
+                    <SelectItem value="graduated">Graduated</SelectItem>
+                    <SelectItem value="dropped">Dropped</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <Select
+                value={filters.requirements_status || 'all'}
+                onValueChange={(value) => handleFilterChange('requirements_status', value)}
+            >
+                <SelectTrigger className="h-11">
+                    <SelectValue placeholder="All Requirements Status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Requirements Status</SelectItem>
+                    <SelectItem value="complete">Complete</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="incomplete">Incomplete</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <Button type="submit" className="h-11">
+                Search
+            </Button>
+
+            <Button
+                type="button"
+                variant="outline"
+                onClick={handleClearFilters}
+                className="h-11"
+            >
+                Clear
+            </Button>
+        </form>
     );
 }
