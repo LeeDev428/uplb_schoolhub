@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { toast } from 'sonner';
+import { showSuccess, showError } from './registrar-messages';
 
 interface RequirementCategory {
     id: number;
@@ -55,22 +55,22 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
         if (mode === 'create') {
             post('/registrar/documents/requirements', {
                 onSuccess: () => {
-                    toast.success('Requirement created successfully!');
+                    showSuccess('Requirement created successfully!');
                     reset();
                     onClose();
                 },
                 onError: () => {
-                    toast.error('Failed to create requirement. Please check the form.');
+                    showError('Failed to create requirement. Please check the form.');
                 },
             });
         } else if (requirement) {
             put(`/registrar/documents/requirements/${requirement.id}`, {
                 onSuccess: () => {
-                    toast.success('Requirement updated successfully!');
+                    showSuccess('Requirement updated successfully!');
                     onClose();
                 },
                 onError: () => {
-                    toast.error('Failed to update requirement. Please check the form.');
+                    showError('Failed to update requirement. Please check the form.');
                 },
             });
         }
