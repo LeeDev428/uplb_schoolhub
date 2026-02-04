@@ -195,46 +195,46 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                         <Label>Required For Student Types</Label>
                         <div className="space-y-2">
                             <div className="flex items-center space-x-2">
-                                <Checkbox
+                                <input
+                                    type="checkbox"
                                     id="new_enrollee"
                                     checked={data.applies_to_new_enrollee}
-                                    onCheckedChange={(checked) =>
-                                        setData('applies_to_new_enrollee', checked as boolean)
-                                    }
+                                    onChange={(e) => setData('applies_to_new_enrollee', e.target.checked)}
+                                    className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
                                     htmlFor="new_enrollee"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    className="text-sm font-medium leading-none cursor-pointer"
                                 >
                                     New Enrollee
                                 </label>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <Checkbox
+                                <input
+                                    type="checkbox"
                                     id="transferee"
                                     checked={data.applies_to_transferee}
-                                    onCheckedChange={(checked) =>
-                                        setData('applies_to_transferee', checked as boolean)
-                                    }
+                                    onChange={(e) => setData('applies_to_transferee', e.target.checked)}
+                                    className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
                                     htmlFor="transferee"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    className="text-sm font-medium leading-none cursor-pointer"
                                 >
                                     Transferee
                                 </label>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <Checkbox
+                                <input
+                                    type="checkbox"
                                     id="returning"
                                     checked={data.applies_to_returning}
-                                    onCheckedChange={(checked) =>
-                                        setData('applies_to_returning', checked as boolean)
-                                    }
+                                    onChange={(e) => setData('applies_to_returning', e.target.checked)}
+                                    className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
                                     htmlFor="returning"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    className="text-sm font-medium leading-none cursor-pointer"
                                 >
                                     Returning Student
                                 </label>
