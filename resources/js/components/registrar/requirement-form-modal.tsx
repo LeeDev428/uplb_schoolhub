@@ -244,14 +244,16 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
 
                     {/* Mandatory Requirement */}
                     <div className="flex items-center space-x-2">
-                        <Checkbox
+                        <input
+                            type="checkbox"
                             id="is_required"
                             checked={data.is_required}
-                            onCheckedChange={(checked) => setData('is_required', checked as boolean)}
+                            onChange={(e) => setData('is_required', e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300"
                         />
                         <label
                             htmlFor="is_required"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            className="text-sm font-medium leading-none cursor-pointer"
                         >
                             Mandatory Requirement
                         </label>
