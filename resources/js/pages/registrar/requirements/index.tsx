@@ -22,6 +22,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
+import { RegistrarMessages } from '@/components/registrar/registrar-messages';
 
 interface Requirement {
     id: number;
