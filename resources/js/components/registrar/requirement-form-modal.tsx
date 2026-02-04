@@ -37,12 +37,6 @@ interface RequirementFormModalProps {
 }
 
 export function RequirementFormModal({ open, onClose, categories, requirement, mode }: RequirementFormModalProps) {
-    // Simple local state for checkboxes - initialize from requirement if editing
-    const [newEnrollee, setNewEnrollee] = useState(requirement?.applies_to_new_enrollee ?? true);
-    const [transferee, setTransferee] = useState(requirement?.applies_to_transferee ?? false);
-    const [returning, setReturning] = useState(requirement?.applies_to_returning ?? false);
-    const [required, setRequired] = useState(requirement?.is_required ?? true);
-
     const { data, setData, post, put, processing, reset, errors } = useForm({
         name: requirement?.name || '',
         description: requirement?.description || '',
@@ -55,13 +49,9 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
         is_required: requirement?.is_required ?? true,
     });
 
-    // Update checkboxes when requirement changes
+    // Update form when requirement changes
     useEffect(() => {
         if (requirement && mode === 'edit') {
-            setNewEnrollee(requirement.applies_to_new_enrollee);
-            setTransferee(requirement.applies_to_transferee);
-            setReturning(requirement.applies_to_returning);
-            setRequired(requirement.is_required);
             setData({
                 name: requirement.name,
                 description: requirement.description,
@@ -74,42 +64,18 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                 is_required: requirement.is_required,
             });
         } else if (!requirement && mode === 'create') {
-            setNewEnrollee(true);
-            setTransferee(false);
-            setReturning(false);
-            setRequired(true);
+            reset();
         }
     }, [requirement?.id, mode]);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // Debug: Log what we're sending
-        console.log('=== SUBMITTING DATA ===');
-        console.log('Mode:', mode);
-        console.log('Checkbox States:', {
-            newEnrollee,
-            transferee,
-            returning,
-            required
-        });
-
         if (mode === 'create') {
             post('/registrar/documents/requirements', {
-                transform: (data) => ({
-                    ...data,
-                    applies_to_new_enrollee: newEnrollee,
-                    applies_to_transferee: transferee,
-                    applies_to_returning: returning,
-                    is_required: required,
-                }),
                 onSuccess: () => {
                     showSuccess('Requirement created successfully!');
                     reset();
-                    setNewEnrollee(true);
-                    setTransferee(false);
-                    setReturning(false);
-                    setRequired(true);
                     onClose();
                 },
                 onError: () => {
@@ -118,13 +84,6 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
             });
         } else if (requirement) {
             put(`/registrar/documents/requirements/${requirement.id}`, {
-                transform: (data) => ({
-                    ...data,
-                    applies_to_new_enrollee: newEnrollee,
-                    applies_to_transferee: transferee,
-                    applies_to_returning: returning,
-                    is_required: required,
-                }),
                 onSuccess: () => {
                     showSuccess('Requirement updated successfully!');
                     onClose();
@@ -238,8 +197,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                                 <input
                                     type="checkbox"
                                     id="new_enrollee"
-                                    checked={newEnrollee}
-                                    onChange={(e) => setNewEnrollee(e.target.checked)}
+                                    checked={data.applies_to_new_enrollee}
+                                    onChange={(e) => setData('applies_to_new_enrollee', e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
@@ -253,8 +212,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                                 <input
                                     type="checkbox"
                                     id="transferee"
-                                    checked={transferee}
-                                    onChange={(e) => setTransferee(e.target.checked)}
+                                    checked={data.applies_to_transferee}
+                                    onChange={(e) => setData('applies_to_transferee', e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
@@ -268,8 +227,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                                 <input
                                     type="checkbox"
                                     id="returning"
-                                    checked={returning}
-                                    onChange={(e) => setReturning(e.target.checked)}
+                                    checked={data.applies_to_returning}
+                                    onChange={(e) => setData('applies_to_returning', e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300"
                                 />
                                 <label
@@ -287,8 +246,8 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
                         <input
                             type="checkbox"
                             id="is_required"
-                            checked={required}
-                            onChange={(e) => setRequired(e.target.checked)}
+                            checked={data.is_required}
+                            onChange={(e) => setData('is_required', e.target.checked)}
                             className="h-4 w-4 rounded border-gray-300"
                         />
                         <label
