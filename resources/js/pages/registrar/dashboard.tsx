@@ -1,161 +1,174 @@
 import { Head } from '@inertiajs/react';
-import { StudentFilters } from '@/components/registrar/student-filters';
-import { StudentStatCard } from '@/components/registrar/student-stat-card';
-import { StudentTable } from '@/components/registrar/student-table';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import type { BreadcrumbItem } from '@/types';
+import { DashboardCard } from '@/components/registrar/dashboard-card';
+import { RecentActivity } from '@/components/registrar/recent-activity';
+import { RequirementsStatus } from '@/components/registrar/requirements-status-chart';
+import { Users, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/registrar/dashboard',
-    },
-];
+interface Stats {
+    activeStudents: number;
+    officiallyEnrolled: number;
+    registrarPending: number;
+    accountingPending: number;
+    notEnrolled: number;
+    graduated: number;
+}
 
-// Mock data - replace with actual data from backend
-const mockStudents = [
-    {
-        id: '2023-001',
-        lrn: '123456789012',
-        name: 'John Michael Doe Jr.',
-        email: 'john.doe@student.edu',
-        avatar: undefined,
-        type: 'new' as const,
-        program: 'BS Information Technology',
-        yearSection: '3rd Year - Section A',
-        requirementsStatus: 'complete' as const,
-        requirementsPercentage: 100,
-        enrollmentStatus: 'enrolled' as const,
-        remarks: 'graduating',
-    },
-    {
-        id: '2023-002',
-        lrn: '234567890123',
-        name: 'Maria Cristina Santos',
-        email: 'maria.santos@student.edu',
-        avatar: undefined,
-        type: 'transferee' as const,
-        program: 'BS Computer Science',
-        yearSection: '2nd Year - Section B',
-        requirementsStatus: 'pending' as const,
-        requirementsPercentage: 75,
-        enrollmentStatus: 'pending-accounting' as const,
-        remarks: 'part-time',
-    },
-    {
-        id: '2023-003',
-        lrn: '345678901234',
-        name: 'Carlos Antonio Reyes',
-        email: 'carlos.reyes@student.edu',
-        avatar: undefined,
-        type: 'returnee' as const,
-        program: 'BS Business Administration',
-        yearSection: '4th Year - Section A',
-        requirementsStatus: 'incomplete' as const,
-        requirementsPercentage: 45,
-        enrollmentStatus: 'pending-registrar' as const,
-        remarks: 'full-time',
-    },
-    {
-        id: '2023-004',
-        lrn: '456789012345',
-        name: 'Ana Marie Cruz',
-        email: 'ana.cruz@student.edu',
-        avatar: undefined,
-        type: 'new' as const,
-        program: 'BS Information Technology',
-        yearSection: '1st Year - Section C',
-        requirementsStatus: 'pending' as const,
-        requirementsPercentage: 60,
-        enrollmentStatus: 'not-enrolled' as const,
-    },
-];
-
-export default function Students() {
-    const stats = {
-        allStudents: 4,
-        officiallyEnrolled: 1,
-        notEnrolled: 1,
-        registrarPending: 1,
-        accountingPending: 1,
-        graduated: 0,
-        dropped: 0,
+interface Cards {
+    totalStudents: {
+        count: number;
+        complete: number;
+        pending: number;
     };
+    pendingRequirements: number;
+    completeSubmissions: number;
+    documentRequests: number;
+}
 
+interface Activity {
+    student: string;
+    activity: string;
+    time: string;
+    registrar: string;
+    status: string;
+}
+
+interface RequirementsStatusData {
+    complete: number;
+    pending: number;
+    overdue: number;
+}
+
+interface Props {
+    stats: Stats;
+    cards: Cards;
+    recentActivity: Activity[];
+    requirementsStatus: RequirementsStatusData;
+}
+
+export default function Dashboard({ stats, cards, recentActivity, requirementsStatus }: Props) {
     return (
-        <RegistrarLayout breadcrumbs={breadcrumbs}>
-            <Head title="Student Management" />
+        <RegistrarLayout>
+            <Head title="Dashboard" />
 
             <div className="space-y-6 p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground">
-                            Student Management
-                        </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Manage and monitor all student records and
-                            enrollments
-                        </p>
-                    </div>
-                    <div className="flex space-x-3">
-                        <Button variant="outline">Follow Up Sectioning</Button>
-                        <Button>+ Add New Student</Button>
+                        <h1 className="text-3xl font-bold">Dashboard</h1>
                     </div>
                 </div>
 
-                {/* Statistics Cards */}
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-                    <StudentStatCard
-                        title="All Students"
-                        value={stats.allStudents}
-                        color="blue"
-                        label="Total"
-                    />
-                    <StudentStatCard
-                        title="Officially Enrolled"
-                        value={stats.officiallyEnrolled}
-                        color="green"
-                        label="Enrolled"
-                    />
-                    <StudentStatCard
-                        title="Not Enrolled"
-                        value={stats.notEnrolled}
-                        color="orange"
-                        label="Pending"
-                    />
-                    <StudentStatCard
-                        title="Registrar Pending"
-                        value={stats.registrarPending}
-                        color="sky"
-                        label="Documents"
-                    />
-                    <StudentStatCard
-                        title="Accounting Pending"
-                        value={stats.accountingPending}
-                        color="purple"
-                        label="Payment"
-                    />
-                    <StudentStatCard
-                        title="Graduated"
-                        value={stats.graduated}
-                        color="green"
-                        label="Alumni"
-                    />
-                    <StudentStatCard
-                        title="Dropped"
-                        value={stats.dropped}
-                        color="red"
-                        label="Inactive"
-                    />
+                {/* Top Stats Cards */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-gray-900">{stats.activeStudents}</div>
+                                <div className="text-sm text-gray-600">Active Students</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-green-600">{stats.officiallyEnrolled}</div>
+                                <div className="text-sm text-gray-600">Officially Enrolled</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-blue-600">{stats.registrarPending}</div>
+                                <div className="text-sm text-gray-600">Registrar Pending</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-blue-600">{stats.accountingPending}</div>
+                                <div className="text-sm text-gray-600">Accounting Pending</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-yellow-600">{stats.notEnrolled}</div>
+                                <div className="text-sm text-gray-600">Not Enrolled</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-gray-900">{stats.graduated}</div>
+                                <div className="text-sm text-gray-600">Graduated</div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Filters */}
-                <StudentFilters />
+                {/* Main Dashboard Cards */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <Card className="bg-slate-700 text-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold">Total Students</h3>
+                                <Users className="h-8 w-8" />
+                            </div>
+                            <div className="text-4xl font-bold mb-2">{cards.totalStudents.count}</div>
+                            <p className="text-sm opacity-90">{cards.totalStudents.complete} complete, {cards.totalStudents.pending} pending</p>
+                        </CardContent>
+                    </Card>
 
-                {/* Student Table */}
-                <StudentTable students={mockStudents} />
+                    <Card className="bg-blue-500 text-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold">Pending Requirements</h3>
+                                <AlertCircle className="h-8 w-8" />
+                            </div>
+                            <div className="text-4xl font-bold mb-2">{cards.pendingRequirements}</div>
+                            <p className="text-sm opacity-90">Require attention</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-green-500 text-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold">Complete Submissions</h3>
+                                <CheckCircle className="h-8 w-8" />
+                            </div>
+                            <div className="text-4xl font-bold mb-2">{cards.completeSubmissions}</div>
+                            <p className="text-sm opacity-90">Ready for enrollment</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-yellow-500 text-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold">Document Requests</h3>
+                                <FileText className="h-8 w-8" />
+                            </div>
+                            <div className="text-4xl font-bold mb-2">{cards.documentRequests}</div>
+                            <p className="text-sm opacity-90">Awaiting processing</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Recent Activity and Requirements Status */}
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-2">
+                        <RecentActivity activities={recentActivity} />
+                    </div>
+                    <div>
+                        <RequirementsStatus status={requirementsStatus} />
+                    </div>
+                </div>
             </div>
         </RegistrarLayout>
     );
