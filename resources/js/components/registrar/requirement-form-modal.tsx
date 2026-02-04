@@ -86,21 +86,24 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // Set checkbox values before submitting
-        const formData = {
+        // Update form data with checkbox values before submitting
+        setData({
             ...data,
             applies_to_new_enrollee: newEnrollee,
             applies_to_transferee: transferee,
             applies_to_returning: returning,
             is_required: required,
-        };
+        });
 
         if (mode === 'create') {
             post('/registrar/documents/requirements', {
-                data: formData,
                 onSuccess: () => {
                     showSuccess('Requirement created successfully!');
                     reset();
+                    setNewEnrollee(true);
+                    setTransferee(false);
+                    setReturning(false);
+                    setRequired(true);
                     onClose();
                 },
                 onError: () => {
@@ -109,7 +112,6 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
             });
         } else if (requirement) {
             put(`/registrar/documents/requirements/${requirement.id}`, {
-                data: formData,
                 onSuccess: () => {
                     showSuccess('Requirement updated successfully!');
                     onClose();
