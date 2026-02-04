@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
+import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
 
 interface StudentRequirement {
     id: number;
@@ -35,6 +36,15 @@ interface StudentRequirement {
             name: string;
         };
     };
+}
+
+interface EnrollmentClearance {
+    requirements_complete: boolean;
+    requirements_complete_percentage: number;
+    registrar_clearance: boolean;
+    accounting_clearance: boolean;
+    official_enrollment: boolean;
+    enrollment_status: string;
 }
 
 interface Student {
@@ -81,9 +91,10 @@ interface Student {
 interface Props {
     student: Student;
     requirementsCompletion: number;
+    enrollmentClearance?: EnrollmentClearance;
 }
 
-export default function StudentShow({ student, requirementsCompletion }: Props) {
+export default function StudentShow({ student, requirementsCompletion, enrollmentClearance }: Props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeTab, setActiveTab] = useState('requirements');
 
@@ -231,31 +242,22 @@ export default function StudentShow({ student, requirementsCompletion }: Props) 
 
                     {/* Requirements Tab */}
                     <TabsContent value="requirements" className="space-y-6">
+                        {/* Enrollment Clearance Progress Component */}
+                        <EnrollmentClearanceProgress 
+                            studentId={student.id}
+                            clearance={enrollmentClearance}
+                        />
+                        
                         <Card>
                             <CardHeader>
-                                <CardTitle>Enrollment Clearance Progress</CardTitle>
+                                <CardTitle>Submitted Requirements</CardTitle>
                                 <CardDescription>
                                     {completedRequirements} of {totalRequirements} requirements completed
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-2xl font-bold">{clearanceProgress}%</span>
-                                        <Badge className={clearanceProgress === 100 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                                            {clearanceProgress === 100 ? '0% Complete' : `${clearanceProgress}% Complete`}
-                                        </Badge>
-                                    </div>
-                                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-blue-600 transition-all duration-300"
-                                            style={{ width: `${clearanceProgress}%` }}
-                                        />
-                                    </div>
-                                </div>
-
                                 {/* Requirements by Category */}
-                                <div className="mt-8 space-y-6">
+                                <div className="space-y-6">
                                     {Object.entries(requirementsByCategory).map(([category, requirements]) => (
                                         <div key={category}>
                                             <h3 className="text-lg font-semibold mb-4">{category}</h3>
