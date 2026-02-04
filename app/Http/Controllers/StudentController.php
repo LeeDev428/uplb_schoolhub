@@ -96,8 +96,11 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
+        $student->load(['requirements.requirement.category']);
+
         return Inertia::render('registrar/students/show', [
             'student' => $student,
+            'requirementsCompletion' => $student->requirements_completion_percentage,
         ]);
     }
 
