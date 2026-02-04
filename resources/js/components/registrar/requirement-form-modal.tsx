@@ -84,44 +84,46 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // Update the form data with checkbox values
-        setData({
+        // Prepare the complete data with checkbox values
+        const submitData = {
             ...data,
             applies_to_new_enrollee: newEnrollee,
             applies_to_transferee: transferee,
             applies_to_returning: returning,
             is_required: required,
-        });
+        };
 
-        // Use setTimeout to ensure setData has updated before submitting
-        setTimeout(() => {
-            if (mode === 'create') {
-                post('/registrar/documents/requirements', {
-                    onSuccess: () => {
-                        showSuccess('Requirement created successfully!');
-                        reset();
-                        setNewEnrollee(true);
-                        setTransferee(false);
-                        setReturning(false);
-                        setRequired(true);
-                        onClose();
-                    },
-                    onError: () => {
-                        showError('Failed to create requirement. Please check the form.');
-                    },
-                });
-            } else if (requirement) {
-                put(`/registrar/documents/requirements/${requirement.id}`, {
-                    onSuccess: () => {
-                        showSuccess('Requirement updated successfully!');
-                        onClose();
-                    },
-                    onError: () => {
-                        showError('Failed to update requirement. Please check the form.');
-                    },
-                });
-            }
-        }, 0);
+        // Update form data state
+        setData(submitData);
+
+        if (mode === 'create') {
+            post('/registrar/documents/requirements', {
+                data: submitData,
+                onSuccess: () => {
+                    showSuccess('Requirement created successfully!');
+                    reset();
+                    setNewEnrollee(true);
+                    setTransferee(false);
+                    setReturning(false);
+                    setRequired(true);
+                    onClose();
+                },
+                onError: () => {
+                    showError('Failed to create requirement. Please check the form.');
+                },
+            });
+        } else if (requirement) {
+            put(`/registrar/documents/requirements/${requirement.id}`, {
+                data: submitData,
+                onSuccess: () => {
+                    showSuccess('Requirement updated successfully!');
+                    onClose();
+                },
+                onError: () => {
+                    showError('Failed to update requirement. Please check the form.');
+                },
+            });
+        }
     };
 
     return (
