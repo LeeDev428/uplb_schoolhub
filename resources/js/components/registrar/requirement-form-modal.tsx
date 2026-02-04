@@ -120,23 +120,6 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
             });
         }
     };
-                },
-                onError: () => {
-                    showError('Failed to create requirement. Please check the form.');
-                },
-            });
-        } else if (requirement) {
-            put(`/registrar/documents/requirements/${requirement.id}`, {
-                onSuccess: () => {
-                    showSuccess('Requirement updated successfully!');
-                    onClose();
-                },
-                onError: () => {
-                    showError('Failed to update requirement. Please check the form.');
-                },
-            });
-        }
-    };
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
