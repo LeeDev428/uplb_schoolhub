@@ -88,4 +88,20 @@ class User extends Authenticatable
     {
         return $this->role === self::ROLE_STUDENT;
     }
+
+    /**
+     * Get the enrollment clearance for this user
+     */
+    public function enrollmentClearance()
+    {
+        return $this->hasOne(EnrollmentClearance::class);
+    }
+
+    /**
+     * Get student requirements for this user
+     */
+    public function studentRequirements()
+    {
+        return $this->hasMany(StudentRequirement::class);
+    }
 }
