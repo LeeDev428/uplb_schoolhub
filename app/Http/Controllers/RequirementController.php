@@ -55,12 +55,18 @@ class RequirementController extends Controller
             'description' => 'nullable|string',
             'deadline_type' => 'required|in:during_enrollment,before_classes,custom',
             'custom_deadline' => 'nullable|required_if:deadline_type,custom|date',
-            'applies_to_new_enrollee' => 'boolean',
-            'applies_to_transferee' => 'boolean',
-            'applies_to_returning' => 'boolean',
-            'is_required' => 'boolean',
+            'applies_to_new_enrollee' => 'nullable|boolean',
+            'applies_to_transferee' => 'nullable|boolean',
+            'applies_to_returning' => 'nullable|boolean',
+            'is_required' => 'nullable|boolean',
             'order' => 'nullable|integer',
         ]);
+
+        // Ensure boolean fields are set with default values if not provided
+        $validated['applies_to_new_enrollee'] = $validated['applies_to_new_enrollee'] ?? false;
+        $validated['applies_to_transferee'] = $validated['applies_to_transferee'] ?? false;
+        $validated['applies_to_returning'] = $validated['applies_to_returning'] ?? false;
+        $validated['is_required'] = $validated['is_required'] ?? true;
 
         Requirement::create($validated);
 
@@ -77,12 +83,18 @@ class RequirementController extends Controller
             'description' => 'nullable|string',
             'deadline_type' => 'required|in:during_enrollment,before_classes,custom',
             'custom_deadline' => 'nullable|required_if:deadline_type,custom|date',
-            'applies_to_new_enrollee' => 'boolean',
-            'applies_to_transferee' => 'boolean',
-            'applies_to_returning' => 'boolean',
-            'is_required' => 'boolean',
+            'applies_to_new_enrollee' => 'nullable|boolean',
+            'applies_to_transferee' => 'nullable|boolean',
+            'applies_to_returning' => 'nullable|boolean',
+            'is_required' => 'nullable|boolean',
             'order' => 'nullable|integer',
         ]);
+
+        // Ensure boolean fields are set with default values if not provided
+        $validated['applies_to_new_enrollee'] = $validated['applies_to_new_enrollee'] ?? false;
+        $validated['applies_to_transferee'] = $validated['applies_to_transferee'] ?? false;
+        $validated['applies_to_returning'] = $validated['applies_to_returning'] ?? false;
+        $validated['is_required'] = $validated['is_required'] ?? true;
 
         $requirement->update($validated);
 
@@ -94,7 +106,7 @@ class RequirementController extends Controller
      */
     public function destroy(Requirement $requirement)
     {
-        $requirement->delete();
+        $requirement->forceDelete(); // Permanently delete instead of soft delete
 
         return back()->with('success', 'Requirement deleted successfully');
     }
