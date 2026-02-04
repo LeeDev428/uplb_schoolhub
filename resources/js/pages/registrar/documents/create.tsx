@@ -15,7 +15,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { RequirementFormModal } from '@/components/registrar/requirement-form-modal';
+import { RequirementFormModal } from './components/requirement-form-modal';
 
 interface Requirement {
     id: number;
