@@ -121,6 +121,14 @@ class Student extends Model
     }
 
     /**
+     * Get the enrollment clearance for this student
+     */
+    public function enrollmentClearance()
+    {
+        return $this->hasOne(EnrollmentClearance::class, 'user_id');
+    }
+
+    /**
      * Get completion percentage for requirements
      */
     public function getRequirementsCompletionPercentageAttribute(): int
