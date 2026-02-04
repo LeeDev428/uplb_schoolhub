@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import type { BreadcrumbItem } from '@/types';
-import { toast } from 'sonner';
+import { RegistrarMessages, showSuccess, showError } from '@/components/registrar/registrar-messages';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -81,12 +81,6 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
     const [editingStudent, setEditingStudent] = useState<Student | undefined>();
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
 
-    useEffect(() => {
-        if (flash?.success) {
-            toast.success(flash.success);
-        }
-    }, [flash]);
-
     const handleAddStudent = () => {
         setEditingStudent(undefined);
         setModalMode('create');
@@ -103,10 +97,10 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
         if (confirm('Are you sure you want to delete this student?')) {
             router.delete(destroyStudent.url({ student: studentId }), {
                 onSuccess: () => {
-                    toast.success('Student deleted successfully!');
+                    showSuccess('Student deleted successfully!');
                 },
                 onError: () => {
-                    toast.error('Failed to delete student.');
+                    showError('Failed to delete student.');
                 },
             });
         }
@@ -156,6 +150,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
     return (
         <RegistrarLayout breadcrumbs={breadcrumbs}>
             <Head title="Student Management" />
+            <RegistrarMessages />
 
             <div className="space-y-6 p-6">
                 {/* Header */}
