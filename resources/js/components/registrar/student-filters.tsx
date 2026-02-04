@@ -172,38 +172,6 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
             </div>
         </div>
     );
-}
-                    </Select>
-                </div>
-
-                <div>
-                    <Select
-                        value={filters.requirements_status || 'all'}
-                        onValueChange={(value) => handleFilterChange('requirements_status', value)}
-                    >
-                        <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Requirements Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Requirements Status</SelectItem>
-                            <SelectItem value="incomplete">Incomplete</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="complete">Complete</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div>
-                    <Button 
-                        type="button" 
-                        variant="outline" 
-                        className="h-11 w-full"
-                        onClick={handleClearFilters}
-                    >
-                        Clear Filters
-                    </Button>
-                </div>
-            </div>
         </div>
     );
 }
