@@ -68,9 +68,19 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
         'index', 'store', 'show', 'update', 'destroy'
     ]);
 
-    Route::get('requirements', function () {
-        return Inertia::render('registrar/requirements');
-    })->name('requirements');
+    // Requirements Management
+    Route::get('requirements', [App\Http\Controllers\RequirementController::class, 'index'])->name('requirements.index');
+    Route::post('requirements', [App\Http\Controllers\RequirementController::class, 'store'])->name('requirements.store');
+    Route::put('requirements/{requirement}', [App\Http\Controllers\RequirementController::class, 'update'])->name('requirements.update');
+    Route::delete('requirements/{requirement}', [App\Http\Controllers\RequirementController::class, 'destroy'])->name('requirements.destroy');
+    Route::post('requirements/categories', [App\Http\Controllers\RequirementController::class, 'storeCategory'])->name('requirements.categories.store');
+    
+    // Requirements Tracking
+    Route::get('requirements/tracking', [App\Http\Controllers\RequirementTrackingController::class, 'index'])->name('requirements.tracking');
+    
+    // Student Requirement Actions
+    Route::put('student-requirements/{studentRequirement}/status', [App\Http\Controllers\StudentRequirementController::class, 'updateStatus'])->name('student-requirements.update-status');
+    Route::post('student-requirements/{studentRequirement}/upload', [App\Http\Controllers\StudentRequirementController::class, 'uploadFile'])->name('student-requirements.upload');
 
     Route::get('documents/create', function () {
         return Inertia::render('registrar/documents/create');
