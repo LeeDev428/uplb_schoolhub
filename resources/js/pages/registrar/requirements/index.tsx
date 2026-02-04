@@ -1,11 +1,18 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Search, FileDown, Mail, TestTube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -19,293 +26,246 @@ import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 interface Requirement {
     id: number;
     name: string;
-    description: string;
-    deadline_type: string;
-    deadline_text: string;
-    applies_to_new_enrollee: boolean;
-    applies_to_transferee: boolean;
-    applies_to_returning: boolean;
-    applies_to_text: string;
-    is_required: boolean;
-    is_active: boolean;
 }
 
-interface RequirementCategory {
+interface StudentRequirement {
     id: number;
-    name: string;
-    slug: string;
-    description: string | null;
-    requirements: Requirement[];
+    status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'overdue';
+    requirement: Requirement;
+}
+
+interface Student {
+    id: number;
+    first_name: string;
+    last_name: string;
+    student_number: string;
+    student_type: string;
+    program: string;
+    student_photo_url: string | null;
+    requirements: StudentRequirement[];
 }
 
 interface Props {
-    categories: RequirementCategory[];
+    students: {
+        data: Student[];
+        current_page: number;
+        per_page: number;
+        total: number;
+    };
+    requirements: Requirement[];
+    filters: {
+        type: string;
+        search?: string;
+        status?: string;
+        program?: string;
+    };
 }
 
-export default function RequirementsIndex({ categories }: Props) {
-    const [activeCategory, setActiveCategory] = useState(categories[0]?.slug || 'new-enrollee');
+export default function RequirementsTracking({ students, requirements, filters }: Props) {
+    const [search, setSearch] = useState(filters.search || '');
+    const [selectedType, setSelectedType] = useState(filters.type || 'all');
+    const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
+    const [selectedProgram, setSelectedProgram] = useState(filters.program || 'all');
 
-    const handleDeleteRequirement = (requirementId: number, requirementName: string) => {
-        if (window.confirm(`Are you sure you want to delete "${requirementName}"?`)) {
-            router.delete(`/registrar/requirements/${requirementId}`, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Requirement deleted successfully');
-                },
-                onError: () => {
-                    toast.error('Failed to delete requirement');
-                },
-            });
-        }
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get('/registrar/requirements', {
+            type: selectedType,
+            search,
+            status: selectedStatus,
+            program: selectedProgram,
+        }, { preserveState: true });
     };
 
-    const getCategoryColor = (slug: string) => {
-        const colors = {
-            'new-enrollee': 'bg-blue-100 text-blue-800',
-            'transferee': 'bg-purple-100 text-purple-800',
-            'common': 'bg-green-100 text-green-800',
-        };
-        return colors[slug as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    const handleTypeChange = (type: string) => {
+        setSelectedType(type);
+        router.get('/registrar/requirements', {
+            type,
+            search,
+            status: selectedStatus,
+            program: selectedProgram,
+        }, { preserveState: true, replace: true });
     };
 
-    const getDeadlineColor = (deadlineType: string) => {
-        const colors = {
-            'during_enrollment': 'bg-yellow-100 text-yellow-800',
-            'before_classes': 'bg-orange-100 text-orange-800',
-            'custom': 'bg-blue-100 text-blue-800',
+    const handleExport = () => {
+        window.location.href = `/registrar/requirements/export?type=${selectedType}&search=${search}&status=${selectedStatus}&program=${selectedProgram}`;
+    };
+
+    const getStatusBadge = (status: string) => {
+        const badges = {
+            pending: <Badge className="bg-yellow-100 text-yellow-800 text-xs">Pending</Badge>,
+            submitted: <Badge className="bg-blue-100 text-blue-800 text-xs">Submitted</Badge>,
+            approved: <Badge className="bg-green-100 text-green-800 text-xs">Complete</Badge>,
+            rejected: <Badge className="bg-red-100 text-red-800 text-xs">Rejected</Badge>,
+            overdue: <Badge className="bg-red-100 text-red-800 text-xs">Overdue</Badge>,
         };
-        return colors[deadlineType as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+        return badges[status as keyof typeof badges] || null;
+    };
+
+    const getTypeColor = (type: string) => {
+        const colors = {
+            new: 'bg-blue-100 text-blue-800',
+            transferee: 'bg-purple-100 text-purple-800',
+            returning: 'bg-green-100 text-green-800',
+        };
+        return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    };
+
+    const calculateCompletionStatus = (studentRequirements: StudentRequirement[]) => {
+        const total = studentRequirements.length;
+        if (total === 0) return { status: 'N/A', percentage: 0 };
+        
+        const completed = studentRequirements.filter(r => r.status === 'approved').length;
+        const percentage = Math.round((completed / total) * 100);
+        
+        if (percentage === 100) return { status: 'Complete', percentage, class: 'bg-green-100 text-green-800' };
+        if (percentage >= 75) return { status: `${percentage}%`, percentage, class: 'bg-yellow-100 text-yellow-800' };
+        if (percentage >= 50) return { status: `${percentage}%`, percentage, class: 'bg-orange-100 text-orange-800' };
+        return { status: `${percentage}%`, percentage, class: 'bg-red-100 text-red-800' };
     };
 
     return (
         <RegistrarLayout>
-            <Head title="Requirements Manager" />
+            <Head title="Requirements Tracking" />
 
-            <div className="space-y-6">
+            <div className="space-y-6 p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold">Requirements Manager</h1>
+                        <h1 className="text-3xl font-bold">Requirements Tracking</h1>
                         <p className="text-muted-foreground mt-1">
-                            Manage enrollment requirements by category
+                            Monitor student requirement submissions and completion status
                         </p>
                     </div>
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add New Requirement
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                        <Button variant="outline" onClick={handleExport}>
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Export to Excel
+                        </Button>
+                        <Button variant="outline">
+                            <TestTube className="mr-2 h-4 w-4" />
+                            Test Reminder
+                        </Button>
+                        <Button>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Send Reminders
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Category Tabs */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Manage Requirements by Category</CardTitle>
-                        <CardDescription>
-                            Organize requirements for different student types
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-                            <TabsList className="grid w-full grid-cols-3">
-                                {categories.map((category) => (
-                                    <TabsTrigger key={category.id} value={category.slug}>
-                                        {category.name}
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
+                {/* Student Type Tabs */}
+                <Tabs value={selectedType} onValueChange={handleTypeChange}>
+                    <TabsList>
+                        <TabsTrigger value="all">All Students</TabsTrigger>
+                        <TabsTrigger value="new">New Enrollees</TabsTrigger>
+                        <TabsTrigger value="transferee">Transferees</TabsTrigger>
+                        <TabsTrigger value="returning">Returning</TabsTrigger>
+                    </TabsList>
+                </Tabs>
 
-                            {categories.map((category) => (
-                                <TabsContent key={category.id} value={category.slug} className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="text-lg font-semibold">Requirements for {category.name}</h3>
-                                            <p className="text-sm text-muted-foreground">{category.description}</p>
-                                        </div>
-                                        <Button variant="outline" size="sm">
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Add Requirement
-                                        </Button>
-                                    </div>
-
-                                    {/* Requirements Table */}
-                                    <div className="rounded-md border">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Requirement</TableHead>
-                                                    <TableHead>Applies To</TableHead>
-                                                    <TableHead>Deadline</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead className="text-right">Actions</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {category.requirements.length === 0 ? (
-                                                    <TableRow>
-                                                        <TableCell colSpan={5} className="text-center py-8">
-                                                            <p className="text-muted-foreground">
-                                                                No requirements yet. Add your first requirement to get started.
-                                                            </p>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ) : (
-                                                    category.requirements.map((requirement) => (
-                                                        <TableRow key={requirement.id}>
-                                                            <TableCell>
-                                                                <div>
-                                                                    <div className="font-medium">{requirement.name}</div>
-                                                                    <div className="text-sm text-muted-foreground">
-                                                                        {requirement.description}
-                                                                    </div>
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    {requirement.applies_to_new_enrollee && (
-                                                                        <Badge variant="outline" className="text-xs">
-                                                                            New Enrollee
-                                                                        </Badge>
-                                                                    )}
-                                                                    {requirement.applies_to_transferee && (
-                                                                        <Badge variant="outline" className="text-xs">
-                                                                            Transferee
-                                                                        </Badge>
-                                                                    )}
-                                                                    {requirement.applies_to_returning && (
-                                                                        <Badge variant="outline" className="text-xs">
-                                                                            Returning
-                                                                        </Badge>
-                                                                    )}
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Badge className={getDeadlineColor(requirement.deadline_type)}>
-                                                                    {requirement.deadline_text}
-                                                                </Badge>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Badge className={requirement.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                                                                    {requirement.is_active ? 'Active' : 'Inactive'}
-                                                                </Badge>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <div className="flex justify-end space-x-2">
-                                                                    <Button variant="ghost" size="icon">
-                                                                        <Edit className="h-4 w-4" />
-                                                                    </Button>
-                                                                    <Button 
-                                                                        variant="ghost" 
-                                                                        size="icon"
-                                                                        onClick={() => handleDeleteRequirement(requirement.id, requirement.name)}
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4 text-red-500" />
-                                                                    </Button>
-                                                                </div>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))
-                                                )}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </TabsContent>
-                            ))}
-                        </Tabs>
-                    </CardContent>
-                </Card>
-
-                {/* Assignment Table - Showing how requirements map to student types */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Assign Requirements to Student Types</CardTitle>
-                        <CardDescription>
-                            Configure which requirements apply to each student type
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Requirement</TableHead>
-                                        <TableHead>Category</TableHead>
-                                        <TableHead className="text-center">New Enrollee</TableHead>
-                                        <TableHead className="text-center">Transferee</TableHead>
-                                        <TableHead className="text-center">Returning</TableHead>
-                                        <TableHead>Deadline</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {categories.flatMap(category => category.requirements).map((requirement) => (
-                                        <TableRow key={requirement.id}>
-                                            <TableCell>
-                                                <div>
-                                                    <div className="font-medium">{requirement.name}</div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {requirement.description}
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge className={getCategoryColor(categories.find(c => c.requirements.some(r => r.id === requirement.id))?.slug || '')}>
-                                                    {categories.find(c => c.requirements.some(r => r.id === requirement.id))?.name}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="flex justify-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={requirement.applies_to_new_enrollee}
-                                                        readOnly
-                                                        className="h-4 w-4 rounded border-gray-300"
-                                                    />
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="flex justify-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={requirement.applies_to_transferee}
-                                                        readOnly
-                                                        className="h-4 w-4 rounded border-gray-300"
-                                                    />
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="flex justify-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={requirement.applies_to_returning}
-                                                        readOnly
-                                                        className="h-4 w-4 rounded border-gray-300"
-                                                    />
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="text-sm">{requirement.deadline_text}</span>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex justify-end space-x-2">
-                                                    <Button variant="ghost" size="icon">
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon"
-                                                        onClick={() => handleDeleteRequirement(requirement.id, requirement.name)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-red-500" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                {/* Search and Filters */}
+                <div className="flex items-center space-x-4">
+                    <form onSubmit={handleSearch} className="flex-1 flex items-center space-x-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                type="text"
+                                placeholder="Search by last name, first name, or student ID..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-10"
+                            />
                         </div>
-                    </CardContent>
-                </Card>
+                        <Button type="submit">Search</Button>
+                    </form>
+                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="complete">Complete</SelectItem>
+                            <SelectItem value="incomplete">Incomplete</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="All Programs" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Programs</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Students Table */}
+                <div className="rounded-md border bg-white">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Student</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Requirements</TableHead>
+                                <TableHead>Overall Status</TableHead>
+                                <TableHead>Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {students.data.map((student) => {
+                                const { status, percentage, class: badgeClass } = calculateCompletionStatus(student.requirements);
+                                const initials = `${student.first_name[0]}${student.last_name[0]}`;
+                                
+                                return (
+                                    <TableRow key={student.id}>
+                                        <TableCell>
+                                            <div className="flex items-center space-x-3">
+                                                <Avatar>
+                                                    <AvatarImage src={student.student_photo_url || undefined} />
+                                                    <AvatarFallback>{initials}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium">{`${student.first_name} ${student.last_name}`}</div>
+                                                    <div className="text-sm text-muted-foreground">{student.student_number}</div>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={getTypeColor(student.student_type.toLowerCase())}>
+                                                {student.student_type}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {student.requirements.slice(0, 3).map((req) => (
+                                                    <div key={req.id} className="flex items-center space-x-1">
+                                                        {getStatusBadge(req.status)}
+                                                        <span className="text-xs text-muted-foreground">{req.requirement.name}</span>
+                                                    </div>
+                                                ))}
+                                                {student.requirements.length > 3 && (
+                                                    <Badge variant="outline" className="text-xs">+{student.requirements.length - 3} more</Badge>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={badgeClass}>
+                                                {status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button 
+                                                variant="link" 
+                                                onClick={() => router.visit(`/registrar/students/${student.id}`)}
+                                            >
+                                                Details
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
         </RegistrarLayout>
     );
