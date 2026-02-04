@@ -37,66 +37,65 @@ interface RequirementFormModalProps {
 }
 
 export function RequirementFormModal({ open, onClose, categories, requirement, mode }: RequirementFormModalProps) {
+    // Simple local state for checkboxes - initialize from requirement if editing
+    const [newEnrollee, setNewEnrollee] = useState(requirement?.applies_to_new_enrollee ?? true);
+    const [transferee, setTransferee] = useState(requirement?.applies_to_transferee ?? false);
+    const [returning, setReturning] = useState(requirement?.applies_to_returning ?? false);
+    const [required, setRequired] = useState(requirement?.is_required ?? true);
+
     const { data, setData, post, put, processing, reset, errors } = useForm({
-        name: '',
-        description: '',
-        requirement_category_id: categories[0]?.id || 0,
-        deadline_type: 'during_enrollment',
-        custom_deadline: '',
-        applies_to_new_enrollee: true,
-        applies_to_transferee: false,
-        applies_to_returning: false,
-        is_required: true,
+        name: requirement?.name || '',
+        description: requirement?.description || '',
+        requirement_category_id: requirement?.requirement_category_id || categories[0]?.id || 0,
+        deadline_type: requirement?.deadline_type || 'during_enrollment',
+        custom_deadline: requirement?.custom_deadline || '',
+        applies_to_new_enrollee: requirement?.applies_to_new_enrollee ?? true,
+        applies_to_transferee: requirement?.applies_to_transferee ?? false,
+        applies_to_returning: requirement?.applies_to_returning ?? false,
+        is_required: requirement?.is_required ?? true,
     });
 
-    // Simple local state for checkboxes
-    const [newEnrollee, setNewEnrollee] = useState(true);
-    const [transferee, setTransferee] = useState(false);
-    const [returning, setReturning] = useState(false);
-    const [required, setRequired] = useState(true);
-
+    // Update checkboxes when requirement changes
     useEffect(() => {
-        if (open) {
-            if (requirement && mode === 'edit') {
-                setData({
-                    name: requirement.name,
-                    description: requirement.description,
-                    requirement_category_id: requirement.requirement_category_id,
-                    deadline_type: requirement.deadline_type,
-                    custom_deadline: requirement.custom_deadline || '',
-                    applies_to_new_enrollee: requirement.applies_to_new_enrollee,
-                    applies_to_transferee: requirement.applies_to_transferee,
-                    applies_to_returning: requirement.applies_to_returning,
-                    is_required: requirement.is_required,
-                });
-                setNewEnrollee(requirement.applies_to_new_enrollee);
-                setTransferee(requirement.applies_to_transferee);
-                setReturning(requirement.applies_to_returning);
-                setRequired(requirement.is_required);
-            } else {
-                reset();
-                setNewEnrollee(true);
-                setTransferee(false);
-                setReturning(false);
-                setRequired(true);
-            }
+        if (requirement && mode === 'edit') {
+            setNewEnrollee(requirement.applies_to_new_enrollee);
+            setTransferee(requirement.applies_to_transferee);
+            setReturning(requirement.applies_to_returning);
+            setRequired(requirement.is_required);
+            setData({
+                name: requirement.name,
+                description: requirement.description,
+                requirement_category_id: requirement.requirement_category_id,
+                deadline_type: requirement.deadline_type,
+                custom_deadline: requirement.custom_deadline || '',
+                applies_to_new_enrollee: requirement.applies_to_new_enrollee,
+                applies_to_transferee: requirement.applies_to_transferee,
+                applies_to_returning: requirement.applies_to_returning,
+                is_required: requirement.is_required,
+            });
+        } else if (!requirement && mode === 'create') {
+            setNewEnrollee(true);
+            setTransferee(false);
+            setReturning(false);
+            setRequired(true);
         }
-    }, [open, requirement, mode]);
+    }, [requirement?.id, mode]);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // Update form data with checkbox values before submitting
-        setData({
+        // Prepare form data with checkbox values
+        const submitData = {
             ...data,
             applies_to_new_enrollee: newEnrollee,
             applies_to_transferee: transferee,
             applies_to_returning: returning,
             is_required: required,
-        });
+        };
 
         if (mode === 'create') {
             post('/registrar/documents/requirements', {
+                data: submitData,
                 onSuccess: () => {
                     showSuccess('Requirement created successfully!');
                     reset();
@@ -112,6 +111,7 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
             });
         } else if (requirement) {
             put(`/registrar/documents/requirements/${requirement.id}`, {
+                data: submitData,
                 onSuccess: () => {
                     showSuccess('Requirement updated successfully!');
                     onClose();
