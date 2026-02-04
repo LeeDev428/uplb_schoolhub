@@ -93,7 +93,7 @@ export function RequirementFormModal({ open, onClose, categories, requirement, m
             is_required: required,
         };
 
-        // Update form data state
+        // Update the form data
         setData(submitData);
 
         if (mode === 'create') {
