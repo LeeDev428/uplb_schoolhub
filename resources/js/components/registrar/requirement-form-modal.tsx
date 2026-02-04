@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect } from 'react';
 import { showSuccess, showError } from './registrar-messages';
 
 interface RequirementCategory {
@@ -38,16 +38,36 @@ interface RequirementFormModalProps {
 
 export function RequirementFormModal({ open, onClose, categories, requirement, mode }: RequirementFormModalProps) {
     const { data, setData, post, put, processing, reset, errors } = useForm({
-        name: requirement?.name || '',
-        description: requirement?.description || '',
-        requirement_category_id: requirement?.requirement_category_id || categories[0]?.id || 0,
-        deadline_type: requirement?.deadline_type || 'during_enrollment',
-        custom_deadline: requirement?.custom_deadline || '',
-        applies_to_new_enrollee: requirement?.applies_to_new_enrollee ?? true,
-        applies_to_transferee: requirement?.applies_to_transferee ?? false,
-        applies_to_returning: requirement?.applies_to_returning ?? false,
-        is_required: requirement?.is_required ?? true,
+        name: '',
+        description: '',
+        requirement_category_id: categories[0]?.id || 0,
+        deadline_type: 'during_enrollment',
+        custom_deadline: '',
+        applies_to_new_enrollee: true,
+        applies_to_transferee: false,
+        applies_to_returning: false,
+        is_required: true,
     });
+
+    useEffect(() => {
+        if (open) {
+            if (requirement && mode === 'edit') {
+                setData({
+                    name: requirement.name,
+                    description: requirement.description,
+                    requirement_category_id: requirement.requirement_category_id,
+                    deadline_type: requirement.deadline_type,
+                    custom_deadline: requirement.custom_deadline || '',
+                    applies_to_new_enrollee: requirement.applies_to_new_enrollee,
+                    applies_to_transferee: requirement.applies_to_transferee,
+                    applies_to_returning: requirement.applies_to_returning,
+                    is_required: requirement.is_required,
+                });
+            } else {
+                reset();
+            }
+        }
+    }, [open, requirement, mode]);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
