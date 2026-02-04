@@ -21,7 +21,7 @@ class RequirementController extends Controller
             ->ordered()
             ->get();
 
-        return Inertia::render('registrar/requirements/index', [
+        return Inertia::render('registrar/documents/create', [
             'categories' => $categories,
         ]);
     }
