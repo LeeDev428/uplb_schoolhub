@@ -21,6 +21,12 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    server: {
+        host: '0.0.0.0', // Allow external access
+        hmr: {
+            host: 'localhost', // HMR still uses localhost
+        },
+    },
     esbuild: {
         jsx: 'automatic',
     },
