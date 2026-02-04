@@ -68,10 +68,10 @@ export default function CreateDocuments({ categories }: Props) {
             router.delete(`/registrar/documents/requirements/${requirementId}`, {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Requirement deleted successfully');
+                    showSuccess('Requirement deleted successfully');
                 },
                 onError: () => {
-                    toast.error('Failed to delete requirement');
+                    showError('Failed to delete requirement');
                 },
             });
         }
@@ -98,6 +98,7 @@ export default function CreateDocuments({ categories }: Props) {
     return (
         <RegistrarLayout>
             <Head title="Requirements Manager" />
+            <RegistrarMessages />
 
             <div className="space-y-6 p-6">
                 {/* Header */}
