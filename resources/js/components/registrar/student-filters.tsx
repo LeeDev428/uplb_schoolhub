@@ -172,6 +172,4 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
             </div>
         </div>
     );
-        </div>
-    );
 }
