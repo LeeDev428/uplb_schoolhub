@@ -81,7 +81,7 @@ class Requirement extends Model
         return match ($this->deadline_type) {
             'during_enrollment' => 'During Enrollment',
             'before_classes' => 'Before Classes Start',
-            'custom' => $this->custom_deadline?->format('M d, Y') ?? 'Custom',
+            'custom' => $this->custom_deadline ? $this->custom_deadline->format('M d, Y') : 'Custom',
             default => 'Not Set',
         };
     }
