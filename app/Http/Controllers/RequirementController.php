@@ -62,11 +62,11 @@ class RequirementController extends Controller
             'order' => 'nullable|integer',
         ]);
 
-        // Ensure boolean fields are set with default values if not provided
-        $validated['applies_to_new_enrollee'] = $validated['applies_to_new_enrollee'] ?? false;
-        $validated['applies_to_transferee'] = $validated['applies_to_transferee'] ?? false;
-        $validated['applies_to_returning'] = $validated['applies_to_returning'] ?? false;
-        $validated['is_required'] = $validated['is_required'] ?? true;
+        // Convert boolean fields properly (handle false, 0, "0", "false")
+        $validated['applies_to_new_enrollee'] = filter_var($validated['applies_to_new_enrollee'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['applies_to_transferee'] = filter_var($validated['applies_to_transferee'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['applies_to_returning'] = filter_var($validated['applies_to_returning'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['is_required'] = isset($validated['is_required']) ? filter_var($validated['is_required'], FILTER_VALIDATE_BOOLEAN) : true;
 
         Requirement::create($validated);
 
@@ -90,11 +90,11 @@ class RequirementController extends Controller
             'order' => 'nullable|integer',
         ]);
 
-        // Ensure boolean fields are set with default values if not provided
-        $validated['applies_to_new_enrollee'] = $validated['applies_to_new_enrollee'] ?? false;
-        $validated['applies_to_transferee'] = $validated['applies_to_transferee'] ?? false;
-        $validated['applies_to_returning'] = $validated['applies_to_returning'] ?? false;
-        $validated['is_required'] = $validated['is_required'] ?? true;
+        // Convert boolean fields properly (handle false, 0, "0", "false")
+        $validated['applies_to_new_enrollee'] = filter_var($validated['applies_to_new_enrollee'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['applies_to_transferee'] = filter_var($validated['applies_to_transferee'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['applies_to_returning'] = filter_var($validated['applies_to_returning'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $validated['is_required'] = isset($validated['is_required']) ? filter_var($validated['is_required'], FILTER_VALIDATE_BOOLEAN) : true;
 
         $requirement->update($validated);
 
