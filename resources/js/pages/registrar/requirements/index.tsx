@@ -128,6 +128,7 @@ export default function RequirementsTracking({ students, requirements, filters }
     return (
         <RegistrarLayout>
             <Head title="Requirements Tracking" />
+            <RegistrarMessages />
 
             <div className="space-y-6 p-6">
                 {/* Header */}
