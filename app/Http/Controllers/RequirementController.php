@@ -78,6 +78,10 @@ class RequirementController extends Controller
      */
     public function update(Request $request, Requirement $requirement)
     {
+        // Debug: Log what we received
+        \Log::info('=== UPDATE REQUIREMENT ===');
+        \Log::info('Request Data:', $request->all());
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -90,11 +94,20 @@ class RequirementController extends Controller
             'order' => 'nullable|integer',
         ]);
 
+        \Log::info('Validated Data:', $validated);
+
         // Convert boolean fields properly (handle false, 0, "0", "false")
         $validated['applies_to_new_enrollee'] = filter_var($validated['applies_to_new_enrollee'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $validated['applies_to_transferee'] = filter_var($validated['applies_to_transferee'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $validated['applies_to_returning'] = filter_var($validated['applies_to_returning'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $validated['is_required'] = isset($validated['is_required']) ? filter_var($validated['is_required'], FILTER_VALIDATE_BOOLEAN) : true;
+
+        \Log::info('After filter_var:', [
+            'applies_to_new_enrollee' => $validated['applies_to_new_enrollee'],
+            'applies_to_transferee' => $validated['applies_to_transferee'],
+            'applies_to_returning' => $validated['applies_to_returning'],
+            'is_required' => $validated['is_required'],
+        ]);
 
         $requirement->update($validated);
 
