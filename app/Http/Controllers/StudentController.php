@@ -96,11 +96,31 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        $student->load(['requirements.requirement.category']);
+        $student->load(['requirements.requirement.category', 'enrollmentClearance']);
+
+        // Calculate requirements completion percentage
+        $totalRequirements = $student->requirements->count();
+        $completedRequirements = $student->requirements->where('status', 'approved')->count();
+        $requirementsPercentage = $totalRequirements > 0 ? round(($completedRequirements / $totalRequirements) * 100) : 0;
+
+        // Create or update enrollment clearance record
+        if (!$student->enrollmentClearance) {
+            $student->enrollmentClearance()->create([
+                'requirements_complete_percentage' => $requirementsPercentage,
+                'requirements_complete' => $requirementsPercentage === 100,
+            ]);
+            $student->load('enrollmentClearance');
+        } else {
+            $student->enrollmentClearance->update([
+                'requirements_complete_percentage' => $requirementsPercentage,
+                'requirements_complete' => $requirementsPercentage === 100,
+            ]);
+        }
 
         return Inertia::render('registrar/students/show', [
             'student' => $student,
-            'requirementsCompletion' => $student->requirements_completion_percentage,
+            'requirementsCompletion' => $requirementsPercentage,
+            'enrollmentClearance' => $student->enrollmentClearance,
         ]);
     }
 
@@ -124,5 +144,39 @@ class StudentController extends Controller
 
         return redirect()->route('registrar.students.index')
             ->with('success', 'Student deleted successfully!');
+    }
+
+    /**
+     * Update enrollment clearance status for a student.
+     */
+    public function updateClearance(Request $request, Student $student)
+    {
+        $validated = $request->validate([
+            'clearance_type' => 'required|in:requirements_complete,registrar_clearance,accounting_clearance,official_enrollment',
+            'status' => 'required|boolean',
+        ]);
+
+        $clearanceType = $validated['clearance_type'];
+        $status = $validated['status'];
+
+        // Get or create enrollment clearance
+        $clearance = $student->enrollmentClearance()->firstOrCreate([]);
+
+        // Update the specific clearance field
+        $clearance->update([
+            $clearanceType => $status,
+            $clearanceType . '_at' => $status ? now() : null,
+            $clearanceType . '_by' => $status ? auth()->id() : null,
+        ]);
+
+        // Update enrollment status if all clearances are complete
+        if ($clearance->isFullyCleared()) {
+            $clearance->update(['enrollment_status' => 'completed']);
+            $student->update(['enrollment_status' => 'enrolled']);
+        } else {
+            $clearance->update(['enrollment_status' => 'in_progress']);
+        }
+
+        return back()->with('success', 'Clearance status updated successfully');
     }
 }
