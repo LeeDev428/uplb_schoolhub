@@ -23,6 +23,7 @@ export default defineConfig({
     ],
     server: {
         host: '0.0.0.0', // Allow external access
+        cors: true, // Enable CORS for Cloudflare tunnel
         hmr: {
             host: 'localhost', // HMR still uses localhost
         },
