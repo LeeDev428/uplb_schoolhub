@@ -162,12 +162,25 @@ class StudentController extends Controller
         // Get or create enrollment clearance
         $clearance = $student->enrollmentClearance()->firstOrCreate([]);
 
-        // Update the specific clearance field
-        $clearance->update([
-            $clearanceType => $status,
-            $clearanceType . '_at' => $status ? now() : null,
-            $clearanceType . '_by' => $status ? auth()->id() : null,
-        ]);
+        // Build update array dynamically
+        $updateData = [$clearanceType => $status];
+        
+        // Add timestamp and user fields for specific clearance types (not requirements_complete)
+        if ($clearanceType !== 'requirements_complete') {
+            $timestampField = str_replace('_clearance', '_cleared_at', $clearanceType);
+            $timestampField = str_replace('_enrollment', '_enrolled_at', $timestampField);
+            $userField = str_replace('_clearance', '_cleared_by', $clearanceType);
+            $userField = str_replace('_enrollment', '_enrolled_by', $userField);
+            
+            $updateData[$timestampField] = $status ? now() : null;
+            $updateData[$userField] = $status ? auth()->id() : null;
+        } else {
+            $updateData['requirements_completed_at'] = $status ? now() : null;
+            $updateData['requirements_completed_by'] = $status ? auth()->id() : null;
+        }
+
+        // Update clearance
+        $clearance->update($updateData);
 
         // Update enrollment status if all clearances are complete
         if ($clearance->isFullyCleared()) {
