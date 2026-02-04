@@ -1,7 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { RequirementFormModal } from './components/requirement-form-modal';
+import { RequirementFormModal } from '@/components/registrar/requirement-form-modal';
+import { RegistrarMessages, showSuccess, showError } from '@/components/registrar/registrar-messages';
 
 interface Requirement {
     id: number;
