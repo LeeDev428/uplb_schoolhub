@@ -19,7 +19,7 @@ class StudentRequirementController extends Controller
 
         if ($validated['status'] === 'approved') {
             $validated['approved_at'] = now();
-            $validated['approved_by'] = auth()->id();
+            $validated['approved_by'] = auth()->user()?->id;
         } elseif ($validated['status'] === 'submitted' && !$studentRequirement->submitted_at) {
             $validated['submitted_at'] = now();
         }
