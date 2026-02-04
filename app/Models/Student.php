@@ -111,4 +111,24 @@ class Student extends Model
     {
         return $query->where('student_type', $type);
     }
+
+    /**
+     * Get the requirements for this student
+     */
+    public function requirements()
+    {
+        return $this->hasMany(StudentRequirement::class);
+    }
+
+    /**
+     * Get completion percentage for requirements
+     */
+    public function getRequirementsCompletionPercentageAttribute(): int
+    {
+        $total = $this->requirements()->count();
+        if ($total === 0) return 0;
+        
+        $completed = $this->requirements()->where('status', 'approved')->count();
+        return (int) round(($completed / $total) * 100);
+    }
 }
