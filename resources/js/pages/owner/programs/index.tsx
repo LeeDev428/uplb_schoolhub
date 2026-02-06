@@ -64,14 +64,14 @@ export default function ProgramsIndex({ programs, departments }: Props) {
         e.preventDefault();
 
         if (editingProgram) {
-            form.put(route('owner.programs.update', editingProgram.id), {
+            form.put(`/owner/programs/${editingProgram.id}`, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
             });
         } else {
-            form.post(route('owner.programs.store'), {
+            form.post('/owner/programs', {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
@@ -82,7 +82,7 @@ export default function ProgramsIndex({ programs, departments }: Props) {
 
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this program?')) {
-            router.delete(route('owner.programs.destroy', id));
+            router.delete(`/owner/programs/${id}`);
         }
     };
 
