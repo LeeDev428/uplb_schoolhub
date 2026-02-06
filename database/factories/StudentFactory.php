@@ -40,7 +40,7 @@ class StudentFactory extends Factory
             'mother_tongue' => $this->faker->optional()->randomElement(['Tagalog', 'Bisaya', 'Ilocano', 'Hiligaynon']),
             'dialects' => $this->faker->optional()->randomElement(['Tagalog', 'Bisaya', 'Ilocano', 'Waray']),
             'ethnicities' => $this->faker->optional()->randomElement(['Filipino', 'Chinese-Filipino', 'Mestizo']),
-            'complete_address' => $this->faker->streetAddress() . ', ' . $this->faker->barangay(),
+            'complete_address' => $this->faker->streetAddress() . ', Barangay ' . $this->faker->word(),
             'city_municipality' => $this->faker->city(),
             'zip_code' => $this->faker->postcode(),
             'student_type' => $this->faker->randomElement(['new', 'transferee', 'returnee']),
