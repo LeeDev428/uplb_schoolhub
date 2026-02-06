@@ -3,63 +3,58 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Program;
+use App\Models\Department;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProgramController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $programs = Program::with('department')->get();
+        $departments = Department::where('is_active', true)->get();
+        
+        return Inertia::render('owner/programs/index', [
+            'programs' => $programs,
+            'departments' => $departments,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'duration_years' => 'required|integer|min:1',
+            'is_active' => 'boolean',
+        ]);
+
+        Program::create($validated);
+
+        return back()->with('success', 'Program created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Program $program)
     {
-        //
+        $validated = $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'duration_years' => 'required|integer|min:1',
+            'is_active' => 'boolean',
+        ]);
+
+        $program->update($validated);
+
+        return back()->with('success', 'Program updated successfully');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(Program $program)
     {
-        //
-    }
+        $program->delete();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', 'Program deleted successfully');
     }
 }
