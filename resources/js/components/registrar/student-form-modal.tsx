@@ -66,7 +66,7 @@ export function StudentFormModal({
         program: student?.program || '',
         year_level: student?.year_level || '',
         section: student?.section || '',
-        enrollment_status: student?.enrollment_status || 'not-enrolled',
+        enrollment_status: student?.enrollment_status || 'pending-registrar',
         requirements_status: student?.requirements_status || 'incomplete',
         requirements_percentage: student?.requirements_percentage || 0,
         guardian_name: student?.guardian_name || '',
@@ -343,7 +343,7 @@ export function StudentFormModal({
                                 <Label htmlFor="enrollment_status">Initial Enrollment Status</Label>
                                 <Select value={data.enrollment_status} onValueChange={value => setData('enrollment_status', value)}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Not Enrolled (Default)" />
+                                        <SelectValue placeholder="Select enrollment status" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {/* <SelectItem value="not-enrolled">Not Enrolled (Default)</SelectItem> */}
