@@ -59,8 +59,8 @@ class StudentController extends Controller
             $query->where('requirements_status', $request->requirements_status);
         }
 
-        // Get paginated students with requirements
-        $students = $query->with('requirements.requirement')->latest()->paginate(10)->withQueryString();
+        // Get paginated students with requirements and enrollmentClearance
+        $students = $query->with(['requirements.requirement', 'enrollmentClearance'])->latest()->paginate(10)->withQueryString();
 
         // Compute dynamic requirements status for each student
         $students->getCollection()->transform(function ($student) {
@@ -163,6 +163,11 @@ class StudentController extends Controller
             'student' => $student,
             'requirementsCompletion' => $requirementsPercentage,
             'enrollmentClearance' => $student->enrollmentClearance,
+            // Academic structure data for edit modal
+            'departments' => Department::where('is_active', true)->get(['id', 'name', 'level']),
+            'programs' => Program::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id']),
+            'yearLevels' => YearLevel::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id', 'level_number']),
+            'sections' => Section::where('is_active', true)->with(['yearLevel:id,name', 'program:id,name'])->get(['id', 'name', 'year_level_id', 'program_id', 'school_year']),
         ]);
     }
 
