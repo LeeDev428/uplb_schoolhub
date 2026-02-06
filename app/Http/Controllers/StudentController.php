@@ -9,6 +9,8 @@ use App\Models\Department;
 use App\Models\Program;
 use App\Models\YearLevel;
 use App\Models\Section;
+use App\Models\Requirement;
+use App\Models\StudentRequirement;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -57,8 +59,20 @@ class StudentController extends Controller
             $query->where('requirements_status', $request->requirements_status);
         }
 
-        // Get paginated students
-        $students = $query->latest()->paginate(10)->withQueryString();
+        // Get paginated students with requirements
+        $students = $query->with('requirements.requirement')->latest()->paginate(10)->withQueryString();
+
+        // Compute dynamic requirements status for each student
+        $students->getCollection()->transform(function ($student) {
+            $total = $student->requirements->count();
+            $approved = $student->requirements->where('status', 'approved')->count();
+            $percentage = $total > 0 ? round(($approved / $total) * 100) : 0;
+            
+            $student->requirements_percentage = $percentage;
+            $student->requirements_status = $percentage === 100 ? 'complete' : ($percentage > 0 ? 'pending' : 'incomplete');
+            
+            return $student;
+        });
 
         // Get statistics
         $stats = [
@@ -102,7 +116,18 @@ class StudentController extends Controller
      */
     public function store(StoreStudentRequest $request)
     {
-        Student::create($request->validated());
+        $student = Student::create($request->validated());
+
+        // Automatically assign all active requirements to the new student
+        $requirements = Requirement::where('is_active', true)->get();
+        
+        foreach ($requirements as $requirement) {
+            StudentRequirement::create([
+                'student_id' => $student->id,
+                'requirement_id' => $requirement->id,
+                'status' => 'pending',
+            ]);
+        }
 
         return redirect()->route('registrar.students.index')
             ->with('success', 'Student added successfully!');
