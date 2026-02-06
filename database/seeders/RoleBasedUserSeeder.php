@@ -13,22 +13,26 @@ class RoleBasedUserSeeder extends Seeder
     public function run(): void
     {
         // Create Owner
-        User::create([
-            'name' => 'System Owner',
-            'email' => 'owner@gmail.com',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_OWNER,
-            'email_verified_at' => now(),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'owner@gmail.com'],
+            [
+                'name' => 'System Owner',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_OWNER,
+                'email_verified_at' => now(),
+            ]
+        );
 
         // Create Registrar
-        User::create([
-            'name' => 'School Registrar',
-            'email' => 'registrar@gmail.com',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_REGISTRAR,
-            'email_verified_at' => now(),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'registrar@gmail.com'],
+            [
+                'name' => 'School Registrar',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_REGISTRAR,
+                'email_verified_at' => now(),
+            ]
+        );
 
         // Create Sample Students
         $students = [
@@ -67,12 +71,15 @@ class RoleBasedUserSeeder extends Seeder
         ];
 
         foreach ($students as $studentData) {
-            User::create([
-                ...$studentData,
-                'password' => bcrypt('password'),
-                'role' => User::ROLE_STUDENT,
-                'email_verified_at' => now(),
-            ]);
+            User::updateOrCreate(
+                ['email' => $studentData['email']],
+                [
+                    ...$studentData,
+                    'password' => bcrypt('password'),
+                    'role' => User::ROLE_STUDENT,
+                    'email_verified_at' => now(),
+                ]
+            );
         }
 
         $this->command->info('✅ Created 1 Owner, 1 Registrar, and 4 Students');
