@@ -205,9 +205,9 @@ class StudentTest extends TestCase
             'first_name' => 'Jane',
             'last_name' => 'Smith',
             'email' => 'jane.smith@example.com',
-            'program_id' => $this->program->id,
-            'year_level_id' => $this->yearLevel->id,
-            'section_id' => $this->section->id,
+            'program' => $this->program->name,
+            'year_level' => $this->yearLevel->name,
+            'section' => $this->section->name,
         ]);
 
         $updatedData = [
@@ -256,9 +256,9 @@ class StudentTest extends TestCase
     public function registrar_can_view_student_details()
     {
         $student = Student::factory()->create([
-            'program_id' => $this->program->id,
-            'year_level_id' => $this->yearLevel->id,
-            'section_id' => $this->section->id,
+            'program' => $this->program->name,
+            'year_level' => $this->yearLevel->name,
+            'section' => $this->section->name,
         ]);
 
         $response = $this->actingAs($this->registrar)
@@ -267,14 +267,8 @@ class StudentTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn($page) => 
             $page->component('registrar/students/show')
-                ->has('student', fn($student) => 
-                    $student->where('id', $student->id)
-                        ->etc()
-                )
-        );
-    }
-
-    /** @test */
+                ->has('student', fn($studentData) =>
+                    $studentData->where('id', $student->id)
     public function registrar_can_delete_a_student()
     {
         $student = Student::factory()->create();
@@ -285,9 +279,15 @@ class StudentTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
-        $this->assertDatabaseMissing('students', [
-            'id' => $student->id,
-        ]);
+        // Student should have been soft deleted (if using soft deletes)
+        // or completely removed from database
+        $freshStudent = Student::withTrashed()->find($student->id);
+        if (method_exists($student, 'trashed')) {
+            $this->assertNotNull($freshStudent);
+            $this->assertTrue($freshStudent->trashed());
+        } else {
+            $this->assertNull(Student::find($student->id));
+        }
     }
 
     /** @test */
