@@ -174,24 +174,40 @@ class StudentSeeder extends Seeder
         ];
 
         foreach ($students as $student) {
-            $createdStudent = Student::create($student);
+            // Create or update student record
+            $createdStudent = Student::updateOrCreate(
+                ['lrn' => $student['lrn']],
+                $student
+            );
             
-            // Generate unique username
-            $username = $this->generateUniqueUsername($student['first_name'], $student['last_name']);
+            // Check if User already exists
+            $existingUser = User::where('email', $student['email'])->first();
             
-            // Create User account for authentication
-            User::create([
-                'name' => trim($student['first_name'] . ' ' . ($student['middle_name'] ?? '') . ' ' . $student['last_name'] . ($student['suffix'] ? ' ' . $student['suffix'] : '')),
-                'username' => $username,
-                'email' => $student['email'],
-                'password' => Hash::make('password'),
-                'student_id' => $createdStudent->id,
-                'role' => User::ROLE_STUDENT,
-                'email_verified_at' => now(),
-            ]);
-            
-            // Output for reference
-            $this->command->info("Created student: {$username} (password: password)");
+            if ($existingUser) {
+                // Update existing user
+                $existingUser->update([
+                    'name' => trim($student['first_name'] . ' ' . ($student['middle_name'] ?? '') . ' ' . $student['last_name'] . ($student['suffix'] ? ' ' . $student['suffix'] : '')),
+                    'student_id' => $createdStudent->id,
+                    'role' => User::ROLE_STUDENT,
+                ]);
+                $this->command->info("Updated student: {$existingUser->username} (password: password)");
+            } else {
+                // Generate unique username
+                $username = $this->generateUniqueUsername($student['first_name'], $student['last_name']);
+                
+                // Create new User account
+                User::create([
+                    'name' => trim($student['first_name'] . ' ' . ($student['middle_name'] ?? '') . ' ' . $student['last_name'] . ($student['suffix'] ? ' ' . $student['suffix'] : '')),
+                    'username' => $username,
+                    'email' => $student['email'],
+                    'password' => Hash::make('password'),
+                    'student_id' => $createdStudent->id,
+                    'role' => User::ROLE_STUDENT,
+                    'email_verified_at' => now(),
+                ]);
+                
+                $this->command->info("Created student: {$username} (password: password)");
+            }
         }
     }
 }
