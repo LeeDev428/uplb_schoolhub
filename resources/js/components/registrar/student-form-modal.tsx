@@ -343,11 +343,11 @@ export function StudentFormModal({
                                 <Label htmlFor="enrollment_status">Initial Enrollment Status</Label>
                                 <Select value={data.enrollment_status} onValueChange={value => setData('enrollment_status', value)}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Not Enrolled (Default)" />
+                                        <SelectValue placeholder="Pending Registrar (Default)" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {/* <SelectItem value="not-enrolled">Not Enrolled (Default)</SelectItem> */}
-                                        <SelectItem value="pending-registrar">Pending Registrar</SelectItem>
+                                        <SelectItem value="pending-registrar">Pending Registrar (Default)</SelectItem>
                                         {/* <SelectItem value="pending-accounting">Pending Accounting</SelectItem> */}
                                         <SelectItem value="enrolled">Enrolled</SelectItem>
                                     </SelectContent>
