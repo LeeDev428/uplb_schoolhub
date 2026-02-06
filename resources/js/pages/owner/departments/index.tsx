@@ -57,14 +57,14 @@ export default function DepartmentsIndex({ departments }: Props) {
         e.preventDefault();
 
         if (editingDepartment) {
-            form.put(route('owner.departments.update', editingDepartment.id), {
+            form.put(`/owner/departments/${editingDepartment.id}`, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
             });
         } else {
-            form.post(route('owner.departments.store'), {
+            form.post('/owner/departments', {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
@@ -75,7 +75,7 @@ export default function DepartmentsIndex({ departments }: Props) {
 
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this department?')) {
-            router.delete(route('owner.departments.destroy', id));
+            router.delete(`/owner/departments/${id}`);
         }
     };
 
