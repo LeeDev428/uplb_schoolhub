@@ -185,17 +185,19 @@ export function StudentFormModal({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>
-                        {mode === 'create' ? 'Add New Student' : 'Edit Student'}
-                    </DialogTitle>
-                    <DialogDescription>
-                        Fill in the student information below. Fields marked with * are required.
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="max-h-[95vh] max-w-4xl overflow-hidden p-0">
+                <div className="flex max-h-[95vh] flex-col">
+                    <DialogHeader className="shrink-0 border-b px-6 py-4">
+                        <DialogTitle>
+                            {mode === 'create' ? 'Add New Student' : 'Edit Student'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Fill in the student information below. Fields marked with * are required.
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-4">
                     {/* Personal Information */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Personal Information</h3>
@@ -539,32 +541,56 @@ export function StudentFormModal({
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="date_of_birth">Date of Birth *</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !date && 'text-muted-foreground',
-                                                errors.date_of_birth && 'border-red-500',
-                                            )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {date ? format(date, 'MM/dd/yyyy') : <span>mm/dd/yyyy</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                        <Calendar
-                                            mode="single"
-                                            selected={date}
-                                            onSelect={setDate}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="date_of_birth"
+                                        type="date"
+                                        value={date ? format(date, 'yyyy-MM-dd') : ''}
+                                        onChange={(e) => {
+                                            const selectedDate = e.target.value ? new Date(e.target.value) : undefined;
+                                            setDate(selectedDate);
+                                        }}
+                                        max={format(new Date(), 'yyyy-MM-dd')}
+                                        className={cn(
+                                            'flex-1',
+                                            errors.date_of_birth && 'border-red-500',
+                                        )}
+                                        placeholder="yyyy-mm-dd"
+                                    />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                className={cn(
+                                                    'shrink-0',
+                                                    errors.date_of_birth && 'border-red-500',
+                                                )}
+                                            >
+                                                <CalendarIcon className="h-4 w-4" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="end">
+                                            <Calendar
+                                                mode="single"
+                                                selected={date}
+                                                onSelect={setDate}
+                                                initialFocus
+                                                defaultMonth={date || new Date(2000, 0)}
+                                                captionLayout="dropdown-buttons"
+                                                fromYear={1950}
+                                                toYear={new Date().getFullYear()}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
                                 {errors.date_of_birth && (
                                     <p className="text-xs text-red-500">{errors.date_of_birth}</p>
                                 )}
+                                <p className="text-xs text-muted-foreground">
+                                    Type date directly or use calendar picker
+                                </p>
                             </div>
 
                             <div className="space-y-2">
@@ -761,16 +787,18 @@ export function StudentFormModal({
                             />
                         </div>
                     </div>
+                        </div>
 
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose} disabled={processing}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Saving...' : mode === 'create' ? 'Save Student' : 'Update Student'}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                        <DialogFooter className="shrink-0 border-t px-6 py-4">
+                            <Button type="button" variant="outline" onClick={onClose} disabled={processing}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={processing}>
+                                {processing ? 'Saving...' : mode === 'create' ? 'Save Student' : 'Update Student'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </div>
             </DialogContent>
         </Dialog>
     );
