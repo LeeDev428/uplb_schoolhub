@@ -7,6 +7,9 @@ import {
     LayoutGrid,
     TrendingUp,
     Building2,
+    BookOpen,
+    Users,
+    Grid3x3,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -44,9 +47,26 @@ const mainNavItems: NavItem[] = [
         icon: TrendingUp,
     },
     {
-        title: 'Departments',
-        href: '/owner/departments',
+        title: 'Academic Structure',
         icon: Building2,
+        items: [
+            {
+                title: 'Departments',
+                href: '/owner/departments',
+            },
+            {
+                title: 'Programs',
+                href: '/owner/programs',
+            },
+            {
+                title: 'Year Levels',
+                href: '/owner/year-levels',
+            },
+            {
+                title: 'Sections',
+                href: '/owner/sections',
+            },
+        ],
     },
     {
         title: 'Calendar View',
