@@ -3,10 +3,33 @@
 namespace Database\Seeders;
 
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class StudentSeeder extends Seeder
 {
+    /**
+     * Generate a unique username for a student
+     */
+    private function generateUniqueUsername(string $firstName, string $lastName): string
+    {
+        // Get first letter of first name
+        $firstInitial = strtolower(substr($firstName, 0, 1));
+        
+        // Clean last name (remove special characters and spaces)
+        $cleanLastName = strtolower(preg_replace('/[^a-zA-Z]/', '', $lastName));
+        
+        // Generate unique username with random 3-digit number
+        do {
+            $randomDigits = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+            $username = $firstInitial . $cleanLastName . $randomDigits;
+        } while (User::where('username', $username)->exists());
+        
+        return $username;
+    }
+
     /**
      * Run the database seeds.
      */
@@ -151,7 +174,24 @@ class StudentSeeder extends Seeder
         ];
 
         foreach ($students as $student) {
-            Student::create($student);
+            $createdStudent = Student::create($student);
+            
+            // Generate unique username
+            $username = $this->generateUniqueUsername($student['first_name'], $student['last_name']);
+            
+            // Create User account for authentication
+            User::create([
+                'name' => trim($student['first_name'] . ' ' . ($student['middle_name'] ?? '') . ' ' . $student['last_name'] . ($student['suffix'] ? ' ' . $student['suffix'] : '')),
+                'username' => $username,
+                'email' => $student['email'],
+                'password' => Hash::make('password'),
+                'student_id' => $createdStudent->id,
+                'role' => User::ROLE_STUDENT,
+                'email_verified_at' => now(),
+            ]);
+            
+            // Output for reference
+            $this->command->info("Created student: {$username} (password: password)");
         }
     }
 }
