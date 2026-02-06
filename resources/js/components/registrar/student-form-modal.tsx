@@ -346,9 +346,9 @@ export function StudentFormModal({
                                         <SelectValue placeholder="Not Enrolled (Default)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="not-enrolled">Not Enrolled (Default)</SelectItem>
+                                        {/* <SelectItem value="not-enrolled">Not Enrolled (Default)</SelectItem> */}
                                         <SelectItem value="pending-registrar">Pending Registrar</SelectItem>
-                                        <SelectItem value="pending-accounting">Pending Accounting</SelectItem>
+                                        {/* <SelectItem value="pending-accounting">Pending Accounting</SelectItem> */}
                                         <SelectItem value="enrolled">Enrolled</SelectItem>
                                     </SelectContent>
                                 </Select>
