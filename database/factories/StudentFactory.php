@@ -26,7 +26,6 @@ class StudentFactory extends Factory
         $middleName = $this->faker->lastName();
         
         return [
-            'student_id' => 'STU-' . $this->faker->unique()->numerify('######'),
             'first_name' => $firstName,
             'last_name' => $lastName,
             'middle_name' => $middleName,
@@ -45,6 +44,9 @@ class StudentFactory extends Factory
             'zip_code' => $this->faker->postcode(),
             'student_type' => $this->faker->randomElement(['new', 'transferee', 'returnee']),
             'school_year' => '2024-2025',
+            'program' => 'Sample Program',
+            'year_level' => '1st Year',
+            'section' => 'Section A',
             'enrollment_status' => $this->faker->randomElement(['pending-registrar', 'pending-accounting', 'enrolled']),
             'requirements_status' => $this->faker->randomElement(['incomplete', 'pending', 'complete']),
             'requirements_percentage' => $this->faker->numberBetween(0, 100),
