@@ -88,48 +88,4 @@ class RequirementSeeder extends Seeder
         }
     }
 }
-        ];
 
-        foreach ($requirements as $req) {
-            Requirement::create([
-                'requirement_category_id' => $req['category_id'],
-                'name' => $req['name'],
-                'description' => $req['description'],
-                'deadline_type' => $req['deadline_type'],
-                'applies_to_new_enrollee' => $req['applies_to']['new_enrollee'] ?? false,
-                'applies_to_transferee' => $req['applies_to']['transferee'] ?? false,
-                'applies_to_returning' => $req['applies_to']['returning'] ?? false,
-            ]);
-        }
-
-        // Assign requirements to existing students
-        $students = Student::all();
-        $allRequirements = Requirement::all();
-
-        foreach ($students as $student) {
-            // Get applicable requirements based on student type
-            $applicableRequirements = $allRequirements->filter(function ($req) use ($student) {
-                return match ($student->student_type) {
-                    'new' => $req->applies_to_new_enrollee,
-                    'transferee' => $req->applies_to_transferee,
-                    'returning' => $req->applies_to_returning,
-                    default => false,
-                };
-            });
-
-            foreach ($applicableRequirements as $requirement) {
-                // Randomly assign status for demo purposes
-                $statuses = ['pending', 'submitted', 'approved', 'pending', 'approved'];
-                $status = $statuses[array_rand($statuses)];
-
-                StudentRequirement::create([
-                    'student_id' => $student->id,
-                    'requirement_id' => $requirement->id,
-                    'status' => $status,
-                    'submitted_at' => in_array($status, ['submitted', 'approved']) ? now()->subDays(rand(1, 30)) : null,
-                    'approved_at' => $status === 'approved' ? now()->subDays(rand(1, 15)) : null,
-                ]);
-            }
-        }
-    }
-}
