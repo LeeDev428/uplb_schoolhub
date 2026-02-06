@@ -82,6 +82,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     
     // Student Enrollment Clearance
     Route::put('students/{student}/clearance', [App\Http\Controllers\StudentController::class, 'updateClearance'])->name('students.clearance.update');
+    Route::put('students/{student}/drop', [App\Http\Controllers\StudentController::class, 'dropStudent'])->name('students.drop');
 
     // Requirements Tracking (view student requirements status)
     Route::get('requirements', [App\Http\Controllers\RequirementTrackingController::class, 'index'])->name('requirements.index');
