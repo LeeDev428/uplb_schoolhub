@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Search, FileDown, Mail, TestTube } from 'lucide-react';
+import { Search, FileDown, Mail, TestTube, CheckCircle2, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,9 @@ import { RegistrarMessages } from '@/components/registrar/registrar-messages';
 interface Requirement {
     id: number;
     name: string;
+    applies_to_new_enrollee: boolean;
+    applies_to_transferee: boolean;
+    applies_to_returning: boolean;
 }
 
 interface StudentRequirement {
@@ -110,6 +113,22 @@ export default function RequirementsTracking({ students, requirements, filters }
             returning: 'bg-green-100 text-green-800',
         };
         return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    };
+
+    const getApplicabilityBadge = (req: Requirement) => {
+        const applies = [];
+        if (req.applies_to_new_enrollee) applies.push('new');
+        if (req.applies_to_transferee) applies.push('transferee');
+        if (req.applies_to_returning) applies.push('returning');
+        
+        if (applies.length === 3) {
+            return <Badge variant="outline" className="text-xs">both</Badge>;
+        }
+        return applies.map(type => (
+            <Badge key={type} variant="outline" className="text-xs ml-1">
+                {type}
+            </Badge>
+        ));
     };
 
     const calculateCompletionStatus = (studentRequirements: StudentRequirement[]) => {
@@ -237,16 +256,27 @@ export default function RequirementsTracking({ students, requirements, filters }
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex flex-wrap gap-1">
-                                                {student.requirements.slice(0, 3).map((req) => (
-                                                    <div key={req.id} className="flex items-center space-x-1">
-                                                        {getStatusBadge(req.status)}
-                                                        <span className="text-xs text-muted-foreground">{req.requirement.name}</span>
-                                                    </div>
-                                                ))}
-                                                {student.requirements.length > 3 && (
-                                                    <Badge variant="outline" className="text-xs">+{student.requirements.length - 3} more</Badge>
-                                                )}
+                                            <div className="flex flex-col gap-1.5">
+                                                {requirements.map((req) => {
+                                                    const studentReq = student.requirements.find(
+                                                        sr => sr.requirement.id === req.id
+                                                    );
+                                                    const isCompleted = studentReq?.status === 'approved';
+                                                    
+                                                    return (
+                                                        <div key={req.id} className="flex items-center gap-2 text-sm">
+                                                            {isCompleted ? (
+                                                                <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                                            ) : (
+                                                                <Circle className="h-4 w-4 text-gray-300 flex-shrink-0" />
+                                                            )}
+                                                            <span className={isCompleted ? 'text-foreground' : 'text-muted-foreground'}>
+                                                                {req.name}
+                                                            </span>
+                                                            {getApplicabilityBadge(req)}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </TableCell>
                                         <TableCell>
