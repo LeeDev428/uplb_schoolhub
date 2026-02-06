@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('year_level_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('program_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('name'); // e.g., 'Section A', 'Section Rose'
+            $table->integer('capacity')->default(50);
+            $table->string('school_year'); // e.g., '2024-2025'
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
