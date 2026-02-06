@@ -73,14 +73,14 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
         e.preventDefault();
 
         if (editingSection) {
-            form.put(route('owner.sections.update', editingSection.id), {
+            form.put(`/owner/sections/${editingSection.id}`, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
             });
         } else {
-            form.post(route('owner.sections.store'), {
+            form.post('/owner/sections', {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
@@ -91,7 +91,7 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
 
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this section?')) {
-            router.delete(route('owner.sections.destroy', id));
+            router.delete(`/owner/sections/${id}`);
         }
     };
 
