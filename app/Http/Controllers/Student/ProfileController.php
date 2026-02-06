@@ -14,12 +14,7 @@ class ProfileController extends Controller
      */
     public function index(Request $request): Response
     {
-        $student = $request->user()->student()->with([
-            'department',
-            'program',
-            'yearLevel',
-            'section',
-        ])->first();
+        $student = $request->user()->student;
         
         if (!$student) {
             abort(404, 'Student record not found');
@@ -28,26 +23,34 @@ class ProfileController extends Controller
         return Inertia::render('student/profile', [
             'student' => [
                 'id' => $student->id,
-                'student_id' => $student->student_id,
+                'student_id' => $student->student_id ?? $student->lrn,
                 'first_name' => $student->first_name,
                 'middle_name' => $student->middle_name,
                 'last_name' => $student->last_name,
+                'suffix' => $student->suffix,
                 'full_name' => $student->full_name,
                 'date_of_birth' => $student->date_of_birth?->format('M d, Y'),
                 'gender' => $student->gender,
-                'contact_number' => $student->contact_number,
+                'phone' => $student->phone,
                 'email' => $student->email,
-                'address' => $student->address,
+                'complete_address' => $student->complete_address,
+                'city_municipality' => $student->city_municipality,
+                'zip_code' => $student->zip_code,
+                'religion' => $student->religion,
+                'mother_tongue' => $student->mother_tongue,
+                'dialects' => $student->dialects,
+                'ethnicities' => $student->ethnicities,
                 'enrollment_status' => $student->enrollment_status,
                 'lrn' => $student->lrn,
-                'department' => $student->department?->name,
-                'program' => $student->program?->name,
-                'year_level' => $student->yearLevel?->name,
-                'section' => $student->section?->name,
+                'program' => $student->program,
+                'year_level' => $student->year_level,
+                'section' => $student->section,
+                'school_year' => $student->school_year,
+                'student_type' => $student->student_type,
                 'guardian_name' => $student->guardian_name,
                 'guardian_relationship' => $student->guardian_relationship,
                 'guardian_contact' => $student->guardian_contact,
-                'guardian_address' => $student->guardian_address,
+                'guardian_email' => $student->guardian_email,
                 'created_at' => $student->created_at->format('M d, Y'),
             ],
             'user' => [
