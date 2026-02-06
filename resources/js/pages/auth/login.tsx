@@ -51,16 +51,16 @@ export default function Login({
 
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">Email or Username</Label>
                                 <Input
                                     id="email"
-                                    type="email"
+                                    type="text"
                                     name="email"
                                     required
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="your.email@example.com"
+                                    placeholder="your.email@example.com or username"
                                     className="h-11"
                                 />
                                 <InputError message={errors.email} />
