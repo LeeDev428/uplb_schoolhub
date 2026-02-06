@@ -75,12 +75,25 @@ class StudentController extends Controller
         $programs = Student::select('program')->distinct()->pluck('program');
         $yearLevels = Student::select('year_level')->distinct()->pluck('year_level');
 
+        // Get academic structure data for the form
+        $departments = Department::where('is_active', true)->get(['id', 'name', 'level']);
+        $allPrograms = Program::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id']);
+        $allYearLevels = YearLevel::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id', 'level_number']);
+        $sections = Section::where('is_active', true)
+            ->with(['yearLevel:id,name', 'program:id,name'])
+            ->get(['id', 'name', 'year_level_id', 'program_id', 'school_year']);
+
         return Inertia::render('registrar/students/index', [
             'students' => $students,
             'stats' => $stats,
             'programs' => $programs,
             'yearLevels' => $yearLevels,
             'filters' => $request->only(['search', 'type', 'program', 'year_level', 'enrollment_status', 'requirements_status']),
+            // Academic structure data for Add/Edit form
+            'departments' => $departments,
+            'allPrograms' => $allPrograms,
+            'allYearLevels' => $allYearLevels,
+            'sections' => $sections,
         ]);
     }
 
