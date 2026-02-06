@@ -55,6 +55,20 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::get('reports', function () {
         return Inertia::render('owner/dashboard');
     })->name('reports');
+
+    // Academic Structure Management
+    Route::resource('departments', \App\Http\Controllers\Owner\DepartmentController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+    Route::resource('programs', \App\Http\Controllers\Owner\ProgramController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+    Route::resource('year-levels', \App\Http\Controllers\Owner\YearLevelController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+    Route::resource('sections', \App\Http\Controllers\Owner\SectionController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
 });
 
 // Registrar Routes
