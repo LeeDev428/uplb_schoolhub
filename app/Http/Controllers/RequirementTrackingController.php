@@ -45,8 +45,11 @@ class RequirementTrackingController extends Controller
 
         $students = $query->paginate(15)->withQueryString();
 
-        // Get all requirements
-        $requirements = Requirement::active()->orderBy('order')->get();
+        // Get all requirements with their applicability fields
+        $requirements = Requirement::where('is_active', true)
+            ->select('id', 'name', 'applies_to_new_enrollee', 'applies_to_transferee', 'applies_to_returning', 'order')
+            ->orderBy('order')
+            ->get();
 
         return Inertia::render('registrar/requirements/index', [
             'students' => $students,
