@@ -121,6 +121,17 @@ class StudentController extends Controller
     {
         $student = Student::create($request->validated());
 
+        // Generate random username and create User account for student
+        $username = $this->generateUniqueUsername($student);
+        User::create([
+            'name' => $student->first_name . ' ' . $student->last_name,
+            'email' => $student->email,
+            'username' => $username,
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_STUDENT,
+            'student_id' => $student->id,
+        ]);
+
         // Automatically assign all active requirements to the new student
         $requirements = Requirement::where('is_active', true)->get();
         
@@ -133,7 +144,26 @@ class StudentController extends Controller
         }
 
         return redirect()->route('registrar.students.index')
-            ->with('success', 'Student added successfully!');
+            ->with('success', "Student added successfully! Username: {$username}, Password: password");
+    }
+
+    /**
+     * Generate unique username for student
+     */
+    private function generateUniqueUsername(Student $student): string
+    {
+        // Use first name initial + last name + random digits
+        $base = strtolower(substr($student->first_name, 0, 1) . $student->last_name);
+        $base = preg_replace('/[^a-z0-9]/', '', $base); // Remove special characters
+        
+        $username = $base . rand(100, 999);
+        
+        // Ensure uniqueness
+        while (User::where('username', $username)->exists()) {
+            $username = $base . rand(100, 999);
+        }
+        
+        return $username;
     }
 
     /**
@@ -241,5 +271,17 @@ class StudentController extends Controller
         }
 
         return back()->with('success', 'Clearance status updated successfully');
+    }
+
+    /**
+     * Drop a student (change enrollment status to dropped)
+     */
+    public function dropStudent(Student $student)
+    {
+        $student->update([
+            'enrollment_status' => 'dropped',
+        ]);
+
+        return back()->with('success', 'Student dropped successfully');
     }
 }
