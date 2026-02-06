@@ -48,6 +48,37 @@ interface EnrollmentClearance {
     enrollment_status: string;
 }
 
+interface Department {
+    id: number;
+    name: string;
+    level: string;
+}
+
+interface Program {
+    id: number;
+    name: string;
+    department_id: number;
+    department: { id: number; name: string };
+}
+
+interface YearLevel {
+    id: number;
+    name: string;
+    department_id: number;
+    level_number: number;
+    department: { id: number; name: string };
+}
+
+interface Section {
+    id: number;
+    name: string;
+    year_level_id: number;
+    program_id: number | null;
+    school_year: string;
+    year_level: { id: number; name: string };
+    program: { id: number; name: string } | null;
+}
+
 interface Student {
     id: number;
     first_name: string;
@@ -93,9 +124,13 @@ interface Props {
     student: Student;
     requirementsCompletion: number;
     enrollmentClearance?: EnrollmentClearance;
+    departments: Department[];
+    programs: Program[];
+    yearLevels: YearLevel[];
+    sections: Section[];
 }
 
-export default function StudentShow({ student, requirementsCompletion, enrollmentClearance }: Props) {
+export default function StudentShow({ student, requirementsCompletion, enrollmentClearance, departments, programs, yearLevels, sections }: Props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeTab, setActiveTab] = useState('requirements');
 
@@ -476,6 +511,10 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                     onClose={() => setShowEditModal(false)}
                     student={student}
                     mode="edit"
+                    departments={departments}
+                    programs={programs}
+                    yearLevels={yearLevels}
+                    sections={sections}
                 />
             )}
         </RegistrarLayout>
