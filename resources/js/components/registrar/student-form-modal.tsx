@@ -515,7 +515,8 @@ export function StudentFormModal({
                                         <SelectItem value="Father">Father</SelectItem>
                                         <SelectItem value="Sibling">Sibling</SelectItem>
                                         <SelectItem value="Grandparent">Grandparent</SelectItem>
-                                        <SelectItem value="Aunt/Uncle">Aunt/Uncle</SelectItem>
+                                        <SelectItem value="Aunt">Aunt</SelectItem>
+                                        <SelectItem value="Uncle">Uncle</SelectItem>
                                         <SelectItem value="Legal Guardian">Legal Guardian</SelectItem>
                                         <SelectItem value="Other">Other</SelectItem>
                                     </SelectContent>
