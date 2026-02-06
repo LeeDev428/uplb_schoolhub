@@ -3,63 +3,63 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Section;
+use App\Models\YearLevel;
+use App\Models\Program;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SectionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $sections = Section::with(['yearLevel', 'program'])->get();
+        $yearLevels = YearLevel::where('is_active', true)->get();
+        $programs = Program::where('is_active', true)->get();
+        
+        return Inertia::render('owner/sections/index', [
+            'sections' => $sections,
+            'yearLevels' => $yearLevels,
+            'programs' => $programs,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'year_level_id' => 'required|exists:year_levels,id',
+            'program_id' => 'nullable|exists:programs,id',
+            'name' => 'required|string|max:255',
+            'capacity' => 'nullable|integer|min:1',
+            'school_year' => 'required|string',
+            'is_active' => 'boolean',
+        ]);
+
+        Section::create($validated);
+
+        return back()->with('success', 'Section created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Section $section)
     {
-        //
+        $validated = $request->validate([
+            'year_level_id' => 'required|exists:year_levels,id',
+            'program_id' => 'nullable|exists:programs,id',
+            'name' => 'required|string|max:255',
+            'capacity' => 'nullable|integer|min:1',
+            'school_year' => 'required|string',
+            'is_active' => 'boolean',
+        ]);
+
+        $section->update($validated);
+
+        return back()->with('success', 'Section updated successfully');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(Section $section)
     {
-        //
-    }
+        $section->delete();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', 'Section deleted successfully');
     }
 }
