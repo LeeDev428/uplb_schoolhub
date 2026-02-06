@@ -9,7 +9,8 @@ import {
     Archive, 
     CheckCircle2,
     Clock,
-    AlertCircle
+    AlertCircle,
+    UserX
 } from 'lucide-react';
 import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -172,6 +173,19 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
         });
     };
 
+    const handleDropStudent = () => {
+        if (window.confirm(`Are you sure you want to drop ${fullName}? This action will change their enrollment status to 'dropped'.`)) {
+            router.put(`/registrar/students/${student.id}/drop`, {}, {
+                onSuccess: () => {
+                    toast.success('Student dropped successfully');
+                },
+                onError: () => {
+                    toast.error('Failed to drop student');
+                },
+            });
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         const colors = {
             pending: 'bg-yellow-100 text-yellow-800',
@@ -227,6 +241,10 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                     </Button>
 
                     <div className="flex items-center space-x-2">
+                        <Button variant="outline" onClick={handleDropStudent}>
+                            <UserX className="mr-2 h-4 w-4" />
+                            Drop
+                        </Button>
                         <Button variant="outline" onClick={() => setShowEditModal(true)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Information
