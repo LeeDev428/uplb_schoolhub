@@ -48,6 +48,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Academic Structure',
+        href: '/owner/departments',
         icon: Building2,
         items: [
             {
