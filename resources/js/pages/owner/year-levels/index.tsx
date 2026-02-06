@@ -60,14 +60,14 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
         e.preventDefault();
 
         if (editingYearLevel) {
-            form.put(route('owner.year-levels.update', editingYearLevel.id), {
+            form.put(`/owner/year-levels/${editingYearLevel.id}`, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
             });
         } else {
-            form.post(route('owner.year-levels.store'), {
+            form.post('/owner/year-levels', {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
@@ -78,7 +78,7 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
 
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this year level?')) {
-            router.delete(route('owner.year-levels.destroy', id));
+            router.delete(`/owner/year-levels/${id}`);
         }
     };
 
