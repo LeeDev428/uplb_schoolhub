@@ -269,6 +269,12 @@ class StudentTest extends TestCase
             $page->component('registrar/students/show')
                 ->has('student', fn($studentData) =>
                     $studentData->where('id', $student->id)
+                        ->etc()
+                )
+        );
+    }
+
+    /** @test */
     public function registrar_can_delete_a_student()
     {
         $student = Student::factory()->create();
