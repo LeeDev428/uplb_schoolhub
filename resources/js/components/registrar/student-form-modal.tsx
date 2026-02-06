@@ -58,6 +58,10 @@ export function StudentFormModal({
         phone: student?.phone || '',
         date_of_birth: student?.date_of_birth || '',
         gender: student?.gender || '',
+        religion: student?.religion || '',
+        mother_tongue: student?.mother_tongue || '',
+        dialects: student?.dialects || '',
+        ethnicities: student?.ethnicities || '',
         complete_address: student?.complete_address || '',
         city_municipality: student?.city_municipality || '',
         zip_code: student?.zip_code || '',
@@ -431,6 +435,48 @@ export function StudentFormModal({
                                 {errors.gender && (
                                     <p className="text-xs text-red-500">{errors.gender}</p>
                                 )}
+                            </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="religion">Religion</Label>
+                                <Input
+                                    id="religion"
+                                    value={data.religion}
+                                    onChange={e => setData('religion', e.target.value)}
+                                    placeholder="Enter religion"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="mother_tongue">Mother Tongue</Label>
+                                <Input
+                                    id="mother_tongue"
+                                    value={data.mother_tongue}
+                                    onChange={e => setData('mother_tongue', e.target.value)}
+                                    placeholder="Enter mother tongue"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="dialects">Dialects</Label>
+                                <Input
+                                    id="dialects"
+                                    value={data.dialects}
+                                    onChange={e => setData('dialects', e.target.value)}
+                                    placeholder="Enter dialects"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="ethnicities">Ethnicities</Label>
+                                <Input
+                                    id="ethnicities"
+                                    value={data.ethnicities}
+                                    onChange={e => setData('ethnicities', e.target.value)}
+                                    placeholder="Enter ethnicities"
+                                />
                             </div>
                         </div>
                     </div>
