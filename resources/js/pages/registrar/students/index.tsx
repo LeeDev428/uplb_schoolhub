@@ -65,18 +65,53 @@ interface Stats {
     dropped: number;
 }
 
+interface Department {
+    id: number;
+    name: string;
+    level: string;
+}
+
+interface Program {
+    id: number;
+    name: string;
+    department_id: number;
+    department: { id: number; name: string };
+}
+
+interface YearLevelData {
+    id: number;
+    name: string;
+    department_id: number;
+    level_number: number;
+    department: { id: number; name: string };
+}
+
+interface Section {
+    id: number;
+    name: string;
+    year_level_id: number;
+    program_id: number | null;
+    school_year: string;
+    year_level: { id: number; name: string };
+    program: { id: number; name: string } | null;
+}
+
 interface Props {
     students: PaginatedStudents;
     stats: Stats;
     programs: string[];
     yearLevels: string[];
     filters: any;
+    departments: Department[];
+    allPrograms: Program[];
+    allYearLevels: YearLevelData[];
+    sections: Section[];
     flash?: {
         success?: string;
     };
 }
 
-export default function StudentsIndex({ students, stats, programs, yearLevels, filters, flash }: Props) {
+export default function StudentsIndex({ students, stats, programs, yearLevels, filters, departments, allPrograms, allYearLevels, sections, flash }: Props) {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState<Student | undefined>();
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
@@ -330,6 +365,10 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                 onClose={() => setModalOpen(false)}
                 student={editingStudent}
                 mode={modalMode}
+                departments={departments}
+                programs={allPrograms}
+                yearLevels={allYearLevels}
+                sections={sections}
             />
         </RegistrarLayout>
     );
