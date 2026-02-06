@@ -35,13 +35,12 @@ class StudentTest extends TestCase
         // Create academic structure
         $this->department = Department::create([
             'name' => 'College of Computer Science',
-            'code' => 'CCS',
-            'level' => 'tertiary',
+            'level' => 'college',
+            'description' => 'College Department',
         ]);
 
         $this->program = Program::create([
             'name' => 'Bachelor of Science in Information Technology',
-            'code' => 'BSIT',
             'department_id' => $this->department->id,
             'description' => 'IT Program',
         ]);
