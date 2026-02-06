@@ -9,6 +9,7 @@ use App\Models\Program;
 use App\Models\YearLevel;
 use App\Models\Section;
 use App\Models\Requirement;
+use App\Models\RequirementCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -59,10 +60,28 @@ class StudentTest extends TestCase
             'school_year' => '2024-2025',
         ]);
 
-        // Create requirements for auto-assignment
-        Requirement::create(['name' => 'Form 138', 'description' => 'Report Card', 'category' => 'Academic Records']);
-        Requirement::create(['name' => 'Birth Certificate', 'description' => 'PSA Birth Certificate', 'category' => 'Personal Documents']);
-        Requirement::create(['name' => 'Medical Records', 'description' => 'Medical Certificate', 'category' => 'Health Documents']);
+        // Create requirement category and requirements for auto-assignment
+        $category = RequirementCategory::create([
+            'name' => 'Common Requirements',
+            'slug' => 'common-requirements',
+            'description' => 'Common requirements for all students',
+        ]);
+
+        Requirement::create([
+            'name' => 'Form 138',
+            'description' => 'Report Card',
+            'requirement_category_id' => $category->id,
+        ]);
+        Requirement::create([
+            'name' => 'Birth Certificate',
+            'description' => 'PSA Birth Certificate',
+            'requirement_category_id' => $category->id,
+        ]);
+        Requirement::create([
+            'name' => 'Medical Records',
+            'description' => 'Medical Certificate',
+            'requirement_category_id' => $category->id,
+        ]);
     }
 
     /** @test */
@@ -374,10 +393,11 @@ class StudentTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('students', [
-            'first_name' => 'Manual',
-            'last_name' => 'Entry',
-            'date_of_birth' => '1995-08-25',
-        ]);
+        $student = Student::where('first_name', 'Manual')
+            ->where('last_name', 'Entry')
+            ->first();
+        
+        $this->assertNotNull($student);
+        $this->assertEquals('1995-08-25', $student->date_of_birth->format('Y-m-d'));
     }
 }
