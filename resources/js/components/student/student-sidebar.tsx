@@ -38,6 +38,14 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+const footerNavItems: NavItem[] = [
+    {
+        title: 'Settings',
+        href: '/student/settings',
+        icon: Settings,
+    },
+];
+
 export function StudentSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -69,7 +77,7 @@ export function StudentSidebar() {
 
             <SidebarFooter>
                 <NavUser />
-                <NavFooter />
+                <NavFooter items={footerNavItems} />
             </SidebarFooter>
         </Sidebar>
     );
