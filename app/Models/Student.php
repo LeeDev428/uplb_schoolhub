@@ -59,6 +59,13 @@ class Student extends Model
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['requirements_completion_percentage'];
+
+    /**
      * Get the student's full name.
      */
     public function getFullNameAttribute(): string
