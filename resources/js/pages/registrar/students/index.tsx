@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Plus, CheckCircle2, Circle } from 'lucide-react';
 import { useState } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
@@ -27,6 +27,24 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface Requirement {
+    id: number;
+    name: string;
+}
+
+interface StudentRequirement {
+    id: number;
+    status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'overdue';
+    requirement: Requirement;
+}
+
+interface EnrollmentClearance {
+    id: number;
+    registrar_clearance: boolean;
+    accounting_clearance: boolean;
+    official_enrollment: boolean;
+}
+
 interface Student {
     id: number;
     first_name: string;
@@ -44,6 +62,8 @@ interface Student {
     requirements_percentage: number;
     student_photo_url: string | null;
     remarks: string | null;
+    requirements: StudentRequirement[];
+    enrollment_clearance: EnrollmentClearance | null;
 }
 
 interface PaginatedStudents {
@@ -267,13 +287,16 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                 <TableHead>Program</TableHead>
                                 <TableHead>Year & Section</TableHead>
                                 <TableHead>Requirements</TableHead>
+                                <TableHead>Registrar</TableHead>
+                                <TableHead>Accounting</TableHead>
+                                <TableHead>Official</TableHead>
                                 <TableHead>Enrollment Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {students.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-8">
+                                    <TableCell colSpan={10} className="text-center py-8">
                                         <p className="text-muted-foreground">No students found. Add your first student to get started.</p>
                                     </TableCell>
                                 </TableRow>
@@ -315,13 +338,48 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                             </TableCell>
                                             <TableCell>{yearSection}</TableCell>
                                             <TableCell>
-                                                <div className="flex items-center space-x-2">
-                                                    <Badge className={getRequirementsStatusColor(student.requirements_status)}>
-                                                        {formatStatus(student.requirements_status)}
-                                                    </Badge>
-                                                    <span className="text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-1.5">
+                                                    {student.requirements && student.requirements.length > 0 ? (
+                                                        student.requirements.slice(0, 6).map((req) => (
+                                                            req.status === 'approved' ? (
+                                                                <CheckCircle2 key={req.id} className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
+                                                            ) : (
+                                                                <Circle key={req.id} className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />
+                                                            )
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground">No requirements</span>
+                                                    )}
+                                                    <span className="text-xs text-muted-foreground ml-1">
                                                         {student.requirements_percentage}%
                                                     </span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-center">
+                                                    {student.enrollment_clearance?.registrar_clearance ? (
+                                                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                                    ) : (
+                                                        <Circle className="h-5 w-5 text-gray-300" />
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-center">
+                                                    {student.enrollment_clearance?.accounting_clearance ? (
+                                                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                                    ) : (
+                                                        <Circle className="h-5 w-5 text-gray-300" />
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-center">
+                                                    {student.enrollment_clearance?.official_enrollment ? (
+                                                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                                    ) : (
+                                                        <Circle className="h-5 w-5 text-gray-300" />
+                                                    )}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
