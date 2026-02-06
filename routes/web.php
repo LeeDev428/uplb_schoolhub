@@ -127,8 +127,8 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 // Student Portal Routes
 Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'role:student'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
-    
-    // Add more student routes here (requirements, profile, etc.)
+    Route::get('requirements', [App\Http\Controllers\Student\RequirementController::class, 'index'])->name('requirements');
+    Route::get('profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
 });
 
 require __DIR__.'/settings.php';
