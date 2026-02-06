@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
@@ -117,6 +118,23 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
 
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleRequirementToggle = (studentRequirementId: number, currentStatus: string) => {
+        // Toggle between pending and approved
+        const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
+        
+        router.put(`/registrar/student-requirements/${studentRequirementId}/status`, {
+            status: newStatus,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(`Requirement marked as ${newStatus}`);
+            },
+            onError: () => {
+                toast.error('Failed to update requirement status');
+            },
+        });
     };
 
     const getStatusBadge = (status: string) => {
@@ -256,49 +274,45 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                {/* Requirements by Category */}
-                                <div className="space-y-6">
-                                    {Object.entries(requirementsByCategory).map(([category, requirements]) => (
-                                        <div key={category}>
-                                            <h3 className="text-lg font-semibold mb-4">{category}</h3>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                {requirements.map((req) => (
-                                                    <Card key={req.id}>
-                                                        <CardHeader className="pb-3">
-                                                            <div className="flex items-start justify-between">
-                                                                <div className="flex-1">
-                                                                    <CardTitle className="text-base">{req.requirement.name}</CardTitle>
-                                                                    <CardDescription className="mt-1">
-                                                                        {req.requirement.description}
-                                                                    </CardDescription>
-                                                                </div>
-                                                                {getStatusIcon(req.status)}
-                                                            </div>
-                                                        </CardHeader>
-                                                        <CardContent>
-                                                            <div className="space-y-2">
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-sm text-muted-foreground">Deadline:</span>
-                                                                    <Badge variant="outline">{req.requirement.deadline_text}</Badge>
-                                                                </div>
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-sm text-muted-foreground">Status:</span>
-                                                                    <Badge className={getStatusBadge(req.status)}>
-                                                                        {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                                                                    </Badge>
-                                                                </div>
-                                                                {req.submitted_at && (
-                                                                    <div className="text-xs text-muted-foreground">
-                                                                        Submitted: {new Date(req.submitted_at).toLocaleDateString()}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                ))}
+                                <div className="space-y-3">
+                                    {student.requirements && student.requirements.length > 0 ? (
+                                        student.requirements.map((req) => (
+                                            <div 
+                                                key={req.id} 
+                                                className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                                            >
+                                                <Checkbox
+                                                    id={`req-${req.id}`}
+                                                    checked={req.status === 'approved'}
+                                                    onCheckedChange={() => handleRequirementToggle(req.id, req.status)}
+                                                    className="mt-1"
+                                                />
+                                                <div className="flex-1 space-y-1">
+                                                    <label
+                                                        htmlFor={`req-${req.id}`}
+                                                        className="text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                    >
+                                                        {req.requirement.name}
+                                                    </label>
+                                                    {req.requirement.description && (
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {req.requirement.description}
+                                                        </p>
+                                                    )}
+                                                    {req.approved_at && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Approved: {new Date(req.approved_at).toLocaleDateString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <Badge className={getStatusBadge(req.status)}>
+                                                    {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                                                </Badge>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">No requirements assigned yet.</p>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
