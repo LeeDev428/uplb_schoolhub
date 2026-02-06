@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { store as storeStudent, update as updateStudent } from '@/routes/registrar/students';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -31,11 +31,46 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+interface Department {
+    id: number;
+    name: string;
+    level: string;
+}
+
+interface Program {
+    id: number;
+    name: string;
+    department_id: number;
+    department: { id: number; name: string };
+}
+
+interface YearLevelData {
+    id: number;
+    name: string;
+    department_id: number;
+    level_number: number;
+    department: { id: number; name: string };
+}
+
+interface Section {
+    id: number;
+    name: string;
+    year_level_id: number;
+    program_id: number | null;
+    school_year: string;
+    year_level: { id: number; name: string };
+    program: { id: number; name: string } | null;
+}
+
 interface StudentFormModalProps {
     open: boolean;
     onClose: () => void;
     student?: any;
     mode?: 'create' | 'edit';
+    departments: Department[];
+    programs: Program[];
+    yearLevels: YearLevelData[];
+    sections: Section[];
 }
 
 export function StudentFormModal({
@@ -43,10 +78,17 @@ export function StudentFormModal({
     onClose,
     student,
     mode = 'create',
+    departments,
+    programs,
+    yearLevels,
+    sections,
 }: StudentFormModalProps) {
     const [date, setDate] = useState<Date | undefined>(
         student?.date_of_birth ? new Date(student.date_of_birth) : undefined,
     );
+    const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
+    const [selectedProgramId, setSelectedProgramId] = useState<string>('');
+    const [selectedYearLevelId, setSelectedYearLevelId] = useState<string>('');
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         first_name: student?.first_name || '',
@@ -80,6 +122,33 @@ export function StudentFormModal({
         student_photo_url: student?.student_photo_url || '',
         remarks: student?.remarks || '',
     });
+
+    // Filter programs based on selected department
+    const filteredPrograms = useMemo(() => {
+        if (!selectedDepartmentId) return programs;
+        return programs.filter(p => p.department_id.toString() === selectedDepartmentId);
+    }, [selectedDepartmentId, programs]);
+
+    // Filter year levels based on selected department
+    const filteredYearLevels = useMemo(() => {
+        if (!selectedDepartmentId) return yearLevels;
+        return yearLevels.filter(yl => yl.department_id.toString() === selectedDepartmentId);
+    }, [selectedDepartmentId, yearLevels]);
+
+    // Filter sections based on selected year level and program
+    const filteredSections = useMemo(() => {
+        if (!selectedYearLevelId) return sections;
+        return sections.filter(s => {
+            const matchesYearLevel = s.year_level_id.toString() === selectedYearLevelId;
+            if (!selectedProgramId) return matchesYearLevel;
+            // For college: Match both year level and program
+            // For basic ed: Program is null
+            return matchesYearLevel && (
+                s.program_id === null || 
+                s.program_id.toString() === selectedProgramId
+            );
+        });
+    }, [selectedYearLevelId, selectedProgramId, sections]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -283,35 +352,54 @@ export function StudentFormModal({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="program">Program *</Label>
-                                <Select value={data.program} onValueChange={value => setData('program', value)}>
-                                    <SelectTrigger className={errors.program ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder="Select program" />
+                                <Label htmlFor="department">Department *</Label>
+                                <Select 
+                                    value={selectedDepartmentId} 
+                                    onValueChange={(value) => {
+                                        setSelectedDepartmentId(value);
+                                        setSelectedProgramId('');
+                                        setSelectedYearLevelId('');
+                                        setData('program', '');
+                                        setData('year_level', '');
+                                        setData('section', '');
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select department" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="BS Information Technology">BS Information Technology</SelectItem>
-                                        <SelectItem value="BS Computer Science">BS Computer Science</SelectItem>
-                                        <SelectItem value="BS Business Administration">BS Business Administration</SelectItem>
-                                        <SelectItem value="BS Accountancy">BS Accountancy</SelectItem>
-                                        <SelectItem value="BS Psychology">BS Psychology</SelectItem>
+                                        {departments.map((dept) => (
+                                            <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                {dept.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
-                                {errors.program && (
-                                    <p className="text-xs text-red-500">{errors.program}</p>
-                                )}
                             </div>
+                        </div>
 
+                        <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="year_level">Year Level *</Label>
-                                <Select value={data.year_level} onValueChange={value => setData('year_level', value)}>
+                                <Select 
+                                    value={selectedYearLevelId} 
+                                    onValueChange={(value) => {
+                                        setSelectedYearLevelId(value);
+                                        const yearLevel = yearLevels.find(yl => yl.id.toString() === value);
+                                        setData('year_level', yearLevel?.name || '');
+                                        setData('section', '');
+                                    }}
+                                    disabled={!selectedDepartmentId}
+                                >
                                     <SelectTrigger className={errors.year_level ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder="Select year level" />
+                                        <SelectValue placeholder={selectedDepartmentId ? "Select year level" : "Select department first"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1st Year">1st Year</SelectItem>
-                                        <SelectItem value="2nd Year">2nd Year</SelectItem>
-                                        <SelectItem value="3rd Year">3rd Year</SelectItem>
-                                        <SelectItem value="4th Year">4th Year</SelectItem>
+                                        {filteredYearLevels.map((yl) => (
+                                            <SelectItem key={yl.id} value={yl.id.toString()}>
+                                                {yl.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                                 {errors.year_level && (
@@ -320,19 +408,78 @@ export function StudentFormModal({
                             </div>
 
                             <div className="space-y-2">
+                                <Label htmlFor="program">Program {filteredPrograms.length > 0 && '*'}</Label>
+                                <Select 
+                                    value={selectedProgramId} 
+                                    onValueChange={(value) => {
+                                        setSelectedProgramId(value);
+                                        const program = programs.find(p => p.id.toString() === value);
+                                        setData('program', program?.name || '');
+                                        setData('section', '');
+                                    }}
+                                    disabled={filteredPrograms.length === 0}
+                                >
+                                    <SelectTrigger className={errors.program ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder={filteredPrograms.length > 0 ? "Select program" : "Not applicable"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {filteredPrograms.map((prog) => (
+                                            <SelectItem key={prog.id} value={prog.id.toString()}>
+                                                {prog.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {filteredPrograms.length > 0 && errors.program && (
+                                    <p className="text-xs text-red-500">{errors.program}</p>
+                                )}
+                                {filteredPrograms.length === 0 && (
+                                    <p className="text-xs text-muted-foreground">
+                                        Programs only apply to college departments
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="section">Section *</Label>
-                                <Input
-                                    id="section"
-                                    value={data.section}
-                                    onChange={e => setData('section', e.target.value)}
-                                    placeholder="TBD (To Be Determined)"
-                                    className={errors.section ? 'border-red-500' : ''}
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    TBD if section not yet finalized
-                                </p>
+                                <Select 
+                                    value={data.section} 
+                                    onValueChange={(value) => setData('section', value)}
+                                    disabled={!selectedYearLevelId}
+                                >
+                                    <SelectTrigger className={errors.section ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder={selectedYearLevelId ? "Select section" : "Select year level first"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {filteredSections.map((sec) => (
+                                            <SelectItem key={sec.id} value={sec.name}>
+                                                {sec.name} {sec.program && `(${sec.program.name})`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 {errors.section && (
                                     <p className="text-xs text-red-500">{errors.section}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="enrollment_status">Enrollment Status *</Label>
+                                <Select value={data.enrollment_status} onValueChange={value => setData('enrollment_status', value)}>
+                                    <SelectTrigger className={errors.enrollment_status ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="not-enrolled">Not Enrolled</SelectItem>
+                                        <SelectItem value="pending-registrar">Pending - Registrar</SelectItem>
+                                        <SelectItem value="pending-accounting">Pending - Accounting</SelectItem>
+                                        <SelectItem value="enrolled">Officially Enrolled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.enrollment_status && (
+                                    <p className="text-xs text-red-500">{errors.enrollment_status}</p>
                                 )}
                             </div>
                         </div>
