@@ -3,63 +3,56 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\YearLevel;
+use App\Models\Department;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class YearLevelController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $yearLevels = YearLevel::with('department')->get();
+        $departments = Department::where('is_active', true)->get();
+        
+        return Inertia::render('owner/year-levels/index', [
+            'yearLevels' => $yearLevels,
+            'departments' => $departments,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'name' => 'required|string|max:255',
+            'level_number' => 'required|integer|min:1',
+            'is_active' => 'boolean',
+        ]);
+
+        YearLevel::create($validated);
+
+        return back()->with('success', 'Year Level created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, YearLevel $yearLevel)
     {
-        //
+        $validated = $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'name' => 'required|string|max:255',
+            'level_number' => 'required|integer|min:1',
+            'is_active' => 'boolean',
+        ]);
+
+        $yearLevel->update($validated);
+
+        return back()->with('success', 'Year Level updated successfully');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(YearLevel $yearLevel)
     {
-        //
-    }
+        $yearLevel->delete();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', 'Year Level deleted successfully');
     }
 }
