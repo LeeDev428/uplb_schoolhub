@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             YearLevelSeeder::class,
             SectionSeeder::class,
+            StudentSeeder::class,  // Add this line
         ]);
     }
 }
