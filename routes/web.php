@@ -22,6 +22,7 @@ Route::get('dashboard', function () {
     return match ($user->role) {
         'owner' => redirect()->route('owner.dashboard'),
         'registrar' => redirect()->route('registrar.dashboard'),
+        'student' => redirect()->route('student.dashboard'),
         default => Inertia::render('dashboard'),
     };
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -121,6 +122,13 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::get('settings', function () {
         return Inertia::render('registrar/settings');
     })->name('settings');
+});
+
+// Student Portal Routes
+Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'role:student'])->group(function () {
+    Route::get('dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Add more student routes here (requirements, profile, etc.)
 });
 
 require __DIR__.'/settings.php';
