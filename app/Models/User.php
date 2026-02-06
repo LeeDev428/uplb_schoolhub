@@ -99,6 +99,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the student record for this user
+     */
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    /**
      * Get student requirements for this user
      */
     public function studentRequirements()
