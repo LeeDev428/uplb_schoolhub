@@ -1,0 +1,129 @@
+<?php
+
+namespace App\Http\Controllers\Accounting;
+
+use App\Http\Controllers\Controller;
+use App\Models\Student;
+use App\Models\StudentFee;
+use App\Models\StudentPayment;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Support\Facades\DB;
+
+class ReportsController extends Controller
+{
+    /**
+     * Display reports dashboard.
+     */
+    public function index(Request $request): Response
+    {
+        // Get filters
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $schoolYear = $request->input('school_year');
+        $status = $request->input('status');
+
+        // Payment Collection Summary (grouped by date)
+        $paymentQuery = StudentPayment::query();
+        
+        if ($from) {
+            $paymentQuery->whereDate('payment_date', '>=', $from);
+        }
+        if ($to) {
+            $paymentQuery->whereDate('payment_date', '<=', $to);
+        }
+
+        $paymentSummary = $paymentQuery
+            ->select(
+                DB::raw('DATE(payment_date) as date'),
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(amount) as total_amount')
+            )
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // Student Balance Report
+        $balanceQuery = StudentFee::with('student');
+
+        if ($schoolYear) {
+            $balanceQuery->where('school_year', $schoolYear);
+        }
+
+        // Filter by payment status
+        if ($status === 'paid') {
+            $balanceQuery->where('balance', '<=', 0);
+        } elseif ($status === 'partial') {
+            $balanceQuery->where('total_paid', '>', 0)->where('balance', '>', 0);
+        } elseif ($status === 'unpaid') {
+            $balanceQuery->where('total_paid', 0);
+        }
+
+        $balanceReport = $balanceQuery
+            ->orderBy('balance', 'desc')
+            ->get()
+            ->map(function ($fee) {
+                $paymentStatus = 'unpaid';
+                if ($fee->balance <= 0) {
+                    $paymentStatus = 'paid';
+                } elseif ($fee->total_paid > 0) {
+                    $paymentStatus = 'partial';
+                }
+
+                return [
+                    'student' => [
+                        'id' => $fee->student->id,
+                        'lrn' => $fee->student->lrn,
+                        'full_name' => $fee->student->full_name,
+                        'program' => $fee->student->program,
+                        'year_level' => $fee->student->year_level,
+                    ],
+                    'school_year' => $fee->school_year,
+                    'total_amount' => $fee->total_amount,
+                    'total_paid' => $fee->total_paid,
+                    'balance' => $fee->balance,
+                    'payment_status' => $paymentStatus,
+                ];
+            });
+
+        // Summary Statistics
+        $summaryStats = [
+            'total_collectibles' => StudentFee::sum('balance'),
+            'total_collected' => StudentPayment::sum('amount'),
+            'fully_paid_count' => StudentFee::where('balance', '<=', 0)->count(),
+            'partial_paid_count' => StudentFee::where('total_paid', '>', 0)->where('balance', '>', 0)->count(),
+            'unpaid_count' => StudentFee::where('total_paid', 0)->count(),
+        ];
+
+        // Get all school years
+        $schoolYears = StudentFee::distinct()->pluck('school_year')->sort()->values();
+
+        return Inertia::render('accounting/reports', [
+            'paymentSummary' => $paymentSummary,
+            'balanceReport' => $balanceReport,
+            'filters' => $request->only(['from', 'to', 'school_year', 'status']),
+            'schoolYears' => $schoolYears,
+            'summaryStats' => $summaryStats,
+        ]);
+    }
+
+    /**
+     * Export report to various formats.
+     * This can be extended to support Excel, CSV, PDF exports.
+     */
+    public function export(Request $request)
+    {
+        $type = $request->input('type', 'csv'); // csv, excel, pdf
+
+        // Implementation would depend on packages like:
+        // - Laravel Excel (maatwebsite/excel) for Excel/CSV
+        // - DomPDF or Snappy for PDF
+        
+        // For now, this is a placeholder
+        return response()->json([
+            'message' => 'Export functionality can be implemented with Laravel Excel package',
+            'type' => $type,
+        ]);
+    }
+}
