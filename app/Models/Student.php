@@ -78,7 +78,7 @@ class Student extends Model
         
         $name .= " {$this->last_name}";
         
-        if ($this->suffix) {
+        if ($this->suffix && !in_array(strtolower($this->suffix), ['none', ''])) {
             $name .= " {$this->suffix}";
         }
         
@@ -137,6 +137,30 @@ class Student extends Model
     public function enrollmentClearance()
     {
         return $this->hasOne(EnrollmentClearance::class, 'user_id');
+    }
+
+    /**
+     * Get all fee records for this student
+     */
+    public function fees()
+    {
+        return $this->hasMany(StudentFee::class);
+    }
+
+    /**
+     * Get all payment records for this student
+     */
+    public function payments()
+    {
+        return $this->hasMany(StudentPayment::class);
+    }
+
+    /**
+     * Get the current school year fee record
+     */
+    public function currentFee()
+    {
+        return $this->hasOne(StudentFee::class)->where('school_year', $this->school_year);
     }
 
     /**
