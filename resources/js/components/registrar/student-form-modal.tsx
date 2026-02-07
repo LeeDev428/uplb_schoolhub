@@ -1,10 +1,8 @@
 import { useForm } from '@inertiajs/react';
-import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useMemo } from 'react';
 import { store as storeStudent, update as updateStudent } from '@/routes/registrar/students';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import {
     Dialog,
     DialogContent,
@@ -16,11 +14,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import {
     Select,
     SelectContent,
     SelectItem,
@@ -28,7 +21,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface Department {
@@ -83,9 +75,6 @@ export function StudentFormModal({
     yearLevels,
     sections,
 }: StudentFormModalProps) {
-    const [date, setDate] = useState<Date | undefined>(
-        student?.date_of_birth ? new Date(student.date_of_birth) : undefined,
-    );
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
     const [selectedProgramId, setSelectedProgramId] = useState<string>('');
     const [selectedYearLevelId, setSelectedYearLevelId] = useState<string>('');
@@ -125,29 +114,45 @@ export function StudentFormModal({
 
     // Filter programs based on selected department
     const filteredPrograms = useMemo(() => {
-        if (!selectedDepartmentId) return programs;
-        return programs.filter(p => p.department_id.toString() === selectedDepartmentId);
+        if (!selectedDepartmentId) return [];
+        const filtered = programs.filter(p => p.department_id.toString() === selectedDepartmentId);
+        // Remove duplicates by program name
+        const uniquePrograms = Array.from(
+            new Map(filtered.map(p => [p.name, p])).values()
+        );
+        return uniquePrograms;
     }, [selectedDepartmentId, programs]);
 
     // Filter year levels based on selected department
     const filteredYearLevels = useMemo(() => {
-        if (!selectedDepartmentId) return yearLevels;
-        return yearLevels.filter(yl => yl.department_id.toString() === selectedDepartmentId);
+        if (!selectedDepartmentId) return [];
+        const filtered = yearLevels.filter(yl => yl.department_id.toString() === selectedDepartmentId);
+        // Remove duplicates by year level name
+        const uniqueYearLevels = Array.from(
+            new Map(filtered.map(yl => [yl.name, yl])).values()
+        );
+        return uniqueYearLevels;
     }, [selectedDepartmentId, yearLevels]);
 
     // Filter sections based on selected year level and program
     const filteredSections = useMemo(() => {
-        if (!selectedYearLevelId) return sections;
-        return sections.filter(s => {
-            const matchesYearLevel = s.year_level_id.toString() === selectedYearLevelId;
-            if (!selectedProgramId) return matchesYearLevel;
-            // For college: Match both year level and program
-            // For basic ed: Program is null
-            return matchesYearLevel && (
-                s.program_id === null || 
-                s.program_id.toString() === selectedProgramId
+        if (!selectedYearLevelId) return [];
+        
+        let filtered = sections.filter(s => s.year_level_id.toString() === selectedYearLevelId);
+        
+        // If a program is selected, only show sections for that program or sections without a program
+        if (selectedProgramId) {
+            filtered = filtered.filter(s => 
+                s.program_id === null || s.program_id.toString() === selectedProgramId
             );
-        });
+        }
+        
+        // Remove duplicates by section name - keep unique sections
+        const uniqueSections = Array.from(
+            new Map(filtered.map(s => [s.name, s])).values()
+        );
+        
+        return uniqueSections;
     }, [selectedYearLevelId, selectedProgramId, sections]);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -158,7 +163,7 @@ export function StudentFormModal({
                 onSuccess: () => {
                     toast.success('Student added successfully!');
                     reset();
-                    setDate(undefined);
+
                     onClose();
                 },
                 onError: () => {
@@ -446,24 +451,13 @@ export function StudentFormModal({
                                     onValueChange={(value) => setData('section', value)}
                                     disabled={!selectedYearLevelId}
                                 >
-                                    <SelectTrigger className={cn(
-                                        errors.section ? 'border-red-500' : '',
-                                        'overflow-hidden'
-                                    )}>
-                                        <SelectValue 
-                                            placeholder={selectedYearLevelId ? "Select section" : "Select year level first"} 
-                                            className="truncate"
-                                        />
+                                    <SelectTrigger className={errors.section ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder={selectedYearLevelId ? "Select section" : "Select year level first"} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {filteredSections.map((sec) => (
                                             <SelectItem key={sec.id} value={sec.name}>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{sec.name}</span>
-                                                    {sec.program && (
-                                                        <span className="text-xs text-muted-foreground">{sec.program.name}</span>
-                                                    )}
-                                                </div>
+                                                {sec.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -518,71 +512,17 @@ export function StudentFormModal({
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="date_of_birth">Date of Birth *</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        id="date_of_birth"
-                                        type="date"
-                                        value={date ? format(date, 'yyyy-MM-dd') : ''}
-                                        onChange={(e) => {
-                                            if (e.target.value) {
-                                                const selectedDate = new Date(e.target.value + 'T00:00:00');
-                                                if (!isNaN(selectedDate.getTime())) {
-                                                    setDate(selectedDate);
-                                                    setData('date_of_birth', e.target.value);
-                                                }
-                                            } else {
-                                                setDate(undefined);
-                                                setData('date_of_birth', '');
-                                            }
-                                        }}
-                                        max={format(new Date(), 'yyyy-MM-dd')}
-                                        className={cn(
-                                            'flex-1',
-                                            errors.date_of_birth && 'border-red-500',
-                                        )}
-                                        placeholder="yyyy-mm-dd"
-                                    />
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="icon"
-                                                className={cn(
-                                                    'shrink-0',
-                                                    errors.date_of_birth && 'border-red-500',
-                                                )}
-                                            >
-                                                <CalendarIcon className="h-4 w-4" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="end">
-                                            <Calendar
-                                                mode="single"
-                                                selected={date}
-                                                onSelect={(selectedDate) => {
-                                                    setDate(selectedDate);
-                                                    if (selectedDate) {
-                                                        setData('date_of_birth', format(selectedDate, 'yyyy-MM-dd'));
-                                                    } else {
-                                                        setData('date_of_birth', '');
-                                                    }
-                                                }}
-                                                initialFocus
-                                                defaultMonth={date || new Date(2000, 0)}
-                                                captionLayout="dropdown-buttons"
-                                                fromYear={1950}
-                                                toYear={new Date().getFullYear()}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
+                                <Input
+                                    id="date_of_birth"
+                                    type="date"
+                                    value={data.date_of_birth}
+                                    onChange={(e) => setData('date_of_birth', e.target.value)}
+                                    max={format(new Date(), 'yyyy-MM-dd')}
+                                    className={errors.date_of_birth ? 'border-red-500' : ''}
+                                />
                                 {errors.date_of_birth && (
                                     <p className="text-xs text-red-500">{errors.date_of_birth}</p>
                                 )}
-                                <p className="text-xs text-muted-foreground">
-                                    Type date directly or use calendar picker
-                                </p>
                             </div>
 
                             <div className="space-y-2">
