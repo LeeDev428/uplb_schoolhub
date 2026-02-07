@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import RegistrarLayout from '@/layouts/registrar-layout';
+import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { PageHeader } from '@/components/page-header';
 
 export default function RegistrarSchedule() {
