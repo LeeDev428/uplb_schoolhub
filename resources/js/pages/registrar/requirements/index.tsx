@@ -42,7 +42,7 @@ interface Student {
     id: number;
     first_name: string;
     last_name: string;
-    student_number: string;
+    lrn: string;
     student_type: string;
     program: string;
     student_photo_url: string | null;
@@ -256,6 +256,11 @@ export default function RequirementsTracking({ students, requirements, programs,
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Programs</SelectItem>
+                            {programs.map((program) => (
+                                <SelectItem key={program} value={program}>
+                                    {program}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -287,7 +292,7 @@ export default function RequirementsTracking({ students, requirements, programs,
                                                 </Avatar>
                                                 <div>
                                                     <div className="font-medium">{`${student.first_name} ${student.last_name}`}</div>
-                                                    <div className="text-sm text-muted-foreground">{student.student_number}</div>
+                                                    <div className="text-sm text-muted-foreground">{student.lrn}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
