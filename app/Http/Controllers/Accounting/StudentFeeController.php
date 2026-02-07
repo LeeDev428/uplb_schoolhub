@@ -31,9 +31,9 @@ class StudentFeeController extends Controller
         // Filter by payment status
         if ($status = $request->input('status')) {
             if ($status === 'paid') {
-                $query->whereColumn('balance', '<=', 0);
+                $query->where('balance', '<=', 0);
             } elseif ($status === 'partial') {
-                $query->where('total_paid', '>', 0)->whereColumn('balance', '>', 0);
+                $query->where('total_paid', '>', 0)->where('balance', '>', 0);
             } elseif ($status === 'unpaid') {
                 $query->where('total_paid', 0);
             }
@@ -48,10 +48,25 @@ class StudentFeeController extends Controller
 
         $schoolYears = StudentFee::distinct()->pluck('school_year')->sort()->values();
 
+        // Get all students for dropdown
+        $students = Student::orderBy('last_name')->orderBy('first_name')
+            ->get()
+            ->map(function ($student) {
+                return [
+                    'id' => $student->id,
+                    'first_name' => $student->first_name,
+                    'last_name' => $student->last_name,
+                    'middle_name' => $student->middle_name,
+                    'lrn' => $student->lrn,
+                    'full_name' => $student->full_name,
+                ];
+            });
+
         return Inertia::render('accounting/fees/index', [
             'fees' => $fees,
             'filters' => $request->only(['search', 'status', 'school_year']),
             'schoolYears' => $schoolYears,
+            'students' => $students,
         ]);
     }
 
