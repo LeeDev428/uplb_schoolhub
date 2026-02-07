@@ -87,6 +87,9 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 
     // Requirements Tracking (view student requirements status)
     Route::get('requirements', [App\Http\Controllers\RequirementTrackingController::class, 'index'])->name('requirements.index');
+    Route::get('requirements/export', [App\Http\Controllers\RequirementTrackingController::class, 'export'])->name('requirements.export');
+    Route::post('requirements/test-reminder', [App\Http\Controllers\RequirementTrackingController::class, 'testReminder'])->name('requirements.test-reminder');
+    Route::post('requirements/send-reminders', [App\Http\Controllers\RequirementTrackingController::class, 'sendReminders'])->name('requirements.send-reminders');
     
     // Create Documents - Requirements Manager (CRUD for requirement definitions)
     Route::get('documents/create', [App\Http\Controllers\RequirementController::class, 'index'])->name('documents.create');
