@@ -144,9 +144,8 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
     
     // Reports
-    Route::get('reports', function () {
-        return Inertia::render('accounting/reports');
-    })->name('reports');
+    Route::get('reports', [App\Http\Controllers\Accounting\ReportsController::class, 'index'])->name('reports');
+    Route::get('reports/export', [App\Http\Controllers\Accounting\ReportsController::class, 'export'])->name('reports.export');
     
     Route::get('settings', function () {
         return Inertia::render('accounting/settings');
