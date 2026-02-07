@@ -68,9 +68,55 @@ class RequirementController extends Controller
         $validated['applies_to_returning'] = filter_var($validated['applies_to_returning'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $validated['is_required'] = isset($validated['is_required']) ? filter_var($validated['is_required'], FILTER_VALIDATE_BOOLEAN) : true;
 
-        Requirement::create($validated);
+        $requirement = Requirement::create($validated);
 
-        return back()->with('success', 'Requirement created successfully');
+        // Automatically assign this requirement to existing students based on applicability
+        $this->assignRequirementToExistingStudents($requirement);
+
+        return back()->with('success', 'Requirement created successfully and assigned to applicable students');
+    }
+
+    /**
+     * Assign a requirement to existing students based on applicability
+     */
+    private function assignRequirementToExistingStudents(Requirement $requirement)
+    {
+        $studentQuery = \App\Models\Student::query();
+        
+        // Filter students based on requirement applicability
+        $studentTypes = [];
+        if ($requirement->applies_to_new_enrollee) {
+            $studentTypes[] = 'new';
+        }
+        if ($requirement->applies_to_transferee) {
+            $studentTypes[] = 'transferee';
+        }
+        if ($requirement->applies_to_returning) {
+            $studentTypes[] = 'returnee';
+        }
+
+        // If no specific student types selected, don't assign to any existing students
+        if (empty($studentTypes)) {
+            return;
+        }
+
+        $students = $studentQuery->whereIn('student_type', $studentTypes)->get();
+
+        // Create StudentRequirement records for each applicable student
+        foreach ($students as $student) {
+            // Check if student already has this requirement
+            $exists = \App\Models\StudentRequirement::where('student_id', $student->id)
+                ->where('requirement_id', $requirement->id)
+                ->exists();
+
+            if (!$exists) {
+                \App\Models\StudentRequirement::create([
+                    'student_id' => $student->id,
+                    'requirement_id' => $requirement->id,
+                    'status' => 'pending',
+                ]);
+            }
+        }
     }
 
     /**
