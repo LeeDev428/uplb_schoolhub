@@ -91,8 +91,48 @@ export default function RequirementsTracking({ students, requirements, filters }
         }, { preserveState: true, replace: true });
     };
 
+    const handleStatusChange = (status: string) => {
+        setSelectedStatus(status);
+        router.get('/registrar/requirements', {
+            type: selectedType,
+            search,
+            status,
+            program: selectedProgram,
+        }, { preserveState: true, replace: true });
+    };
+
+    const handleProgramChange = (program: string) => {
+        setSelectedProgram(program);
+        router.get('/registrar/requirements', {
+            type: selectedType,
+            search,
+            status: selectedStatus,
+            program,
+        }, { preserveState: true, replace: true });
+    };
+
     const handleExport = () => {
         window.location.href = `/registrar/requirements/export?type=${selectedType}&search=${search}&status=${selectedStatus}&program=${selectedProgram}`;
+    };
+
+    const handleTestReminder = () => {
+        router.post('/registrar/requirements/test-reminder', {}, {
+            preserveState: true,
+            onSuccess: () => {
+                // Success message will be shown by flash message
+            },
+        });
+    };
+
+    const handleSendReminders = () => {
+        if (window.confirm('Send reminder emails to all students with incomplete requirements?')) {
+            router.post(`/registrar/requirements/send-reminders?type=${selectedType}&search=${search}&status=${selectedStatus}&program=${selectedProgram}`, {}, {
+                preserveState: true,
+                onSuccess: () => {
+                    // Success message will be shown by flash message
+                },
+            });
+        }
     };
 
     const getStatusBadge = (status: string) => {
@@ -163,11 +203,11 @@ export default function RequirementsTracking({ students, requirements, filters }
                             <FileDown className="mr-2 h-4 w-4" />
                             Export to Excel
                         </Button>
-                        {/* <Button variant="outline">
+                        <Button variant="outline" onClick={handleTestReminder}>
                             <TestTube className="mr-2 h-4 w-4" />
                             Test Reminder
-                        </Button> */}
-                        <Button>
+                        </Button>
+                        <Button onClick={handleSendReminders}>
                             <Mail className="mr-2 h-4 w-4" />
                             Send Reminders
                         </Button>
@@ -199,7 +239,7 @@ export default function RequirementsTracking({ students, requirements, filters }
                         </div>
                         <Button type="submit">Search</Button>
                     </form>
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <Select value={selectedStatus} onValueChange={handleStatusChange}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="All Status" />
                         </SelectTrigger>
@@ -209,7 +249,7 @@ export default function RequirementsTracking({ students, requirements, filters }
                             <SelectItem value="incomplete">Incomplete</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+                    <Select value={selectedProgram} onValueChange={handleProgramChange}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="All Programs" />
                         </SelectTrigger>
