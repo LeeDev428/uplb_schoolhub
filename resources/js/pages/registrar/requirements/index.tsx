@@ -203,10 +203,10 @@ export default function RequirementsTracking({ students, requirements, filters }
                             <FileDown className="mr-2 h-4 w-4" />
                             Export to Excel
                         </Button>
-                        <Button variant="outline" onClick={handleTestReminder}>
+                        {/* <Button variant="outline" onClick={handleTestReminder}>
                             <TestTube className="mr-2 h-4 w-4" />
                             Test Reminder
-                        </Button>
+                        </Button> */}
                         <Button onClick={handleSendReminders}>
                             <Mail className="mr-2 h-4 w-4" />
                             Send Reminders
