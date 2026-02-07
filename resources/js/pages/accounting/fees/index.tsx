@@ -503,7 +503,7 @@ export default function AccountingFees({ fees, filters, schoolYears, students = 
                                         key={page}
                                         variant={page === fees.current_page ? 'default' : 'outline'}
                                         size="sm"
-                                        onClick={() => router.get(feesIndex.url({ page }))}
+                                        onClick={() => router.get(feesIndex.url({ query: { page } }))}
                                     >
                                         {page}
                                     </Button>
