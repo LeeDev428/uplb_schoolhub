@@ -61,6 +61,11 @@ const mainNavItems: NavItem[] = [
         icon: GraduationCap,
     },
     {
+        title: 'Schedule',
+        href: '/registrar/schedule',
+        icon: Calendar,
+    },
+    {
         title: 'Reports',
         href: '/registrar/reports',
         icon: FileText,
