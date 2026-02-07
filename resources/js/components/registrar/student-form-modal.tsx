@@ -487,42 +487,13 @@ export function StudentFormModal({
                         </div>
                     </div>
 
-                    {/* Enrollment & Requirements Status */}
+                    {/* Additional Information */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Status Information</h3>
+                        <h3 className="text-lg font-semibold">Additional Information</h3>
                         
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="enrollment_status">Initial Enrollment Status</Label>
-                                <Select value={data.enrollment_status} onValueChange={value => setData('enrollment_status', value)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select enrollment status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {/* <SelectItem value="not-enrolled">Not Enrolled (Default)</SelectItem> */}
-                                        <SelectItem value="pending-registrar">Pending Registrar</SelectItem>
-                                        {/* <SelectItem value="pending-accounting">Pending Accounting</SelectItem> */}
-                                        <SelectItem value="enrolled">Enrolled</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="requirements_status">Initial Requirement Status</Label>
-                                <Select value={data.requirements_status} onValueChange={value => setData('requirements_status', value)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Incomplete (Default)" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="incomplete">Incomplete</SelectItem>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="complete">Complete</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="remarks">No Remark</Label>
+                                <Label htmlFor="remarks">Remarks</Label>
                                 <Textarea
                                     id="remarks"
                                     value={data.remarks}
@@ -547,8 +518,14 @@ export function StudentFormModal({
                                         type="date"
                                         value={date ? format(date, 'yyyy-MM-dd') : ''}
                                         onChange={(e) => {
-                                            const selectedDate = e.target.value ? new Date(e.target.value) : undefined;
-                                            setDate(selectedDate);
+                                            if (e.target.value) {
+                                                const selectedDate = new Date(e.target.value + 'T00:00:00');
+                                                if (!isNaN(selectedDate.getTime())) {
+                                                    setDate(selectedDate);
+                                                }
+                                            } else {
+                                                setDate(undefined);
+                                            }
                                         }}
                                         max={format(new Date(), 'yyyy-MM-dd')}
                                         className={cn(
