@@ -571,7 +571,7 @@ export default function AccountingPayments({ payments, filters, total, students 
                                         key={page}
                                         variant={page === payments.current_page ? 'default' : 'outline'}
                                         size="sm"
-                                        onClick={() => router.get(paymentsIndex.url({ page }))}
+                                        onClick={() => router.get(paymentsIndex.url({ query: { page } }))}
                                     >
                                         {page}
                                     </Button>
