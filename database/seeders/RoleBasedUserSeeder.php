@@ -34,6 +34,17 @@ class RoleBasedUserSeeder extends Seeder
             ]
         );
 
+        // Create Accounting User
+        User::updateOrCreate(
+            ['email' => 'accounting@gmail.com'],
+            [
+                'name' => 'School Accountant',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_ACCOUNTING,
+                'email_verified_at' => now(),
+            ]
+        );
+
         // Create Sample Students
         $students = [
             [
@@ -82,7 +93,7 @@ class RoleBasedUserSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ Created 1 Owner, 1 Registrar, and 4 Students');
+        $this->command->info('✅ Created 1 Owner, 1 Registrar, 1 Accounting, and 4 Students');
         $this->command->info('📧 All accounts use password: password');
     }
 }
