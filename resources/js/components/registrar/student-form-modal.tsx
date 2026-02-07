@@ -153,11 +153,6 @@ export function StudentFormModal({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const submitData = {
-            ...data,
-            date_of_birth: date ? format(date, 'yyyy-MM-dd') : '',
-        };
-
         if (mode === 'create') {
             post(storeStudent.url(), {
                 onSuccess: () => {
@@ -451,13 +446,24 @@ export function StudentFormModal({
                                     onValueChange={(value) => setData('section', value)}
                                     disabled={!selectedYearLevelId}
                                 >
-                                    <SelectTrigger className={errors.section ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder={selectedYearLevelId ? "Select section" : "Select year level first"} />
+                                    <SelectTrigger className={cn(
+                                        errors.section ? 'border-red-500' : '',
+                                        'overflow-hidden'
+                                    )}>
+                                        <SelectValue 
+                                            placeholder={selectedYearLevelId ? "Select section" : "Select year level first"} 
+                                            className="truncate"
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {filteredSections.map((sec) => (
                                             <SelectItem key={sec.id} value={sec.name}>
-                                                {sec.name} {sec.program && `(${sec.program.name})`}
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{sec.name}</span>
+                                                    {sec.program && (
+                                                        <span className="text-xs text-muted-foreground">{sec.program.name}</span>
+                                                    )}
+                                                </div>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -522,9 +528,11 @@ export function StudentFormModal({
                                                 const selectedDate = new Date(e.target.value + 'T00:00:00');
                                                 if (!isNaN(selectedDate.getTime())) {
                                                     setDate(selectedDate);
+                                                    setData('date_of_birth', e.target.value);
                                                 }
                                             } else {
                                                 setDate(undefined);
+                                                setData('date_of_birth', '');
                                             }
                                         }}
                                         max={format(new Date(), 'yyyy-MM-dd')}
@@ -552,7 +560,14 @@ export function StudentFormModal({
                                             <Calendar
                                                 mode="single"
                                                 selected={date}
-                                                onSelect={setDate}
+                                                onSelect={(selectedDate) => {
+                                                    setDate(selectedDate);
+                                                    if (selectedDate) {
+                                                        setData('date_of_birth', format(selectedDate, 'yyyy-MM-dd'));
+                                                    } else {
+                                                        setData('date_of_birth', '');
+                                                    }
+                                                }}
                                                 initialFocus
                                                 defaultMonth={date || new Date(2000, 0)}
                                                 captionLayout="dropdown-buttons"
