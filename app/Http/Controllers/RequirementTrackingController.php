@@ -33,8 +33,7 @@ class RequirementTrackingController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('lrn', 'like', "%{$search}%")
-                    ->orWhere('student_number', 'like', "%{$search}%");
+                    ->orWhere('lrn', 'like', "%{$search}%");
             });
         }
 
@@ -65,9 +64,18 @@ class RequirementTrackingController extends Controller
             ->orderBy('order')
             ->get();
 
+        // Get distinct programs for filter dropdown
+        $programs = Student::whereNotNull('program')
+            ->where('program', '!=', '')
+            ->distinct()
+            ->pluck('program')
+            ->sort()
+            ->values();
+
         return Inertia::render('registrar/requirements/index', [
             'students' => $students,
             'requirements' => $requirements,
+            'programs' => $programs,
             'filters' => [
                 'type' => $studentType,
                 'search' => $search,
@@ -99,8 +107,7 @@ class RequirementTrackingController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('lrn', 'like', "%{$search}%")
-                    ->orWhere('student_number', 'like', "%{$search}%");
+                    ->orWhere('lrn', 'like', "%{$search}%");
             });
         }
 
@@ -145,7 +152,7 @@ class RequirementTrackingController extends Controller
             // Data rows
             foreach ($students as $student) {
                 $row = [
-                    $student->student_number ?? $student->lrn,
+                    $student->lrn,
                     $student->first_name . ' ' . $student->last_name,
                     $student->program,
                     $student->year_level,
@@ -205,8 +212,7 @@ class RequirementTrackingController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('lrn', 'like', "%{$search}%")
-                    ->orWhere('student_number', 'like', "%{$search}%");
+                    ->orWhere('lrn', 'like', "%{$search}%");
             });
         }
 
