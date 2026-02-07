@@ -83,7 +83,7 @@ export function StudentFormModal({
         first_name: student?.first_name || '',
         last_name: student?.last_name || '',
         middle_name: student?.middle_name || '',
-        suffix: student?.suffix || '',
+        suffix: (student?.suffix && student.suffix !== 'none' && student.suffix !== 'None') ? student.suffix : '',
         lrn: student?.lrn || '',
         email: student?.email || '',
         phone: student?.phone || '',
@@ -163,7 +163,6 @@ export function StudentFormModal({
                 onSuccess: () => {
                     toast.success('Student added successfully!');
                     reset();
-
                     onClose();
                 },
                 onError: () => {
@@ -243,12 +242,12 @@ export function StudentFormModal({
 
                             <div className="space-y-2">
                                 <Label htmlFor="suffix">Suffix</Label>
-                                <Select value={data.suffix} onValueChange={value => setData('suffix', value)}>
+                                <Select value={data.suffix || 'none'} onValueChange={value => setData('suffix', value === 'none' ? '' : value)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select suffix" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="None">None</SelectItem>
+                                        <SelectItem value="none">None</SelectItem>
                                         <SelectItem value="Jr.">Jr.</SelectItem>
                                         <SelectItem value="Sr.">Sr.</SelectItem>
                                         <SelectItem value="II">II</SelectItem>
