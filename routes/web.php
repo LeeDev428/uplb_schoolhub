@@ -22,6 +22,7 @@ Route::get('dashboard', function () {
     return match ($user->role) {
         'owner' => redirect()->route('owner.dashboard'),
         'registrar' => redirect()->route('registrar.dashboard'),
+        'accounting' => redirect()->route('accounting.dashboard'),
         'student' => redirect()->route('student.dashboard'),
         default => Inertia::render('dashboard'),
     };
@@ -124,6 +125,31 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 
     Route::get('settings', function () {
         return Inertia::render('registrar/settings');
+    })->name('settings');
+    
+    Route::get('schedule', function () {
+        return Inertia::render('registrar/schedule');
+    })->name('schedule');
+});
+
+// Accounting Routes
+Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified', 'role:accounting'])->group(function () {
+    Route::get('dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'index'])->name('dashboard');
+    
+    // Student Fees Management
+    Route::resource('fees', App\Http\Controllers\Accounting\StudentFeeController::class);
+    
+    // Student Payments Management
+    Route::get('payments/create', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'create'])->name('payments.create');
+    Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
+    
+    // Reports
+    Route::get('reports', function () {
+        return Inertia::render('accounting/reports');
+    })->name('reports');
+    
+    Route::get('settings', function () {
+        return Inertia::render('accounting/settings');
     })->name('settings');
 });
 
