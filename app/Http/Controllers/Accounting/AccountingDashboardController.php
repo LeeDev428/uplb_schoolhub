@@ -19,8 +19,8 @@ class AccountingDashboardController extends Controller
     {
         $stats = [
             'total_students' => Student::count(),
-            'fully_paid' => StudentFee::whereColumn('balance', '<=', 0)->count(),
-            'partial_paid' => StudentFee::where('total_paid', '>', 0)->whereColumn('balance', '>', 0)->count(),
+            'fully_paid' => StudentFee::where('balance', '<=', 0)->count(),
+            'partial_paid' => StudentFee::where('total_paid', '>', 0)->where('balance', '>', 0)->count(),
             'unpaid' => StudentFee::where('total_paid', 0)->count(),
             'total_collectibles' => StudentFee::sum('balance'),
             'total_collected_today' => StudentPayment::whereDate('payment_date', today())->sum('amount'),
