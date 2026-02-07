@@ -151,7 +151,7 @@ export default function RequirementsTracking({ students, requirements, programs,
         const colors = {
             new: 'bg-blue-100 text-blue-800',
             transferee: 'bg-purple-100 text-purple-800',
-            returning: 'bg-green-100 text-green-800',
+            returnee: 'bg-green-100 text-green-800',
         };
         return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
     };
@@ -160,10 +160,10 @@ export default function RequirementsTracking({ students, requirements, programs,
         const applies = [];
         if (req.applies_to_new_enrollee) applies.push('new');
         if (req.applies_to_transferee) applies.push('transferee');
-        if (req.applies_to_returning) applies.push('returning');
+        if (req.applies_to_returning) applies.push('returnee');
         
         if (applies.length === 3) {
-            return <Badge variant="outline" className="text-xs">both</Badge>;
+            return <Badge variant="outline" className="text-xs">all</Badge>;
         }
         return applies.map(type => (
             <Badge key={type} variant="outline" className="text-xs ml-1">
@@ -221,7 +221,7 @@ export default function RequirementsTracking({ students, requirements, programs,
                         <TabsTrigger value="all">All Students</TabsTrigger>
                         <TabsTrigger value="new">New Enrollees</TabsTrigger>
                         <TabsTrigger value="transferee">Transferees</TabsTrigger>
-                        <TabsTrigger value="returning">Returning</TabsTrigger>
+                        <TabsTrigger value="returnee">Returning</TabsTrigger>
                     </TabsList>
                 </Tabs>
 
