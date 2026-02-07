@@ -57,6 +57,7 @@ interface Props {
         total: number;
     };
     requirements: Requirement[];
+    programs: string[];
     filters: {
         type: string;
         search?: string;
@@ -65,7 +66,7 @@ interface Props {
     };
 }
 
-export default function RequirementsTracking({ students, requirements, filters }: Props) {
+export default function RequirementsTracking({ students, requirements, programs, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [selectedType, setSelectedType] = useState(filters.type || 'all');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
