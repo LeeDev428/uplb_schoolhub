@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
 use Illuminate\Http\RedirectResponse;
@@ -52,10 +53,42 @@ class StudentPaymentController extends Controller
         // Calculate total for filtered results
         $total = $query->sum('amount');
 
+        // Get all students with their fees
+        $students = Student::orderBy('last_name')->orderBy('first_name')
+            ->get()
+            ->map(function ($student) {
+                return [
+                    'id' => $student->id,
+                    'first_name' => $student->first_name,
+                    'last_name' => $student->last_name,
+                    'lrn' => $student->lrn,
+                    'full_name' => $student->full_name,
+                ];
+            });
+
+        // Get all fees grouped by student
+        $studentFees = StudentFee::with('student')
+            ->where('balance', '>', 0)
+            ->get()
+            ->groupBy('student_id')
+            ->map(function ($fees) {
+                return $fees->map(function ($fee) {
+                    return [
+                        'id' => $fee->id,
+                        'school_year' => $fee->school_year,
+                        'total_amount' => $fee->total_amount,
+                        'total_paid' => $fee->total_paid,
+                        'balance' => $fee->balance,
+                    ];
+                });
+            });
+
         return Inertia::render('accounting/payments/index', [
             'payments' => $payments,
             'filters' => $request->only(['search', 'from', 'to', 'payment_for']),
             'total' => $total,
+            'students' => $students,
+            'studentFees' => $studentFees,
         ]);
     }
 
