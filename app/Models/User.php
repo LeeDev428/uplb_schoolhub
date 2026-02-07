@@ -20,6 +20,8 @@ class User extends Authenticatable
 
     public const ROLE_REGISTRAR = 'registrar';
 
+    public const ROLE_ACCOUNTING = 'accounting';
+
     public const ROLE_STUDENT = 'student';
 
     /**
