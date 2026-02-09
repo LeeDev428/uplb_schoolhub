@@ -11,7 +11,7 @@ class DepartmentController extends Controller
 {
     public function index()
     {
-        $departments = Department::withCount(['programs', 'yearLevels'])->get();
+        $departments = Department::withCount(['yearLevels', 'sections', 'students'])->get();
         
         return Inertia::render('owner/departments/index', [
             'departments' => $departments,
@@ -21,9 +21,10 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'classification' => 'required|in:K-12,College',
             'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:departments,code',
             'description' => 'nullable|string',
-            'level' => 'required|in:elementary,junior_high,senior_high,college',
             'is_active' => 'boolean',
         ]);
 
@@ -35,9 +36,10 @@ class DepartmentController extends Controller
     public function update(Request $request, Department $department)
     {
         $validated = $request->validate([
+            'classification' => 'required|in:K-12,College',
             'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:departments,code,' . $department->id,
             'description' => 'nullable|string',
-            'level' => 'required|in:elementary,junior_high,senior_high,college',
             'is_active' => 'boolean',
         ]);
 
