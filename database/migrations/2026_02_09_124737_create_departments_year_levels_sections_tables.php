@@ -107,18 +107,86 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->dropForeign(['department_id']);
-            $table->dropForeign(['year_level_id']);
-            $table->dropForeign(['section_id']);
-            $table->dropForeign(['strand_id']);
-            $table->dropColumn(['department_id', 'year_level_id', 'section_id', 'strand_id', 'classification']);
-        });
+        // Remove columns from students table
+        if (Schema::hasColumn('students', 'strand_id')) {
+            Schema::table('students', function (Blueprint $table) {
+                $table->dropForeign(['strand_id']);
+                $table->dropColumn('strand_id');
+            });
+        }
 
-        Schema::dropIfExists('sections');
+        if (Schema::hasColumn('students', 'section_id')) {
+            Schema::table('students', function (Blueprint $table) {
+                $table->dropForeign(['section_id']);
+                $table->dropColumn('section_id');
+            });
+        }
+
+        if (Schema::hasColumn('students', 'year_level_id')) {
+            Schema::table('students', function (Blueprint $table) {
+                $table->dropForeign(['year_level_id']);
+                $table->dropColumn('year_level_id');
+            });
+        }
+
+        if (Schema::hasColumn('students', 'department_id')) {
+            Schema::table('students', function (Blueprint $table) {
+                $table->dropForeign(['department_id']);
+                $table->dropColumn('department_id');
+            });
+        }
+
+        if (Schema::hasColumn('students', 'classification')) {
+            Schema::table('students', function (Blueprint $table) {
+                $table->dropColumn('classification');
+            });
+        }
+
+        // Remove columns from sections table
+        if (Schema::hasColumn('sections', 'code')) {
+            Schema::table('sections', function (Blueprint $table) {
+                $table->dropColumn('code');
+            });
+        }
+
+        if (Schema::hasColumn('sections', 'strand_id')) {
+            Schema::table('sections', function (Blueprint $table) {
+                $table->dropForeign(['strand_id']);
+                $table->dropColumn('strand_id');
+            });
+        }
+
+        if (Schema::hasColumn('sections', 'department_id')) {
+            Schema::table('sections', function (Blueprint $table) {
+                $table->dropForeign(['department_id']);
+                $table->dropColumn('department_id');
+            });
+        }
+
+        // Drop year_level_strand pivot table
         Schema::dropIfExists('year_level_strand');
-        Schema::dropIfExists('year_levels');
+
+        // Remove classification from year_levels
+        if (Schema::hasColumn('year_levels', 'classification')) {
+            Schema::table('year_levels', function (Blueprint $table) {
+                $table->dropColumn('classification');
+            });
+        }
+
+        // Drop strands table
         Schema::dropIfExists('strands');
-        Schema::dropIfExists('departments');
+
+        // Remove columns from departments
+        if (Schema::hasColumn('departments', 'code')) {
+            Schema::table('departments', function (Blueprint $table) {
+                $table->dropColumn('code');
+            });
+        }
+
+        if (Schema::hasColumn('departments', 'classification')) {
+            Schema::table('departments', function (Blueprint $table) {
+                $table->dropColumn('classification');
+            });
+        }
     }
 };
