@@ -10,40 +10,54 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 
+interface Department {
+    id: number;
+    name: string;
+    classification: 'K-12' | 'College';
+    code: string;
+}
+
 interface YearLevel {
     id: number;
     name: string;
+    department?: Department;
 }
 
-interface Program {
+interface Strand {
     id: number;
     name: string;
+    code: string;
 }
 
 interface Section {
     id: number;
     name: string;
+    code: string | null;
     capacity: number | null;
     school_year: string;
     is_active: boolean;
     year_level: YearLevel;
-    program: Program | null;
+    department: Department;
+    strand: Strand | null;
 }
 
 interface Props {
     sections: Section[];
     yearLevels: YearLevel[];
-    programs: Program[];
+    departments: Department[];
+    strands: Strand[];
 }
 
-export default function SectionsIndex({ sections, yearLevels, programs }: Props) {
+export default function SectionsIndex({ sections, yearLevels, departments, strands }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSection, setEditingSection] = useState<Section | null>(null);
 
     const form = useForm({
+        department_id: '',
         year_level_id: '',
-        program_id: '',
+        strand_id: '',
         name: '',
+        code: '',
         capacity: '',
         school_year: new Date().getFullYear().toString() + '-' + (new Date().getFullYear() + 1).toString(),
         is_active: true,
@@ -59,9 +73,11 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
     const openEditModal = (section: Section) => {
         setEditingSection(section);
         form.setData({
+            department_id: section.department.id.toString(),
             year_level_id: section.year_level.id.toString(),
-            program_id: section.program?.id.toString() || '',
+            strand_id: section.strand?.id.toString() || '',
             name: section.name,
+            code: section.code || '',
             capacity: section.capacity?.toString() || '',
             school_year: section.school_year,
             is_active: section.is_active,
@@ -123,8 +139,9 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
                                 <thead>
                                     <tr className="border-b">
                                         <th className="text-left p-3 font-semibold">Name</th>
+                                        <th className="text-left p-3 font-semibold">Department</th>
                                         <th className="text-left p-3 font-semibold">Year Level</th>
-                                        <th className="text-left p-3 font-semibold">Program</th>
+                                        <th className="text-left p-3 font-semibold">Strand</th>
                                         <th className="text-center p-3 font-semibold">Capacity</th>
                                         <th className="text-center p-3 font-semibold">School Year</th>
                                         <th className="text-center p-3 font-semibold">Status</th>
@@ -134,7 +151,7 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
                                 <tbody>
                                     {sections.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="text-center p-8 text-gray-500">
+                                            <td colSpan={8} className="text-center p-8 text-gray-500">
                                                 No sections found. Create one to get started.
                                             </td>
                                         </tr>
@@ -143,14 +160,19 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
                                             <tr key={section.id} className="border-b hover:bg-gray-50">
                                                 <td className="p-3 font-medium">{section.name}</td>
                                                 <td className="p-3">
+                                                    <span className="inline-block px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700">
+                                                        {section.department.name}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3">
                                                     <span className="inline-block px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
                                                         {section.year_level.name}
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
-                                                    {section.program ? (
+                                                    {section.strand ? (
                                                         <span className="inline-block px-2 py-1 text-xs rounded bg-purple-100 text-purple-700">
-                                                            {section.program.name}
+                                                            {section.strand.code}
                                                         </span>
                                                     ) : (
                                                         '-'
@@ -210,6 +232,28 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
+                                <Label htmlFor="department_id">Department *</Label>
+                                <Select
+                                    value={form.data.department_id}
+                                    onValueChange={(value) => form.setData('department_id', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select department" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {departments.map((dept) => (
+                                            <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                {dept.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {form.errors.department_id && (
+                                    <p className="text-sm text-red-500">{form.errors.department_id}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
                                 <Label htmlFor="year_level_id">Year Level *</Label>
                                 <Select
                                     value={form.data.year_level_id}
@@ -221,7 +265,7 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
                                     <SelectContent>
                                         {yearLevels.map((yl) => (
                                             <SelectItem key={yl.id} value={yl.id.toString()}>
-                                                {yl.name}
+                                                {yl.department?.name} - {yl.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -232,25 +276,25 @@ export default function SectionsIndex({ sections, yearLevels, programs }: Props)
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="program_id">Program (Optional)</Label>
+                                <Label htmlFor="strand_id">Strand (For SHS Only)</Label>
                                 <Select
-                                    value={form.data.program_id}
-                                    onValueChange={(value) => form.setData('program_id', value)}
+                                    value={form.data.strand_id}
+                                    onValueChange={(value) => form.setData('strand_id', value)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select program (optional)" />
+                                        <SelectValue placeholder="Select strand (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="">None</SelectItem>
-                                        {programs.map((prog) => (
-                                            <SelectItem key={prog.id} value={prog.id.toString()}>
-                                                {prog.name}
+                                        {strands.map((strand) => (
+                                            <SelectItem key={strand.id} value={strand.id.toString()}>
+                                                {strand.name} ({strand.code})
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {form.errors.program_id && (
-                                    <p className="text-sm text-red-500">{form.errors.program_id}</p>
+                                {form.errors.strand_id && (
+                                    <p className="text-sm text-red-500">{form.errors.strand_id}</p>
                                 )}
                             </div>
 
