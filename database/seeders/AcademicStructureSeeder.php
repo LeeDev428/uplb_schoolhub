@@ -110,6 +110,7 @@ class AcademicStructureSeeder extends Seeder
                     'department_id' => $preschool->id,
                     'name' => 'Section A',
                     'capacity' => 30,
+                    'school_year' => '2025-2026',
                     'is_active' => true,
                 ]
             );
@@ -137,6 +138,7 @@ class AcademicStructureSeeder extends Seeder
                         'department_id' => $elementary->id,
                         'name' => 'Section ' . $section,
                         'capacity' => 35,
+                        'school_year' => '2025-2026',
                         'is_active' => true,
                     ]
                 );
@@ -165,6 +167,7 @@ class AcademicStructureSeeder extends Seeder
                         'department_id' => $jhs->id,
                         'name' => 'Section ' . $section,
                         'capacity' => 40,
+                        'school_year' => '2025-2026',
                         'is_active' => true,
                     ]
                 );
@@ -202,6 +205,7 @@ class AcademicStructureSeeder extends Seeder
                             'department_id' => $shs->id,
                             'name' => $strand->code . ' - Section ' . $section,
                             'capacity' => 40,
+                            'school_year' => '2025-2026',
                             'is_active' => true,
                         ]
                     );
@@ -232,6 +236,7 @@ class AcademicStructureSeeder extends Seeder
                         'department_id' => $bsit->id,
                         'name' => 'Section ' . $section,
                         'capacity' => 45,
+                        'school_year' => '2025-2026',
                         'is_active' => true,
                     ]
                 );
