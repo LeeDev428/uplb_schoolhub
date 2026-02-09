@@ -124,81 +124,105 @@ export default function DepartmentsIndex({ departments }: Props) {
                     </Button>
                 </div>
 
-                {/* Departments Table */}
+                {/* Departments Table with Tabs */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>All Departments</CardTitle>
+                        <CardTitle>Departments by Type</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="text-left p-3 font-semibold">Name</th>
-                                        <th className="text-left p-3 font-semibold">Level</th>
-                                        <th className="text-left p-3 font-semibold">Description</th>
-                                        <th className="text-center p-3 font-semibold">Programs</th>
-                                        <th className="text-center p-3 font-semibold">Year Levels</th>
-                                        <th className="text-center p-3 font-semibold">Status</th>
-                                        <th className="text-center p-3 font-semibold">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {departments.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="text-center p-8 text-gray-500">
-                                                No departments found. Create one to get started.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        departments.map((dept) => (
-                                            <tr key={dept.id} className="border-b hover:bg-gray-50">
-                                                <td className="p-3 font-medium">{dept.name}</td>
-                                                <td className="p-3">
-                                                    <span className="inline-block px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
-                                                        {getLevelLabel(dept.level)}
-                                                    </span>
-                                                </td>
-                                                <td className="p-3 text-sm text-gray-600">
-                                                    {dept.description || '-'}
-                                                </td>
-                                                <td className="p-3 text-center">{dept.programs_count || 0}</td>
-                                                <td className="p-3 text-center">{dept.year_levels_count || 0}</td>
-                                                <td className="p-3 text-center">
-                                                    <span
-                                                        className={`inline-block px-2 py-1 text-xs rounded ${
-                                                            dept.is_active
-                                                                ? 'bg-green-100 text-green-700'
-                                                                : 'bg-gray-100 text-gray-700'
-                                                        }`}
-                                                    >
-                                                        {dept.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => openEditModal(dept)}
-                                                        >
-                                                            <Pencil className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleDelete(dept.id)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                                        </Button>
-                                                    </div>
-                                                </td>
+                        <Tabs value={activeTab} onValueChange={setActiveTab}>
+                            <TabsList className="mb-4">
+                                <TabsTrigger value="all">All</TabsTrigger>
+                                <TabsTrigger value="elementary">Elementary</TabsTrigger>
+                                <TabsTrigger value="jhs">JHS</TabsTrigger>
+                                <TabsTrigger value="shs">SHS</TabsTrigger>
+                                <TabsTrigger value="college">College</TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value={activeTab}>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b">
+                                                <th className="text-left p-3 font-semibold">Name</th>
+                                                <th className="text-left p-3 font-semibold">Code</th>
+                                                <th className="text-left p-3 font-semibold">Classification</th>
+                                                <th className="text-left p-3 font-semibold">Description</th>
+                                                <th className="text-center p-3 font-semibold">Year Levels</th>
+                                                <th className="text-center p-3 font-semibold">Sections</th>
+                                                <th className="text-center p-3 font-semibold">Students</th>
+                                                <th className="text-center p-3 font-semibold">Status</th>
+                                                <th className="text-center p-3 font-semibold">Actions</th>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                        </thead>
+                                        <tbody>
+                                            {filteredDepartments.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={9} className="text-center p-8 text-gray-500">
+                                                        No departments found for this filter.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredDepartments.map((dept) => (
+                                                    <tr key={dept.id} className="border-b hover:bg-gray-50">
+                                                        <td className="p-3 font-medium">{dept.name}</td>
+                                                        <td className="p-3">
+                                                            <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                                                                {dept.code}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <span className={`inline-block px-2 py-1 text-xs rounded ${
+                                                                dept.classification === 'K-12' 
+                                                                    ? 'bg-purple-100 text-purple-700'
+                                                                    : 'bg-indigo-100 text-indigo-700'
+                                                            }`}>
+                                                                {dept.classification}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3 text-sm text-gray-600">
+                                                            {dept.description || '-'}
+                                                        </td>
+                                                        <td className="p-3 text-center">{dept.year_levels_count || 0}</td>
+                                                        <td className="p-3 text-center">{dept.sections_count || 0}</td>
+                                                        <td className="p-3 text-center">{dept.students_count || 0}</td>
+                                                        <td className="p-3 text-center">
+                                                            <span
+                                                                className={`inline-block px-2 py-1 text-xs rounded ${
+                                                                    dept.is_active
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : 'bg-gray-100 text-gray-700'
+                                                                }`}
+                                                            >
+                                                                {dept.is_active ? 'Active' : 'Inactive'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => openEditModal(dept)}
+                                                                >
+                                                                    <Pencil className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleDelete(dept.id)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                                                </Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
             </div>
@@ -219,7 +243,7 @@ export default function DepartmentsIndex({ departments }: Props) {
                                     id="name"
                                     value={form.data.name}
                                     onChange={(e) => form.setData('name', e.target.value)}
-                                    placeholder="e.g., College of Engineering"
+                                    placeholder="e.g., Junior High School"
                                     required
                                 />
                                 {form.errors.name && (
@@ -228,25 +252,37 @@ export default function DepartmentsIndex({ departments }: Props) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="level">Level *</Label>
+                                <Label htmlFor="code">Code *</Label>
+                                <Input
+                                    id="code"
+                                    value={form.data.code}
+                                    onChange={(e) => form.setData('code', e.target.value.toUpperCase())}
+                                    placeholder="e.g., JHS, ELEM, BSIT"
+                                    required
+                                />
+                                {form.errors.code && (
+                                    <p className="text-sm text-red-500">{form.errors.code}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="classification">Classification *</Label>
                                 <Select
-                                    value={form.data.level}
+                                    value={form.data.classification}
                                     onValueChange={(value) =>
-                                        form.setData('level', value as any)
+                                        form.setData('classification', value as 'K-12' | 'College')
                                     }
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select level" />
+                                        <SelectValue placeholder="Select classification" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="elementary">Elementary</SelectItem>
-                                        <SelectItem value="junior_high">Junior High</SelectItem>
-                                        <SelectItem value="senior_high">Senior High</SelectItem>
-                                        <SelectItem value="college">College</SelectItem>
+                                        <SelectItem value="K-12">K-12</SelectItem>
+                                        <SelectItem value="College">College</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                {form.errors.level && (
-                                    <p className="text-sm text-red-500">{form.errors.level}</p>
+                                {form.errors.classification && (
+                                    <p className="text-sm text-red-500">{form.errors.classification}</p>
                                 )}
                             </div>
 
