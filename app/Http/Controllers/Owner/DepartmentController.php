@@ -9,12 +9,39 @@ use Inertia\Inertia;
 
 class DepartmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $departments = Department::withCount(['yearLevels', 'sections', 'students'])->get();
+        $query = Department::withCount(['yearLevels', 'sections', 'students']);
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        
+        // Classification filter
+        if ($request->filled('classification') && $request->classification !== 'all') {
+            $query->where('classification', $request->classification);
+        }
+        
+        // Status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('is_active', $request->status === 'active');
+        }
+        
+        $departments = $query->orderBy('classification')->orderBy('name')->get();
         
         return Inertia::render('owner/departments/index', [
             'departments' => $departments,
+            'filters' => [
+                'search' => $request->search,
+                'classification' => $request->classification,
+                'status' => $request->status,
+            ],
         ]);
     }
 
