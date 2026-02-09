@@ -102,6 +102,66 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
         }
     };
 
+    const resetFilters = () => {
+        setSearch('');
+        setSelectedDepartment('all');
+        setClassification('all');
+        setStatus('all');
+        router.get('/owner/year-levels');
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        router.get('/owner/year-levels', {
+            search: value,
+            department_id: selectedDepartment,
+            classification,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleDepartmentChange = (value: string) => {
+        setSelectedDepartment(value);
+        router.get('/owner/year-levels', {
+            search,
+            department_id: value,
+            classification,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        router.get('/owner/year-levels', {
+            search,
+            department_id: selectedDepartment,
+            classification: value,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleStatusChange = (value: string) => {
+        setStatus(value);
+        router.get('/owner/year-levels', {
+            search,
+            department_id: selectedDepartment,
+            classification,
+            status: value,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     // Group departments by classification
     const k12Departments = departments.filter(d => d.classification === 'K-12');
     const collegeDepartments = departments.filter(d => d.classification === 'College');
@@ -151,7 +211,43 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
                         <CardTitle>Year Levels by Department</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Tabs value={activeTab} onValueChange={setActiveTab}>
+                        {/* Filter Bar */}
+                        <FilterBar onReset={resetFilters} showReset={!!(search || selectedDepartment !== 'all' || classification !== 'all' || status !== 'all')}>
+                            <SearchBar 
+                                value={search}
+                                onChange={handleSearchChange}
+                                placeholder="Search year levels..."
+                            />
+                            <FilterDropdown 
+                                label="Department"
+                                value={selectedDepartment}
+                                onChange={handleDepartmentChange}
+                                options={departments.map(d => ({ value: d.id.toString(), label: d.name }))}
+                                placeholder="All Departments"
+                            />
+                            <FilterDropdown 
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' }
+                                ]}
+                                placeholder="All Classifications"
+                            />
+                            <FilterDropdown 
+                                label="Status"
+                                value={status}
+                                onChange={handleStatusChange}
+                                options={[
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'inactive', label: 'Inactive' }
+                                ]}
+                                placeholder="All Status"
+                            />
+                        </FilterBar>
+                        
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
                             <TabsList className="mb-4">
                                 <TabsTrigger value="all">All</TabsTrigger>
                                 <TabsTrigger value="elementary">Elementary</TabsTrigger>
