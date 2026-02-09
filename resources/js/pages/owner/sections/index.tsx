@@ -9,6 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { SearchBar } from '@/components/filters/search-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { FilterBar } from '@/components/filters/filter-bar';
 
 interface Department {
     id: number;
@@ -46,11 +49,26 @@ interface Props {
     yearLevels: YearLevel[];
     departments: Department[];
     strands: Strand[];
+    schoolYears: string[];
+    filters: {
+        search?: string;
+        department_id?: string;
+        year_level_id?: string;
+        strand_id?: string;
+        school_year?: string;
+        status?: string;
+    };
 }
 
-export default function SectionsIndex({ sections, yearLevels, departments, strands }: Props) {
+export default function SectionsIndex({ sections, yearLevels, departments, strands, schoolYears, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSection, setEditingSection] = useState<Section | null>(null);
+    const [search, setSearch] = useState(filters.search || '');
+    const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
+    const [selectedYearLevel, setSelectedYearLevel] = useState(filters.year_level_id || 'all');
+    const [selectedStrand, setSelectedStrand] = useState(filters.strand_id || 'all');
+    const [selectedSchoolYear, setSelectedSchoolYear] = useState(filters.school_year || 'all');
+    const [status, setStatus] = useState(filters.status || 'all');
 
     const form = useForm({
         department_id: '',
@@ -111,6 +129,106 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         }
     };
 
+    const resetFilters = () => {
+        setSearch('');
+        setSelectedDepartment('all');
+        setSelectedYearLevel('all');
+        setSelectedStrand('all');
+        setSelectedSchoolYear('all');
+        setStatus('all');
+        router.get('/owner/sections');
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        router.get('/owner/sections', {
+            search: value,
+            department_id: selectedDepartment,
+            year_level_id: selectedYearLevel,
+            strand_id: selectedStrand,
+            school_year: selectedSchoolYear,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleDepartmentChange = (value: string) => {
+        setSelectedDepartment(value);
+        router.get('/owner/sections', {
+            search,
+            department_id: value,
+            year_level_id: selectedYearLevel,
+            strand_id: selectedStrand,
+            school_year: selectedSchoolYear,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleYearLevelChange = (value: string) => {
+        setSelectedYearLevel(value);
+        router.get('/owner/sections', {
+            search,
+            department_id: selectedDepartment,
+            year_level_id: value,
+            strand_id: selectedStrand,
+            school_year: selectedSchoolYear,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleStrandChange = (value: string) => {
+        setSelectedStrand(value);
+        router.get('/owner/sections', {
+            search,
+            department_id: selectedDepartment,
+            year_level_id: selectedYearLevel,
+            strand_id: value,
+            school_year: selectedSchoolYear,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleSchoolYearChange = (value: string) => {
+        setSelectedSchoolYear(value);
+        router.get('/owner/sections', {
+            search,
+            department_id: selectedDepartment,
+            year_level_id: selectedYearLevel,
+            strand_id: selectedStrand,
+            school_year: value,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleStatusChange = (value: string) => {
+        setStatus(value);
+        router.get('/owner/sections', {
+            search,
+            department_id: selectedDepartment,
+            year_level_id: selectedYearLevel,
+            strand_id: selectedStrand,
+            school_year: selectedSchoolYear,
+            status: value,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     return (
         <OwnerLayout>
             <Head title="Sections" />
@@ -134,7 +252,54 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                         <CardTitle>All Sections</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
+                        {/* Filter Bar */}
+                        <FilterBar onReset={resetFilters} showReset={!!(search || selectedDepartment !== 'all' || selectedYearLevel !== 'all' || selectedStrand !== 'all' || selectedSchoolYear !== 'all' || status !== 'all')}>
+                            <SearchBar 
+                                value={search}
+                                onChange={handleSearchChange}
+                                placeholder="Search sections..."
+                            />
+                            <FilterDropdown 
+                                label="Department"
+                                value={selectedDepartment}
+                                onChange={handleDepartmentChange}
+                                options={departments.map(d => ({ value: d.id.toString(), label: d.name }))}
+                                placeholder="All Departments"
+                            />
+                            <FilterDropdown 
+                                label="Year Level"
+                                value={selectedYearLevel}
+                                onChange={handleYearLevelChange}
+                                options={yearLevels.map(yl => ({ value: yl.id.toString(), label: yl.name }))}
+                                placeholder="All Year Levels"
+                            />
+                            <FilterDropdown 
+                                label="Strand"
+                                value={selectedStrand}
+                                onChange={handleStrandChange}
+                                options={strands.map(s => ({ value: s.id.toString(), label: s.name }))}
+                                placeholder="All Strands"
+                            />
+                            <FilterDropdown 
+                                label="School Year"
+                                value={selectedSchoolYear}
+                                onChange={handleSchoolYearChange}
+                                options={schoolYears.map(sy => ({ value: sy, label: sy }))}
+                                placeholder="All School Years"
+                            />
+                            <FilterDropdown 
+                                label="Status"
+                                value={status}
+                                onChange={handleStatusChange}
+                                options={[
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'inactive', label: 'Inactive' }
+                                ]}
+                                placeholder="All Status"
+                            />
+                        </FilterBar>
+                        
+                        <div className="overflow-x-auto mt-6">
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b">
