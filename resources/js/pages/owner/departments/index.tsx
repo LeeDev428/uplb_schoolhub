@@ -10,15 +10,18 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Department {
     id: number;
     name: string;
+    code: string;
+    classification: 'K-12' | 'College';
     description: string | null;
-    level: 'elementary' | 'junior_high' | 'senior_high' | 'college';
     is_active: boolean;
-    programs_count?: number;
     year_levels_count?: number;
+    sections_count?: number;
+    students_count?: number;
 }
 
 interface Props {
@@ -28,11 +31,13 @@ interface Props {
 export default function DepartmentsIndex({ departments }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+    const [activeTab, setActiveTab] = useState('all');
 
     const form = useForm({
         name: '',
+        code: '',
+        classification: 'K-12' as 'K-12' | 'College',
         description: '',
-        level: 'elementary' as 'elementary' | 'junior_high' | 'senior_high' | 'college',
         is_active: true,
     });
 
@@ -46,8 +51,9 @@ export default function DepartmentsIndex({ departments }: Props) {
         setEditingDepartment(department);
         form.setData({
             name: department.name,
+            code: department.code,
+            classification: department.classification,
             description: department.description || '',
-            level: department.level,
             is_active: department.is_active,
         });
         setIsModalOpen(true);
@@ -79,15 +85,27 @@ export default function DepartmentsIndex({ departments }: Props) {
         }
     };
 
-    const getLevelLabel = (level: string) => {
-        const labels: Record<string, string> = {
-            elementary: 'Elementary',
-            junior_high: 'Junior High',
-            senior_high: 'Senior High',
-            college: 'College',
-        };
-        return labels[level] || level;
-    };
+    // Filter departments based on active tab
+    const filteredDepartments = departments.filter(dept => {
+        if (activeTab === 'all') return true;
+        if (activeTab === 'elementary') {
+            return dept.name.toLowerCase().includes('elementary') || 
+                   dept.name.toLowerCase().includes('elem') ||
+                   dept.code === 'ELEM';
+        }
+        if (activeTab === 'jhs') {
+            return dept.name.toLowerCase().includes('junior') || 
+                   dept.code === 'JHS';
+        }
+        if (activeTab === 'shs') {
+            return dept.name.toLowerCase().includes('senior') || 
+                   dept.code === 'SHS';
+        }
+        if (activeTab === 'college') {
+            return dept.classification === 'College';
+        }
+        return true;
+    });
 
     return (
         <OwnerLayout>
