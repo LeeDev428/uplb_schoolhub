@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Department {
     id: number;
@@ -28,7 +29,16 @@ interface Department {
 }
 
 interface Props {
-    departments: Department[];
+    departments: {
+        data: Department[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
+        links: any[];
+    };
     filters: {
         search?: string;
         classification?: string;
@@ -152,7 +162,7 @@ export default function DepartmentsIndex({ departments, filters }: Props) {
     };
 
     // Filter departments based on active tab
-    const filteredDepartments = departments.filter(dept => {
+    const filteredDepartments = departments.data.filter(dept => {
         if (activeTab === 'all') return true;
         if (activeTab === 'elementary') {
             return dept.name.toLowerCase().includes('elementary') || 
@@ -318,6 +328,9 @@ export default function DepartmentsIndex({ departments, filters }: Props) {
                                 </div>
                             </TabsContent>
                         </Tabs>
+                        
+                        {/* Pagination */}
+                        <Pagination data={departments} />
                     </CardContent>
                 </Card>
             </div>
