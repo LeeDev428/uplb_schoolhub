@@ -38,7 +38,7 @@ interface Props {
 export default function YearLevelsIndex({ yearLevels, departments, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingYearLevel, setEditingYearLevel] = useState<YearLevel | null>(null);
-    const [activeTab, setActiveTab] = useState('elementary');
+    const [activeTab, setActiveTab] = useState('all');
 
     const form = useForm({
         department_id: '',
@@ -98,6 +98,7 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
 
     // Filter year levels based on active tab
     const filteredYearLevels = yearLevels.filter(yl => {
+        if (activeTab === 'all') return true;
         if (activeTab === 'elementary') {
             return yl.department.name.toLowerCase().includes('elementary') || 
                    yl.department.name.toLowerCase().includes('elem') ||
@@ -142,6 +143,7 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
                     <CardContent>
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
                             <TabsList className="mb-4">
+                                <TabsTrigger value="all">All</TabsTrigger>
                                 <TabsTrigger value="elementary">Elementary</TabsTrigger>
                                 <TabsTrigger value="jhs">JHS</TabsTrigger>
                                 <TabsTrigger value="shs">SHS</TabsTrigger>
