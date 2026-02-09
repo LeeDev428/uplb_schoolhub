@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SearchBar } from '@/components/filters/search-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { FilterBar } from '@/components/filters/filter-bar';
 
 interface Department {
     id: number;
@@ -31,7 +34,10 @@ interface Props {
     yearLevels: YearLevel[];
     departments: Department[];
     filters: {
+        search?: string;
         department_id?: string;
+        classification?: string;
+        status?: string;
     };
 }
 
@@ -39,6 +45,10 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingYearLevel, setEditingYearLevel] = useState<YearLevel | null>(null);
     const [activeTab, setActiveTab] = useState('all');
+    const [search, setSearch] = useState(filters.search || '');
+    const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
+    const [classification, setClassification] = useState(filters.classification || 'all');
+    const [status, setStatus] = useState(filters.status || 'all');
 
     const form = useForm({
         department_id: '',
