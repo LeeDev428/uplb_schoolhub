@@ -51,7 +51,7 @@ class SectionController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
         
-        $sections = $query->orderBy('school_year', 'desc')->orderBy('name')->get();
+        $sections = $query->orderBy('school_year', 'desc')->orderBy('name')->paginate(25)->withQueryString();
         $yearLevels = YearLevel::with('department')->where('is_active', true)->orderBy('level_number')->get();
         $departments = Department::where('is_active', true)->orderBy('name')->get();
         $strands = Strand::where('is_active', true)->orderBy('code')->get();
