@@ -196,7 +196,36 @@ export default function DepartmentsIndex({ departments, filters }: Props) {
                         <CardTitle>Departments by Type</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Tabs value={activeTab} onValueChange={setActiveTab}>
+                        {/* Filter Bar */}
+                        <FilterBar onReset={resetFilters} showReset={!!(search || classification !== 'all' || status !== 'all')}>
+                            <SearchBar 
+                                value={search}
+                                onChange={handleSearchChange}
+                                placeholder="Search departments..."
+                            />
+                            <FilterDropdown 
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' }
+                                ]}
+                                placeholder="All Classifications"
+                            />
+                            <FilterDropdown 
+                                label="Status"
+                                value={status}
+                                onChange={handleStatusChange}
+                                options={[
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'inactive', label: 'Inactive' }
+                                ]}
+                                placeholder="All Status"
+                            />
+                        </FilterBar>
+                        
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
                             <TabsList className="mb-4">
                                 <TabsTrigger value="all">All</TabsTrigger>
                                 <TabsTrigger value="elementary">Elementary</TabsTrigger>
