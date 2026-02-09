@@ -14,9 +14,30 @@ class YearLevelController extends Controller
     {
         $query = YearLevel::with('department');
         
-        // Filter by department if provided
-        if ($request->filled('department_id')) {
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhereHas('department', function($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Department filter
+        if ($request->filled('department_id') && $request->department_id !== 'all') {
             $query->where('department_id', $request->department_id);
+        }
+        
+        // Classification filter
+        if ($request->filled('classification') && $request->classification !== 'all') {
+            $query->where('classification', $request->classification);
+        }
+        
+        // Status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('is_active', $request->status === 'active');
         }
         
         $yearLevels = $query->orderBy('level_number')->get();
@@ -29,7 +50,10 @@ class YearLevelController extends Controller
             'yearLevels' => $yearLevels,
             'departments' => $departments,
             'filters' => [
+                'search' => $request->search,
                 'department_id' => $request->department_id,
+                'classification' => $request->classification,
+                'status' => $request->status,
             ],
         ]);
     }
