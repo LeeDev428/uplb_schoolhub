@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,17 +12,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Update Departments table (add classification and code if not exists)
+        // Update Departments table (add classification if not exists)
         if (!Schema::hasColumn('departments', 'classification')) {
             Schema::table('departments', function (Blueprint $table) {
                 $table->enum('classification', ['K-12', 'College'])->default('K-12')->after('id');
             });
         }
         
+        // Handle code column - add if not exists or populate if empty
         if (!Schema::hasColumn('departments', 'code')) {
             Schema::table('departments', function (Blueprint $table) {
-                $table->string('code')->unique()->after('name');
+                $table->string('code')->nullable()->after('name');
             });
+        }
+        
+        // Populate code column with auto-generated values for any empty codes
+        DB::statement("UPDATE departments SET code = CONCAT(UPPER(SUBSTRING(REPLACE(name, ' ', ''), 1, 4)), '_', id) WHERE code IS NULL OR code = ''");
+        
+        // Check if unique index exists before adding
+        try {
+            Schema::table('departments', function (Blueprint $table) {
+                $table->string('code')->unique()->change();
+            });
+        } catch (\Exception $e) {
+            // Index might already exist, continue
         }
 
         // Create Strands table (for Senior High School)
