@@ -10,6 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { SearchBar } from '@/components/filters/search-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Department {
     id: number;
@@ -26,13 +30,30 @@ interface Program {
 }
 
 interface Props {
-    programs: Program[];
+    programs: {
+        data: Program[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
+        links: any[];
+    };
     departments: Department[];
+    filters: {
+        search?: string;
+        department_id?: string;
+        status?: string;
+    };
 }
 
-export default function ProgramsIndex({ programs, departments }: Props) {
+export default function ProgramsIndex({ programs, departments, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProgram, setEditingProgram] = useState<Program | null>(null);
+    const [search, setSearch] = useState(filters.search || '');
+    const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
+    const [status, setStatus] = useState(filters.status || 'all');
 
     const form = useForm({
         department_id: '',
@@ -86,6 +107,49 @@ export default function ProgramsIndex({ programs, departments }: Props) {
         }
     };
 
+    const resetFilters = () => {
+        setSearch('');
+        setSelectedDepartment('all');
+        setStatus('all');
+        router.get('/owner/programs');
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        router.get('/owner/programs', {
+            search: value,
+            department_id: selectedDepartment,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleDepartmentChange = (value: string) => {
+        setSelectedDepartment(value);
+        router.get('/owner/programs', {
+            search,
+            department_id: value,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleStatusChange = (value: string) => {
+        setStatus(value);
+        router.get('/owner/programs', {
+            search,
+            department_id: selectedDepartment,
+            status: value,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     return (
         <OwnerLayout>
             <Head title="Programs" />
@@ -109,7 +173,33 @@ export default function ProgramsIndex({ programs, departments }: Props) {
                         <CardTitle>All Programs</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
+                        {/* Filter Bar */}
+                        <FilterBar onReset={resetFilters} showReset={!!(search || selectedDepartment !== 'all' || status !== 'all')}>
+                            <SearchBar 
+                                value={search}
+                                onChange={handleSearchChange}
+                                placeholder="Search programs..."
+                            />
+                            <FilterDropdown 
+                                label="Department"
+                                value={selectedDepartment}
+                                onChange={handleDepartmentChange}
+                                options={departments.map(d => ({ value: d.id.toString(), label: d.name }))}
+                                placeholder="All Departments"
+                            />
+                            <FilterDropdown 
+                                label="Status"
+                                value={status}
+                                onChange={handleStatusChange}
+                                options={[
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'inactive', label: 'Inactive' }
+                                ]}
+                                placeholder="All Status"
+                            />
+                        </FilterBar>
+                        
+                        <div className="overflow-x-auto mt-6">
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b">
@@ -122,14 +212,14 @@ export default function ProgramsIndex({ programs, departments }: Props) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {programs.length === 0 ? (
+                                    {programs.data.length === 0 ? (
                                         <tr>
                                             <td colSpan={6} className="text-center p-8 text-gray-500">
                                                 No programs found. Create one to get started.
                                             </td>
                                         </tr>
                                     ) : (
-                                        programs.map((program) => (
+                                        programs.data.map((program) => (
                                             <tr key={program.id} className="border-b hover:bg-gray-50">
                                                 <td className="p-3 font-medium">{program.name}</td>
                                                 <td className="p-3">
@@ -176,6 +266,9 @@ export default function ProgramsIndex({ programs, departments }: Props) {
                                 </tbody>
                             </table>
                         </div>
+                        
+                        {/* Pagination */}
+                        <Pagination data={programs} />
                     </CardContent>
                 </Card>
             </div>
