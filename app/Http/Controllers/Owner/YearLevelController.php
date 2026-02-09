@@ -40,7 +40,7 @@ class YearLevelController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
         
-        $yearLevels = $query->orderBy('level_number')->get();
+        $yearLevels = $query->orderBy('level_number')->paginate(25)->withQueryString();
         $departments = Department::where('is_active', true)
             ->orderBy('classification')
             ->orderBy('name')
