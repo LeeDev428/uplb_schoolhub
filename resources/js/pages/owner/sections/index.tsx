@@ -324,14 +324,14 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {sections.length === 0 ? (
+                                    {sections.data.length === 0 ? (
                                         <tr>
                                             <td colSpan={8} className="text-center p-8 text-gray-500">
                                                 No sections found. Create one to get started.
                                             </td>
                                         </tr>
                                     ) : (
-                                        sections.map((section) => (
+                                        sections.data.map((section) => (
                                             <tr key={section.id} className="border-b hover:bg-gray-50">
                                                 <td className="p-3 font-medium">{section.name}</td>
                                                 <td className="p-3">
@@ -396,6 +396,9 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                 </tbody>
                             </table>
                         </div>
+                        
+                        {/* Pagination */}
+                        <Pagination data={sections} />
                     </CardContent>
                 </Card>
             </div>
