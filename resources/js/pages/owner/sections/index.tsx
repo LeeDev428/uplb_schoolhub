@@ -265,7 +265,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                     <SelectContent>
                                         {yearLevels.map((yl) => (
                                             <SelectItem key={yl.id} value={yl.id.toString()}>
-                                                {yl.department?.name} - {yl.name}
+                                                {yl.department ? `${yl.department.name} - ${yl.name}` : yl.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -309,6 +309,19 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                 />
                                 {form.errors.name && (
                                     <p className="text-sm text-red-500">{form.errors.name}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="code">Code (Optional)</Label>
+                                <Input
+                                    id="code"
+                                    value={form.data.code}
+                                    onChange={(e) => form.setData('code', e.target.value)}
+                                    placeholder="e.g., A, B, STEM-A"
+                                />
+                                {form.errors.code && (
+                                    <p className="text-sm text-red-500">{form.errors.code}</p>
                                 )}
                             </div>
 
