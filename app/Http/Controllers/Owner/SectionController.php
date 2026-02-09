@@ -12,18 +12,67 @@ use Inertia\Inertia;
 
 class SectionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sections = Section::with(['yearLevel', 'department', 'strand'])->get();
-        $yearLevels = YearLevel::with('department')->where('is_active', true)->get();
-        $departments = Department::where('is_active', true)->get();
-        $strands = Strand::where('is_active', true)->get();
+        $query = Section::with(['yearLevel.department', 'department', 'strand']);
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('school_year', 'like', "%{$search}%");
+            });
+        }
+        
+        // Department filter
+        if ($request->filled('department_id') && $request->department_id !== 'all') {
+            $query->where('department_id', $request->department_id);
+        }
+        
+        // Year Level filter
+        if ($request->filled('year_level_id') && $request->year_level_id !== 'all') {
+            $query->where('year_level_id', $request->year_level_id);
+        }
+        
+        // Strand filter
+        if ($request->filled('strand_id') && $request->strand_id !== 'all') {
+            $query->where('strand_id', $request->strand_id);
+        }
+        
+        // School Year filter
+        if ($request->filled('school_year') && $request->school_year !== 'all') {
+            $query->where('school_year', $request->school_year);
+        }
+        
+        // Status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('is_active', $request->status === 'active');
+        }
+        
+        $sections = $query->orderBy('school_year', 'desc')->orderBy('name')->get();
+        $yearLevels = YearLevel::with('department')->where('is_active', true)->orderBy('level_number')->get();
+        $departments = Department::where('is_active', true)->orderBy('name')->get();
+        $strands = Strand::where('is_active', true)->orderBy('code')->get();
+        
+        // Get unique school years from sections
+        $schoolYears = Section::distinct()->pluck('school_year')->sort()->values();
         
         return Inertia::render('owner/sections/index', [
             'sections' => $sections,
             'yearLevels' => $yearLevels,
             'departments' => $departments,
             'strands' => $strands,
+            'schoolYears' => $schoolYears,
+            'filters' => [
+                'search' => $request->search,
+                'department_id' => $request->department_id,
+                'year_level_id' => $request->year_level_id,
+                'strand_id' => $request->strand_id,
+                'school_year' => $request->school_year,
+                'status' => $request->status,
+            ],
         ]);
     }
 
