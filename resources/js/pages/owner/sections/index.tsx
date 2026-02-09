@@ -37,8 +37,8 @@ interface Section {
     school_year: string;
     is_active: boolean;
     year_level: YearLevel;
-    department: Department;
-    strand: Strand | null;
+    department?: Department;
+    strand?: Strand | null;
 }
 
 interface Props {
@@ -160,9 +160,13 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                             <tr key={section.id} className="border-b hover:bg-gray-50">
                                                 <td className="p-3 font-medium">{section.name}</td>
                                                 <td className="p-3">
-                                                    <span className="inline-block px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700">
-                                                        {section.department.name}
-                                                    </span>
+                                                    {section.department ? (
+                                                        <span className="inline-block px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700">
+                                                            {section.department.name}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-gray-400">-</span>
+                                                    )}
                                                 </td>
                                                 <td className="p-3">
                                                     <span className="inline-block px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
@@ -175,7 +179,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                                             {section.strand.code}
                                                         </span>
                                                     ) : (
-                                                        '-'
+                                                        <span className="text-gray-400">-</span>
                                                     )}
                                                 </td>
                                                 <td className="p-3 text-center">
