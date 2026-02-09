@@ -10,14 +10,43 @@ use Inertia\Inertia;
 
 class ProgramController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $programs = Program::with('department')->get();
+        $query = Program::with('department');
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('department', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Department filter
+        if ($request->filled('department_id') && $request->department_id !== 'all') {
+            $query->where('department_id', $request->department_id);
+        }
+
+        // Status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        $programs = $query->paginate(25)->withQueryString();
         $departments = Department::where('is_active', true)->get();
         
         return Inertia::render('owner/programs/index', [
             'programs' => $programs,
             'departments' => $departments,
+            'filters' => [
+                'search' => $request->search,
+                'department_id' => $request->department_id,
+                'status' => $request->status,
+            ],
         ]);
     }
 
