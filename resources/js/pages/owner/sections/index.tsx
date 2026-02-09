@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Department {
     id: number;
@@ -45,7 +46,16 @@ interface Section {
 }
 
 interface Props {
-    sections: Section[];
+    sections: {
+        data: Section[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
+        links: any[];
+    };
     yearLevels: YearLevel[];
     departments: Department[];
     strands: Strand[];
