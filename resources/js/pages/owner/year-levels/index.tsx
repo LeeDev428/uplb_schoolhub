@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Department {
     id: number;
@@ -31,7 +32,16 @@ interface YearLevel {
 }
 
 interface Props {
-    yearLevels: YearLevel[];
+    yearLevels: {
+        data: YearLevel[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
+        links: any[];
+    };
     departments: Department[];
     filters: {
         search?: string;
@@ -167,7 +177,7 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
     const collegeDepartments = departments.filter(d => d.classification === 'College');
 
     // Filter year levels based on active tab
-    const filteredYearLevels = yearLevels.filter(yl => {
+    const filteredYearLevels = yearLevels.data.filter(yl => {
         if (activeTab === 'all') return true;
         if (activeTab === 'elementary') {
             return yl.department.name.toLowerCase().includes('elementary') || 
