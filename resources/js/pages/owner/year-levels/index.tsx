@@ -342,6 +342,9 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
                                 </div>
                             </TabsContent>
                         </Tabs>
+                        
+                        {/* Pagination */}
+                        <Pagination data={yearLevels} />
                     </CardContent>
                 </Card>
             </div>
