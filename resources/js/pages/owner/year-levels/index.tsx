@@ -9,16 +9,20 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Department {
     id: number;
     name: string;
+    classification: 'K-12' | 'College';
+    code: string;
 }
 
 interface YearLevel {
     id: number;
     name: string;
     level_number: number;
+    classification: 'K-12' | 'College';
     is_active: boolean;
     department: Department;
 }
@@ -26,14 +30,19 @@ interface YearLevel {
 interface Props {
     yearLevels: YearLevel[];
     departments: Department[];
+    filters: {
+        department_id?: string;
+    };
 }
 
-export default function YearLevelsIndex({ yearLevels, departments }: Props) {
+export default function YearLevelsIndex({ yearLevels, departments, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingYearLevel, setEditingYearLevel] = useState<YearLevel | null>(null);
+    const [activeTab, setActiveTab] = useState('all');
 
     const form = useForm({
         department_id: '',
+        classification: 'K-12' as 'K-12' | 'College',
         name: '',
         level_number: 1,
         is_active: true,
@@ -49,6 +58,7 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
         setEditingYearLevel(yearLevel);
         form.setData({
             department_id: yearLevel.department.id.toString(),
+            classification: yearLevel.classification,
             name: yearLevel.name,
             level_number: yearLevel.level_number,
             is_active: yearLevel.is_active,
@@ -82,6 +92,19 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
         }
     };
 
+    // Group departments by classification
+    const k12Departments = departments.filter(d => d.classification === 'K-12');
+    const collegeDepartments = departments.filter(d => d.classification === 'College');
+
+    // Filter year levels based on active tab
+    const filteredYearLevels = yearLevels.filter(yl => {
+        if (activeTab === 'all') return true;
+        if (activeTab === 'k12') return yl.classification === 'K-12';
+        if (activeTab === 'college') return yl.classification === 'College';
+        // Filter by specific department
+        return yl.department.id.toString() === activeTab;
+    });
+
     return (
         <OwnerLayout>
             <Head title="Year Levels" />
@@ -99,75 +122,105 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
                     </Button>
                 </div>
 
-                {/* Year Levels Table */}
+                {/* Year Levels with Department Tabs */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>All Year Levels</CardTitle>
+                        <CardTitle>Year Levels by Department</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="text-left p-3 font-semibold">Name</th>
-                                        <th className="text-left p-3 font-semibold">Department</th>
-                                        <th className="text-center p-3 font-semibold">Level Number</th>
-                                        <th className="text-center p-3 font-semibold">Status</th>
-                                        <th className="text-center p-3 font-semibold">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {yearLevels.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="text-center p-8 text-gray-500">
-                                                No year levels found. Create one to get started.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        yearLevels.map((yearLevel) => (
-                                            <tr key={yearLevel.id} className="border-b hover:bg-gray-50">
-                                                <td className="p-3 font-medium">{yearLevel.name}</td>
-                                                <td className="p-3">
-                                                    <span className="inline-block px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
-                                                        {yearLevel.department.name}
-                                                    </span>
-                                                </td>
-                                                <td className="p-3 text-center">{yearLevel.level_number}</td>
-                                                <td className="p-3 text-center">
-                                                    <span
-                                                        className={`inline-block px-2 py-1 text-xs rounded ${
-                                                            yearLevel.is_active
-                                                                ? 'bg-green-100 text-green-700'
-                                                                : 'bg-gray-100 text-gray-700'
-                                                        }`}
-                                                    >
-                                                        {yearLevel.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => openEditModal(yearLevel)}
-                                                        >
-                                                            <Pencil className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() => handleDelete(yearLevel.id)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                                        </Button>
-                                                    </div>
-                                                </td>
+                        <Tabs value={activeTab} onValueChange={setActiveTab}>
+                            <TabsList className="mb-4">
+                                <TabsTrigger value="all">All</TabsTrigger>
+                                <TabsTrigger value="k12">K-12</TabsTrigger>
+                                {k12Departments.map(dept => (
+                                    <TabsTrigger key={dept.id} value={dept.id.toString()}>
+                                        {dept.code}
+                                    </TabsTrigger>
+                                ))}
+                                <TabsTrigger value="college">College</TabsTrigger>
+                                {collegeDepartments.map(dept => (
+                                    <TabsTrigger key={dept.id} value={dept.id.toString()}>
+                                        {dept.code}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+
+                            <TabsContent value={activeTab}>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b">
+                                                <th className="text-left p-3 font-semibold">Name</th>
+                                                <th className="text-left p-3 font-semibold">Department</th>
+                                                <th className="text-center p-3 font-semibold">Classification</th>
+                                                <th className="text-center p-3 font-semibold">Level #</th>
+                                                <th className="text-center p-3 font-semibold">Status</th>
+                                                <th className="text-center p-3 font-semibold">Actions</th>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                        </thead>
+                                        <tbody>
+                                            {filteredYearLevels.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={6} className="text-center p-8 text-gray-500">
+                                                        No year levels found for this department.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredYearLevels.map((yearLevel) => (
+                                                    <tr key={yearLevel.id} className="border-b hover:bg-gray-50">
+                                                        <td className="p-3 font-medium">{yearLevel.name}</td>
+                                                        <td className="p-3">
+                                                            <span className="inline-block px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
+                                                                {yearLevel.department.name}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3 text-center">
+                                                            <span className={`inline-block px-2 py-1 text-xs rounded ${
+                                                                yearLevel.classification === 'K-12' 
+                                                                    ? 'bg-purple-100 text-purple-700'
+                                                                    : 'bg-indigo-100 text-indigo-700'
+                                                            }`}>
+                                                                {yearLevel.classification}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3 text-center">{yearLevel.level_number}</td>
+                                                        <td className="p-3 text-center">
+                                                            <span
+                                                                className={`inline-block px-2 py-1 text-xs rounded ${
+                                                                    yearLevel.is_active
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : 'bg-gray-100 text-gray-700'
+                                                                }`}
+                                                            >
+                                                                {yearLevel.is_active ? 'Active' : 'Inactive'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => openEditModal(yearLevel)}
+                                                                >
+                                                                    <Pencil className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleDelete(yearLevel.id)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                                                </Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
             </div>
@@ -186,13 +239,27 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
                                 <Label htmlFor="department_id">Department *</Label>
                                 <Select
                                     value={form.data.department_id}
-                                    onValueChange={(value) => form.setData('department_id', value)}
+                                    onValueChange={(value) => {
+                                        const dept = departments.find(d => d.id.toString() === value);
+                                        form.setData({
+                                            ...form.data,
+                                            department_id: value,
+                                            classification: dept?.classification || 'K-12',
+                                        });
+                                    }}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select department" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {departments.map((dept) => (
+                                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500">K-12</div>
+                                        {k12Departments.map((dept) => (
+                                            <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                {dept.name}
+                                            </SelectItem>
+                                        ))}
+                                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 mt-2">College</div>
+                                        {collegeDepartments.map((dept) => (
                                             <SelectItem key={dept.id} value={dept.id.toString()}>
                                                 {dept.name}
                                             </SelectItem>
@@ -202,6 +269,16 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
                                 {form.errors.department_id && (
                                     <p className="text-sm text-red-500">{form.errors.department_id}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Classification</Label>
+                                <Input
+                                    value={form.data.classification}
+                                    disabled
+                                    className="bg-gray-50"
+                                />
+                                <p className="text-xs text-gray-500">Auto-selected based on department</p>
                             </div>
 
                             <div className="space-y-2">
@@ -230,6 +307,7 @@ export default function YearLevelsIndex({ yearLevels, departments }: Props) {
                                     }
                                     required
                                 />
+                                <p className="text-xs text-gray-500">Used for sorting (1-12 for K-12, 1-4 for College)</p>
                                 {form.errors.level_number && (
                                     <p className="text-sm text-red-500">{form.errors.level_number}</p>
                                 )}
