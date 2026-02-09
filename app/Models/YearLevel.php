@@ -43,7 +43,7 @@ class YearLevel extends Model
      */
     public function strands(): BelongsToMany
     {
-        return $this->belongsToMany(Strand::class)->withTimestamps();
+        return $this->belongsToMany(Strand::class, 'year_level_strand')->withTimestamps();
     }
 
     /**
