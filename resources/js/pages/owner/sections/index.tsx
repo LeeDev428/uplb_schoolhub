@@ -73,7 +73,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
     const openEditModal = (section: Section) => {
         setEditingSection(section);
         form.setData({
-            department_id: section.department.id.toString(),
+            department_id: section.department?.id.toString() || '',
             year_level_id: section.year_level.id.toString(),
             strand_id: section.strand?.id.toString() || '',
             name: section.name,
