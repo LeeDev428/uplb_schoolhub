@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SearchBar } from '@/components/filters/search-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { FilterBar } from '@/components/filters/filter-bar';
 
 interface Department {
     id: number;
@@ -26,12 +29,20 @@ interface Department {
 
 interface Props {
     departments: Department[];
+    filters: {
+        search?: string;
+        classification?: string;
+        status?: string;
+    };
 }
 
-export default function DepartmentsIndex({ departments }: Props) {
+export default function DepartmentsIndex({ departments, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
     const [activeTab, setActiveTab] = useState('all');
+    const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
+    const [status, setStatus] = useState(filters.status || 'all');
 
     const form = useForm({
         name: '',
@@ -83,6 +94,61 @@ export default function DepartmentsIndex({ departments }: Props) {
         if (confirm('Are you sure you want to delete this department?')) {
             router.delete(`/owner/departments/${id}`);
         }
+    };
+
+    const applyFilters = () => {
+        router.get('/owner/departments', {
+            search,
+            classification,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const resetFilters = () => {
+        setSearch('');
+        setClassification('all');
+        setStatus('all');
+        router.get('/owner/departments');
+    };
+
+    // Trigger filter on change
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        router.get('/owner/departments', {
+            search: value,
+            classification,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        router.get('/owner/departments', {
+            search,
+            classification: value,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleStatusChange = (value: string) => {
+        setStatus(value);
+        router.get('/owner/departments', {
+            search,
+            classification,
+            status: value,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     // Filter departments based on active tab
