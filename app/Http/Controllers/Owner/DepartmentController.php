@@ -33,7 +33,7 @@ class DepartmentController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
         
-        $departments = $query->orderBy('classification')->orderBy('name')->get();
+        $departments = $query->orderBy('classification')->orderBy('name')->paginate(25)->withQueryString();
         
         return Inertia::render('owner/departments/index', [
             'departments' => $departments,
