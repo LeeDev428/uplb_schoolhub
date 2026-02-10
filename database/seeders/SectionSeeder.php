@@ -16,7 +16,7 @@ class SectionSeeder extends Seeder
         $sectionNames = ['A', 'B', 'C', 'Einstein', 'Newton', 'Rizal'];
 
         // Elementary, JHS, SHS Sections (without programs)
-        $basicEducationDepts = Department::whereIn('level', ['elementary', 'junior_high', 'senior_high'])->get();
+        $basicEducationDepts = Department::where('classification', 'K-12')->get();
         
         foreach ($basicEducationDepts as $dept) {
             $yearLevels = YearLevel::where('department_id', $dept->id)->get();
@@ -24,20 +24,24 @@ class SectionSeeder extends Seeder
             foreach ($yearLevels as $yearLevel) {
                 // Create 3 sections per year level for basic education
                 for ($i = 0; $i < 3; $i++) {
-                    Section::create([
-                        'year_level_id' => $yearLevel->id,
-                        'program_id' => null, // No program for basic education
-                        'name' => 'Section ' . $sectionNames[$i],
-                        'capacity' => 40,
-                        'school_year' => $currentSchoolYear,
-                        'is_active' => true,
-                    ]);
+                    Section::updateOrCreate(
+                        [
+                            'year_level_id' => $yearLevel->id,
+                            'name' => 'Section ' . $sectionNames[$i],
+                            'school_year' => $currentSchoolYear,
+                        ],
+                        [
+                            'program_id' => null, // No program for basic education
+                            'capacity' => 40,
+                            'is_active' => true,
+                        ]
+                    );
                 }
             }
         }
 
         // College Sections (with programs)
-        $collegeDepts = Department::where('level', 'college')->get();
+        $collegeDepts = Department::where('classification', 'College')->get();
         
         foreach ($collegeDepts as $dept) {
             $programs = Program::where('department_id', $dept->id)->get();
@@ -47,14 +51,18 @@ class SectionSeeder extends Seeder
                 foreach ($yearLevels as $yearLevel) {
                     // Create 2 sections per program per year level
                     for ($i = 0; $i < 2; $i++) {
-                        Section::create([
-                            'year_level_id' => $yearLevel->id,
-                            'program_id' => $program->id,
-                            'name' => 'Section ' . $sectionNames[$i + 3], // Use different names
-                            'capacity' => 45,
-                            'school_year' => $currentSchoolYear,
-                            'is_active' => true,
-                        ]);
+                        Section::updateOrCreate(
+                            [
+                                'year_level_id' => $yearLevel->id,
+                                'program_id' => $program->id,
+                                'name' => 'Section ' . $sectionNames[$i + 3],
+                                'school_year' => $currentSchoolYear,
+                            ],
+                            [
+                                'capacity' => 45,
+                                'is_active' => true,
+                            ]
+                        );
                     }
                 }
             }
