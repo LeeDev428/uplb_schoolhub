@@ -11,31 +11,35 @@ class YearLevelSeeder extends Seeder
     public function run(): void
     {
         // Elementary Department (Grades 1-6)
-        $elementary = Department::where('level', 'elementary')->first();
+        $elementary = Department::where('code', 'ELEM')->first();
         
-        for ($i = 1; $i <= 6; $i++) {
-            YearLevel::create([
-                'department_id' => $elementary->id,
-                'name' => "Grade {$i}",
-                'level_number' => $i,
-                'is_active' => true,
-            ]);
+        if ($elementary) {
+            for ($i = 1; $i <= 6; $i++) {
+                YearLevel::create([
+                    'department_id' => $elementary->id,
+                    'name' => "Grade {$i}",
+                    'level_number' => $i,
+                    'is_active' => true,
+                ]);
+            }
         }
 
         // Junior High School (Grades 7-10)
-        $juniorHigh = Department::where('level', 'junior_high')->first();
+        $juniorHigh = Department::where('code', 'JHS')->first();
         
-        for ($i = 7; $i <= 10; $i++) {
-            YearLevel::create([
-                'department_id' => $juniorHigh->id,
-                'name' => "Grade {$i}",
-                'level_number' => $i,
-                'is_active' => true,
-            ]);
+        if ($juniorHigh) {
+            for ($i = 7; $i <= 10; $i++) {
+                YearLevel::create([
+                    'department_id' => $juniorHigh->id,
+                    'name' => "Grade {$i}",
+                    'level_number' => $i,
+                    'is_active' => true,
+                ]);
+            }
         }
 
         // Senior High School (Grades 11-12)
-        $seniorHigh = Department::where('level', 'senior_high')->first();
+        $seniorHigh = Department::where('code', 'SHS')->first();
         
         if ($seniorHigh) {
             for ($i = 11; $i <= 12; $i++) {
