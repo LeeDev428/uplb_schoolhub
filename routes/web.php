@@ -24,6 +24,10 @@ Route::get('dashboard', function () {
         'registrar' => redirect()->route('registrar.dashboard'),
         'accounting' => redirect()->route('accounting.dashboard'),
         'student' => redirect()->route('student.dashboard'),
+        'teacher' => redirect()->route('teacher.dashboard'),
+        'parent' => redirect()->route('parent.dashboard'),
+        'guidance' => redirect()->route('guidance.dashboard'),
+        'librarian' => redirect()->route('librarian.dashboard'),
         default => Inertia::render('dashboard'),
     };
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -69,6 +73,11 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
         'index', 'store', 'update', 'destroy'
     ]);
     Route::resource('sections', \App\Http\Controllers\Owner\SectionController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+
+    // User Management
+    Route::resource('users', \App\Http\Controllers\Owner\UserManagementController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
 });
@@ -157,6 +166,41 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
     Route::get('requirements', [App\Http\Controllers\Student\RequirementController::class, 'index'])->name('requirements');
     Route::get('profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
+});
+
+// Teacher Portal Routes
+Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher'])->group(function () {
+    Route::get('dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('classes', [App\Http\Controllers\Teacher\ClassController::class, 'index'])->name('classes.index');
+    Route::get('classes/{section}', [App\Http\Controllers\Teacher\ClassController::class, 'show'])->name('classes.show');
+    Route::get('grades', [App\Http\Controllers\Teacher\GradeController::class, 'index'])->name('grades.index');
+    Route::get('attendance', [App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendance.index');
+});
+
+// Guidance Counselor Portal Routes
+Route::prefix('guidance')->name('guidance.')->middleware(['auth', 'verified', 'role:guidance'])->group(function () {
+    Route::get('dashboard', [App\Http\Controllers\Guidance\DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('records', App\Http\Controllers\Guidance\RecordController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+});
+
+// Librarian Portal Routes
+Route::prefix('librarian')->name('librarian.')->middleware(['auth', 'verified', 'role:librarian'])->group(function () {
+    Route::get('dashboard', [App\Http\Controllers\Librarian\DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('books', App\Http\Controllers\Librarian\BookController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+    Route::resource('transactions', App\Http\Controllers\Librarian\TransactionController::class)->only([
+        'index', 'store', 'update'
+    ]);
+});
+
+// Parent Portal Routes
+Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:parent'])->group(function () {
+    Route::get('dashboard', function () {
+        return Inertia::render('parent/dashboard');
+    })->name('dashboard');
 });
 
 require __DIR__.'/settings.php';
