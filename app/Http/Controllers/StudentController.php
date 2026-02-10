@@ -255,10 +255,10 @@ class StudentController extends Controller
             'requirementsCompletion' => $requirementsPercentage,
             'enrollmentClearance' => $student->enrollmentClearance,
             // Academic structure data for edit modal
-            'departments' => Department::where('is_active', true)->get(['id', 'name', 'level']),
+            'departments' => Department::where('is_active', true)->get(['id', 'name', 'code', 'classification']),
             'programs' => Program::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id']),
             'yearLevels' => YearLevel::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id', 'level_number']),
-            'sections' => Section::where('is_active', true)->with(['yearLevel:id,name', 'program:id,name'])->get(['id', 'name', 'year_level_id', 'program_id', 'school_year']),
+            'sections' => Section::where('is_active', true)->with(['yearLevel:id,name', 'department:id,name', 'strand:id,name,code'])->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'school_year']),
         ]);
     }
 
