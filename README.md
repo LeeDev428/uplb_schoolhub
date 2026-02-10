@@ -115,6 +115,7 @@ The Developer shall deliver fully functional mobile applications for:
 
 - [ ] **Teacher Portal** (Android & iOS)
 - [ ] **Student Portal** (Android & iOS)  
+- [ ] **Parent's Portal** (Android & iOS)
 - [ ] **Owner's Portal** (Android & iOS)
 
 **System Requirements:**
