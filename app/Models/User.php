@@ -24,6 +24,18 @@ class User extends Authenticatable
 
     public const ROLE_STUDENT = 'student';
 
+    public const ROLE_TEACHER = 'teacher';
+
+    public const ROLE_PARENT = 'parent';
+
+    public const ROLE_GUIDANCE = 'guidance';
+
+    public const ROLE_LIBRARIAN = 'librarian';
+
+    public const ROLE_CLINIC = 'clinic';
+
+    public const ROLE_CANTEEN = 'canteen';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -36,6 +48,8 @@ class User extends Authenticatable
         'password',
         'role',
         'student_id',
+        'teacher_id',
+        'parent_id',
         'phone',
         'department',
         'program',
@@ -93,6 +107,38 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is teacher
+     */
+    public function isTeacher(): bool
+    {
+        return $this->role === self::ROLE_TEACHER;
+    }
+
+    /**
+     * Check if user is parent
+     */
+    public function isParent(): bool
+    {
+        return $this->role === self::ROLE_PARENT;
+    }
+
+    /**
+     * Check if user is guidance counselor
+     */
+    public function isGuidance(): bool
+    {
+        return $this->role === self::ROLE_GUIDANCE;
+    }
+
+    /**
+     * Check if user is librarian
+     */
+    public function isLibrarian(): bool
+    {
+        return $this->role === self::ROLE_LIBRARIAN;
+    }
+
+    /**
      * Get the enrollment clearance for this user
      */
     public function enrollmentClearance()
@@ -114,5 +160,21 @@ class User extends Authenticatable
     public function studentRequirements()
     {
         return $this->hasMany(StudentRequirement::class);
+    }
+
+    /**
+     * Get the teacher record for this user
+     */
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class);
+    }
+
+    /**
+     * Get the parent record for this user
+     */
+    public function parent()
+    {
+        return $this->belongsTo(ParentModel::class, 'parent_id');
     }
 }
