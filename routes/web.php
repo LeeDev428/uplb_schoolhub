@@ -28,6 +28,8 @@ Route::get('dashboard', function () {
         'parent' => redirect()->route('parent.dashboard'),
         'guidance' => redirect()->route('guidance.dashboard'),
         'librarian' => redirect()->route('librarian.dashboard'),
+        'clinic' => redirect()->route('clinic.dashboard'),
+        'canteen' => redirect()->route('canteen.dashboard'),
         default => Inertia::render('dashboard'),
     };
 })->middleware(['auth', 'verified'])->name('dashboard');
