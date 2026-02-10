@@ -20,6 +20,14 @@ class Department extends Model
     ];
 
     /**
+     * Teachers in this department
+     */
+    public function teachers(): HasMany
+    {
+        return $this->hasMany(Teacher::class);
+    }
+
+    /**
      * Year levels under this department
      */
     public function yearLevels(): HasMany
