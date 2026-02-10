@@ -7,6 +7,8 @@ export type User = {
     student_id?: string | null;
     teacher_id?: number | null;
     parent_id?: number | null;
+    clinic_staff_id?: number | null;
+    canteen_staff_id?: number | null;
     phone?: string | null;
     avatar?: string;
     email_verified_at: string | null;
