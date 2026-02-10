@@ -11,10 +11,12 @@ use App\Models\YearLevel;
 use App\Models\Section;
 use App\Models\Requirement;
 use App\Models\StudentRequirement;
+use App\Models\ParentModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class StudentController extends Controller
@@ -119,32 +121,88 @@ class StudentController extends Controller
      */
     public function store(StoreStudentRequest $request)
     {
-        $student = Student::create($request->validated());
+        return DB::transaction(function () use ($request) {
+            $student = Student::create($request->validated());
 
-        // Generate random username and create User account for student
-        $username = $this->generateUniqueUsername($student);
-        User::create([
-            'name' => $student->first_name . ' ' . $student->last_name,
-            'email' => $student->email,
-            'username' => $username,
-            'password' => Hash::make('password'),
-            'role' => User::ROLE_STUDENT,
-            'student_id' => $student->id,
-        ]);
-
-        // Automatically assign all active requirements to the new student
-        $requirements = Requirement::where('is_active', true)->get();
-        
-        foreach ($requirements as $requirement) {
-            StudentRequirement::create([
+            // Generate random username and create User account for student
+            $username = $this->generateUniqueUsername($student);
+            User::create([
+                'name' => $student->first_name . ' ' . $student->last_name,
+                'email' => $student->email,
+                'username' => $username,
+                'password' => Hash::make('password'),
+                'role' => User::ROLE_STUDENT,
                 'student_id' => $student->id,
-                'requirement_id' => $requirement->id,
-                'status' => 'pending',
             ]);
+
+            // Automatically create parent/guardian record and user account
+            if ($student->guardian_email) {
+                $this->createParentRecordForStudent($student);
+            }
+
+            // Automatically assign all active requirements to the new student
+            $requirements = Requirement::where('is_active', true)->get();
+
+            foreach ($requirements as $requirement) {
+                StudentRequirement::create([
+                    'student_id' => $student->id,
+                    'requirement_id' => $requirement->id,
+                    'status' => 'pending',
+                ]);
+            }
+
+            return redirect()->route('registrar.students.index')
+                ->with('success', "Student added successfully! Username: {$username}, Password: password");
+        });
+    }
+
+    /**
+     * Create parent record and user account for a student's guardian.
+     * If a parent with the same email already exists, link the student instead.
+     */
+    private function createParentRecordForStudent(Student $student): void
+    {
+        // Check if parent with this email already exists
+        $existingParent = ParentModel::where('email', $student->guardian_email)->first();
+
+        if ($existingParent) {
+            // Link student to existing parent if not already linked
+            if (!$existingParent->students()->where('student_id', $student->id)->exists()) {
+                $existingParent->students()->attach($student->id, [
+                    'relationship' => $student->guardian_relationship ?? 'guardian',
+                ]);
+            }
+            return;
         }
 
-        return redirect()->route('registrar.students.index')
-            ->with('success', "Student added successfully! Username: {$username}, Password: password");
+        // Parse guardian name into first/last
+        $nameParts = explode(' ', trim($student->guardian_name ?? 'Guardian'), 2);
+        $firstName = $nameParts[0] ?? 'Guardian';
+        $lastName = $nameParts[1] ?? $student->last_name;
+
+        // Create parent record
+        $parent = ParentModel::create([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $student->guardian_email,
+            'phone' => $student->guardian_contact,
+            'relationship' => $student->guardian_relationship ?? 'guardian',
+            'is_active' => true,
+        ]);
+
+        // Link student to parent via pivot
+        $parent->students()->attach($student->id, [
+            'relationship' => $student->guardian_relationship ?? 'guardian',
+        ]);
+
+        // Create user account for parent (email-only login)
+        User::create([
+            'name' => $firstName . ' ' . $lastName,
+            'email' => $student->guardian_email,
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_PARENT,
+            'parent_id' => $parent->id,
+        ]);
     }
 
     /**
