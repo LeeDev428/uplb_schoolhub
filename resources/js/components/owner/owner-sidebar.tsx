@@ -10,7 +10,6 @@ import {
     BookOpen,
     Users,
     Grid3x3,
-    Shield,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -68,11 +67,6 @@ const mainNavItems: NavItem[] = [
                 href: '/owner/sections',
             },
         ],
-    },
-    {
-        title: 'User Management',
-        href: '/owner/users',
-        icon: Shield,
     },
     {
         title: 'Calendar View',
