@@ -11,9 +11,14 @@ class ProgramSeeder extends Seeder
     public function run(): void
     {
         // Get college departments
-        $ccs = Department::where('name', 'College of Computer Studies')->first();
-        $cba = Department::where('name', 'College of Business Administration')->first();
-        $cas = Department::where('name', 'College of Arts and Sciences')->first();
+        $ccs = Department::where('code', 'CCS')->first();
+        $cba = Department::where('code', 'CBA')->first();
+        $cas = Department::where('code', 'CAS')->first();
+
+        if (!$ccs || !$cba || !$cas) {
+            $this->command->warn('⚠️  College departments not found. Run DepartmentSeeder or AcademicStructureSeeder first.');
+            return;
+        }
 
         $programs = [
             // Computer Studies Programs
@@ -66,7 +71,13 @@ class ProgramSeeder extends Seeder
         ];
 
         foreach ($programs as $program) {
-            Program::create($program);
+            Program::updateOrCreate(
+                [
+                    'department_id' => $program['department_id'],
+                    'name' => $program['name'],
+                ],
+                $program
+            );
         }
     }
 }
