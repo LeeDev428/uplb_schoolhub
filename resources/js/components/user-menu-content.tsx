@@ -23,15 +23,26 @@ export function UserMenuContent({ user }: Props) {
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const handleLogoutClick = () => {
+    const handleLogoutClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setShowLogoutDialog(true);
     };
 
     const handleLogoutConfirm = () => {
         setIsLoggingOut(true);
         cleanup();
-        router.flushAll();
-        router.post(logout());
+        router.post(logout(), {
+            onStart: () => {
+                router.flushAll();
+            },
+        });
+    };
+
+    const handleDialogChange = (open: boolean) => {
+        if (!isLoggingOut) {
+            setShowLogoutDialog(open);
+        }
     };
 
     return (
@@ -59,6 +70,7 @@ export function UserMenuContent({ user }: Props) {
             <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={handleLogoutClick}
+                onSelect={(e) => e.preventDefault()}
                 data-test="logout-button"
             >
                 <LogOut className="mr-2" />
@@ -67,7 +79,7 @@ export function UserMenuContent({ user }: Props) {
 
             <ConfirmDialog
                 open={showLogoutDialog}
-                onOpenChange={setShowLogoutDialog}
+                onOpenChange={handleDialogChange}
                 onConfirm={handleLogoutConfirm}
                 title="Confirm Logout"
                 description="Are you sure you want to log out of your account?"
