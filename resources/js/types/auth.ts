@@ -2,8 +2,12 @@ export type User = {
     id: number;
     name: string;
     email: string;
-    role: 'owner' | 'registrar' | 'student';
+    role: 'owner' | 'registrar' | 'accounting' | 'student' | 'teacher' | 'parent' | 'guidance' | 'librarian' | 'clinic' | 'canteen';
+    username?: string;
     student_id?: string | null;
+    teacher_id?: number | null;
+    parent_id?: number | null;
+    phone?: string | null;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
