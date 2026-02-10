@@ -37,17 +37,19 @@ class YearLevelSeeder extends Seeder
         // Senior High School (Grades 11-12)
         $seniorHigh = Department::where('level', 'senior_high')->first();
         
-        for ($i = 11; $i <= 12; $i++) {
-            YearLevel::create([
-                'department_id' => $seniorHigh->id,
-                'name' => "Grade {$i}",
-                'level_number' => $i,
-                'is_active' => true,
-            ]);
+        if ($seniorHigh) {
+            for ($i = 11; $i <= 12; $i++) {
+                YearLevel::create([
+                    'department_id' => $seniorHigh->id,
+                    'name' => "Grade {$i}",
+                    'level_number' => $i,
+                    'is_active' => true,
+                ]);
+            }
         }
 
         // College Departments (1st Year to 4th Year)
-        $collegeDepartments = Department::where('level', 'college')->get();
+        $collegeDepartments = Department::where('classification', 'College')->get();
         
         $yearNames = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
         
