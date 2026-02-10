@@ -1,5 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -18,10 +20,18 @@ type Props = {
 
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const handleLogout = () => {
+    const handleLogoutClick = () => {
+        setShowLogoutDialog(true);
+    };
+
+    const handleLogoutConfirm = () => {
+        setIsLoggingOut(true);
         cleanup();
         router.flushAll();
+        router.post(logout());
     };
 
     return (
@@ -46,18 +56,26 @@ export function UserMenuContent({ user }: Props) {
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-                <Link
-                    className="block w-full cursor-pointer"
-                    href={logout()}
-                    as="button"
-                    onClick={handleLogout}
-                    data-test="logout-button"
-                >
-                    <LogOut className="mr-2" />
-                    Log out
-                </Link>
+            <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={handleLogoutClick}
+                data-test="logout-button"
+            >
+                <LogOut className="mr-2" />
+                Log out
             </DropdownMenuItem>
+
+            <ConfirmDialog
+                open={showLogoutDialog}
+                onOpenChange={setShowLogoutDialog}
+                onConfirm={handleLogoutConfirm}
+                title="Confirm Logout"
+                description="Are you sure you want to log out of your account?"
+                confirmLabel="Log out"
+                cancelLabel="Cancel"
+                variant="warning"
+                loading={isLoggingOut}
+            />
         </>
     );
 }
