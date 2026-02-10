@@ -50,6 +50,8 @@ class User extends Authenticatable
         'student_id',
         'teacher_id',
         'parent_id',
+        'clinic_staff_id',
+        'canteen_staff_id',
         'phone',
         'department',
         'program',
@@ -139,6 +141,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is clinic staff
+     */
+    public function isClinic(): bool
+    {
+        return $this->role === self::ROLE_CLINIC;
+    }
+
+    /**
+     * Check if user is canteen staff
+     */
+    public function isCanteen(): bool
+    {
+        return $this->role === self::ROLE_CANTEEN;
+    }
+
+    /**
      * Get the enrollment clearance for this user
      */
     public function enrollmentClearance()
@@ -176,5 +194,21 @@ class User extends Authenticatable
     public function parent()
     {
         return $this->belongsTo(ParentModel::class, 'parent_id');
+    }
+
+    /**
+     * Get the clinic staff record for this user
+     */
+    public function clinicStaff()
+    {
+        return $this->belongsTo(ClinicStaff::class, 'clinic_staff_id');
+    }
+
+    /**
+     * Get the canteen staff record for this user
+     */
+    public function canteenStaff()
+    {
+        return $this->belongsTo(CanteenStaff::class, 'canteen_staff_id');
     }
 }
