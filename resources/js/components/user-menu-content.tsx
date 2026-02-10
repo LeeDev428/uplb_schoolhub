@@ -31,12 +31,9 @@ export function UserMenuContent({ user }: Props) {
 
     const handleLogoutConfirm = () => {
         setIsLoggingOut(true);
+        router.flushAll();
         cleanup();
-        router.post(logout(), {
-            onStart: () => {
-                router.flushAll();
-            },
-        });
+        router.post(logout());
     };
 
     const handleDialogChange = (open: boolean) => {
