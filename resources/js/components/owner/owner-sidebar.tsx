@@ -74,6 +74,11 @@ const mainNavItems: NavItem[] = [
         icon: Calendar,
     },
     {
+        title: 'User Management',
+        href: '/owner/users',
+        icon: Users,
+    },
+    {
         title: 'Export Reports',
         href: '/owner/reports',
         icon: FileText,
