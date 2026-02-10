@@ -205,4 +205,18 @@ Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:
     })->name('dashboard');
 });
 
+// Clinic Portal Routes
+Route::prefix('clinic')->name('clinic.')->middleware(['auth', 'verified', 'role:clinic'])->group(function () {
+    Route::get('dashboard', function () {
+        return Inertia::render('clinic/dashboard');
+    })->name('dashboard');
+});
+
+// Canteen Portal Routes
+Route::prefix('canteen')->name('canteen.')->middleware(['auth', 'verified', 'role:canteen'])->group(function () {
+    Route::get('dashboard', function () {
+        return Inertia::render('canteen/dashboard');
+    })->name('dashboard');
+});
+
 require __DIR__.'/settings.php';
