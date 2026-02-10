@@ -71,11 +71,6 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::resource('sections', \App\Http\Controllers\Owner\SectionController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
-    
-    // User Management
-    Route::resource('users', \App\Http\Controllers\Owner\UserManagementController::class)->only([
-        'index', 'store', 'update', 'destroy'
-    ]);
 });
 
 // Registrar Routes
