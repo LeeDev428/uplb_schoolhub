@@ -93,7 +93,89 @@ class RoleBasedUserSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ Created 1 Owner, 1 Registrar, 1 Accounting, and 4 Students');
+        // Create Teacher
+        User::updateOrCreate(
+            ['email' => 'teacher@gmail.com'],
+            [
+                'name' => 'Sample Teacher',
+                'username' => 'teacher',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_TEACHER,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create Parent
+        User::updateOrCreate(
+            ['email' => 'parent@gmail.com'],
+            [
+                'name' => 'Sample Parent',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_PARENT,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create Guidance Counselor
+        User::updateOrCreate(
+            ['email' => 'guidance@gmail.com'],
+            [
+                'name' => 'Guidance Counselor',
+                'username' => 'guidance',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_GUIDANCE,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create Librarian
+        User::updateOrCreate(
+            ['email' => 'librarian@gmail.com'],
+            [
+                'name' => 'School Librarian',
+                'username' => 'librarian',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_LIBRARIAN,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create Clinic Staff
+        User::updateOrCreate(
+            ['email' => 'clinic@gmail.com'],
+            [
+                'name' => 'Clinic Nurse',
+                'username' => 'clinic',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_CLINIC,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create Canteen Staff
+        User::updateOrCreate(
+            ['email' => 'canteen@gmail.com'],
+            [
+                'name' => 'Canteen Manager',
+                'username' => 'canteen',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_CANTEEN,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $this->command->info('✅ Created accounts for all 10 roles:');
+        $this->command->info('   👑 Owner: owner@gmail.com');
+        $this->command->info('   📋 Registrar: registrar@gmail.com');
+        $this->command->info('   💰 Accounting: accounting@gmail.com');
+        $this->command->info('   🎓 Students: john.doe@gmail.com, student@gmail.com, carlos.reyes@gmail.com, ana.cruz@gmail.com');
+        $this->command->info('   👨‍🏫 Teacher: teacher@gmail.com');
+        $this->command->info('   👨‍👩‍👧 Parent: parent@gmail.com');
+        $this->command->info('   🧑‍⚕️ Guidance: guidance@gmail.com');
+        $this->command->info('   📚 Librarian: librarian@gmail.com');
+        $this->command->info('   🏥 Clinic: clinic@gmail.com');
+        $this->command->info('   🍽️ Canteen: canteen@gmail.com');
+        $this->command->info('');
         $this->command->info('📧 All accounts use password: password');
     }
 }
