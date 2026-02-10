@@ -18,14 +18,6 @@ class DatabaseSeeder extends Seeder
             RoleBasedUserSeeder::class,
             AcademicStructureSeeder::class,
             RequirementSeeder::class,
-            StudentSeeder::class,
-            YearLevelSeeder::class,
-            SectionSeeder::class,
-            AcademicStructureSeeder::class,
-            DepartmentSeeder::class,
-            ProgramSeeder::class,
-            SectionSeeder::class,
-            
         ]);
     }
 }
