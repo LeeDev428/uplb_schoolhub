@@ -15,7 +15,7 @@ class Section extends Model
         'name',
         'code',
         'capacity',
-        'school_year',
+        'room_number',
         'is_active',
     ];
 
