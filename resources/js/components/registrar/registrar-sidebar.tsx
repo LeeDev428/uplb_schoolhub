@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import {
     Archive,
+    BookOpen,
     BookText,
     Calendar,
     FileText,
@@ -34,6 +35,11 @@ const mainNavItems: NavItem[] = [
         title: 'Students',
         href: '/registrar/students',
         icon: Users,
+    },
+    {
+        title: 'Subjects',
+        href: '/registrar/subjects',
+        icon: BookOpen,
     },
     {
         title: 'Requirements',
