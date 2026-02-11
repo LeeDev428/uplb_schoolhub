@@ -29,7 +29,7 @@ return new class extends Migration
         // Add deadline_id to requirements table (if not exists)
         if (!Schema::hasColumn('requirements', 'deadline_id')) {
             Schema::table('requirements', function (Blueprint $table) {
-                $table->foreignId('deadline_id')->nullable()->after('deadline_text')->constrained('academic_deadlines')->onDelete('set null');
+                $table->foreignId('deadline_id')->nullable()->after('custom_deadline')->constrained('academic_deadlines')->onDelete('set null');
             });
         }
     }
