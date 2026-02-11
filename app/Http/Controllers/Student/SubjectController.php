@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subject;
+use App\Models\Program;
+use App\Models\YearLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -13,22 +15,29 @@ class SubjectController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $student = $user->student;
         
-        // Get student's department from their enrollment
+        // Get student's department from their program
         $query = Subject::with(['department', 'yearLevel'])
             ->where('is_active', true);
 
-        // Filter by student's department if they have one
-        if ($user->department_id) {
-            $query->where('department_id', $user->department_id);
+        // Filter by student's department (get from program)
+        if ($student && $student->program) {
+            $program = Program::where('name', $student->program)->first();
+            if ($program) {
+                $query->where('department_id', $program->department_id);
+            }
         }
 
         // Filter by student's year level if they have one
-        if ($user->year_level_id) {
-            $query->where(function($q) use ($user) {
-                $q->where('year_level_id', $user->year_level_id)
-                    ->orWhereNull('year_level_id');
-            });
+        if ($student && $student->year_level) {
+            $yearLevel = YearLevel::where('name', $student->year_level)->first();
+            if ($yearLevel) {
+                $query->where(function($q) use ($yearLevel) {
+                    $q->where('year_level_id', $yearLevel->id)
+                        ->orWhereNull('year_level_id');
+                });
+            }
         }
 
         // Search filter
