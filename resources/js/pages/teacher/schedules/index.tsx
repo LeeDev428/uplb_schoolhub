@@ -7,7 +7,7 @@ import { SearchBar } from '@/components/filters/search-bar';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { Pagination } from '@/components/ui/pagination';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PdfViewer } from '@/components/ui/pdf-viewer';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -112,20 +112,12 @@ export default function TeacherSchedules({ schedules, filters }: Props) {
                 </Card>
             </div>
 
-            <Dialog open={!!viewingSchedule} onOpenChange={() => setViewingSchedule(null)}>
-                <DialogContent className="max-w-[95vw] w-full h-[95vh]">
-                    <DialogHeader>
-                        <DialogTitle>{viewingSchedule?.title}</DialogTitle>
-                    </DialogHeader>
-                    {viewingSchedule && (
-                        <iframe
-                            src={`/storage/${viewingSchedule.file_path}`}
-                            className="w-full h-full rounded-lg border"
-                            title={viewingSchedule.title}
-                        />
-                    )}
-                </DialogContent>
-            </Dialog>
+            <PdfViewer
+                open={!!viewingSchedule}
+                onOpenChange={() => setViewingSchedule(null)}
+                title={viewingSchedule?.title || ''}
+                filePath={viewingSchedule?.file_path || ''}
+            />
         </TeacherLayout>
     );
 }
