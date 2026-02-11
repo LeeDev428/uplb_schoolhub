@@ -27,6 +27,8 @@ class Requirement extends Model
         'is_active',
     ];
 
+    protected $appends = ['deadline_text', 'applies_to_text'];
+
     protected $casts = [
         'custom_deadline' => 'date',
         'applies_to_new_enrollee' => 'boolean',
