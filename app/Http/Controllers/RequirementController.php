@@ -15,14 +15,19 @@ class RequirementController extends Controller
     public function index()
     {
         $categories = RequirementCategory::with(['requirements' => function ($query) {
-            $query->orderBy('order');
+            $query->with('deadline')->orderBy('order');
         }])
             ->active()
             ->ordered()
             ->get();
 
+        $deadlines = \App\Models\AcademicDeadline::where('is_active', true)
+            ->orderBy('deadline_date')
+            ->get();
+
         return Inertia::render('registrar/documents/create', [
             'categories' => $categories,
+            'deadlines' => $deadlines,
         ]);
     }
 
