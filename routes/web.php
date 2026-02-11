@@ -134,13 +134,11 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
         'index', 'store', 'update', 'destroy'
     ]);
 
-    Route::get('classes', function () {
-        return Inertia::render('registrar/classes');
-    })->name('classes');
+    Route::get('classes', [App\Http\Controllers\Registrar\ClassController::class, 'index'])->name('classes');
+    Route::post('classes/assign', [App\Http\Controllers\Registrar\ClassController::class, 'assignStudents'])->name('classes.assign');
+    Route::delete('classes/remove/{student}', [App\Http\Controllers\Registrar\ClassController::class, 'removeStudent'])->name('classes.remove');
 
-    Route::get('reports', function () {
-        return Inertia::render('registrar/reports');
-    })->name('reports');
+    Route::get('reports', [App\Http\Controllers\Registrar\ReportsController::class, 'index'])->name('reports');
 
     Route::get('archived', function () {
         return Inertia::render('registrar/archived');
@@ -150,9 +148,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
         return Inertia::render('registrar/settings');
     })->name('settings');
     
-    Route::get('schedule', function () {
-        return Inertia::render('registrar/schedule');
-    })->name('schedule');
+    Route::get('schedule', [App\Http\Controllers\Registrar\ScheduleController::class, 'index'])->name('schedule');
 });
 
 // Accounting Routes
