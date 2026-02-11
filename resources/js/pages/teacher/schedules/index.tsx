@@ -23,6 +23,7 @@ interface Schedule {
     program: { id: number; name: string } | null;
     year_level: { id: number; name: string } | null;
     section: { id: number; name: string } | null;
+    teacher: { id: number; first_name: string; last_name: string; suffix: string | null } | null;
     created_at: string;
 }
 
@@ -112,7 +113,7 @@ export default function TeacherSchedules({ schedules, filters }: Props) {
             </div>
 
             <Dialog open={!!viewingSchedule} onOpenChange={() => setViewingSchedule(null)}>
-                <DialogContent className="max-w-4xl h-[85vh]">
+                <DialogContent className="max-w-[95vw] w-full h-[95vh]">
                     <DialogHeader>
                         <DialogTitle>{viewingSchedule?.title}</DialogTitle>
                     </DialogHeader>
