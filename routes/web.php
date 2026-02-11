@@ -80,6 +80,9 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::resource('subjects', \App\Http\Controllers\Owner\SubjectController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
+    Route::resource('schedules', \App\Http\Controllers\Owner\ScheduleController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
 
     // User Management
     Route::resource('users', \App\Http\Controllers\Owner\UserManagementController::class)->only([
@@ -177,6 +180,7 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
     Route::get('requirements', [App\Http\Controllers\Student\RequirementController::class, 'index'])->name('requirements');
     Route::get('subjects', [App\Http\Controllers\Student\SubjectController::class, 'index'])->name('subjects');
+    Route::get('schedules', [App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedules');
     Route::get('profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
 });
 
@@ -186,6 +190,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('classes', [App\Http\Controllers\Teacher\ClassController::class, 'index'])->name('classes.index');
     Route::get('classes/{section}', [App\Http\Controllers\Teacher\ClassController::class, 'show'])->name('classes.show');
     Route::get('subjects', [App\Http\Controllers\Teacher\SubjectController::class, 'index'])->name('subjects');
+    Route::get('schedules', [App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedules');
     Route::get('grades', [App\Http\Controllers\Teacher\GradeController::class, 'index'])->name('grades.index');
     Route::get('attendance', [App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendance.index');
 });
@@ -215,6 +220,7 @@ Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:
         return Inertia::render('parent/dashboard');
     })->name('dashboard');
     Route::get('subjects', [App\Http\Controllers\Parent\SubjectController::class, 'index'])->name('subjects');
+    Route::get('schedules', [App\Http\Controllers\Parent\ScheduleController::class, 'index'])->name('schedules');
 });
 
 // Clinic Portal Routes
