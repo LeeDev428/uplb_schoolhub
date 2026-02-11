@@ -222,18 +222,11 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
                     </CardHeader>
                     <CardContent>
                         {/* Filter Bar */}
-                        <FilterBar onReset={resetFilters} showReset={!!(search || selectedDepartment !== 'all' || classification !== 'all' || status !== 'all')}>
+                        <FilterBar onReset={resetFilters} showReset={!!(search || classification !== 'all' || selectedDepartment !== 'all' || status !== 'all')}>
                             <SearchBar 
                                 value={search}
                                 onChange={handleSearchChange}
                                 placeholder="Search year levels..."
-                            />
-                            <FilterDropdown 
-                                label="Department"
-                                value={selectedDepartment}
-                                onChange={handleDepartmentChange}
-                                options={departments.map(d => ({ value: d.id.toString(), label: d.name }))}
-                                placeholder="All Departments"
                             />
                             <FilterDropdown 
                                 label="Classification"
@@ -244,6 +237,13 @@ export default function YearLevelsIndex({ yearLevels, departments, filters }: Pr
                                     { value: 'College', label: 'College' }
                                 ]}
                                 placeholder="All Classifications"
+                            />
+                            <FilterDropdown 
+                                label="Department"
+                                value={selectedDepartment}
+                                onChange={handleDepartmentChange}
+                                options={departments.map(d => ({ value: d.id.toString(), label: d.name }))}
+                                placeholder="All Departments"
                             />
                             <FilterDropdown 
                                 label="Status"
