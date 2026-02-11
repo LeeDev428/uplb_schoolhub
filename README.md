@@ -40,6 +40,9 @@ The Developer shall deliver a complete and operational system including the foll
 - [x] Department management (K-12 & College classification)
 - [x] Year levels and sections management
 - [x] Strands management (for Senior High School)
+- [x] Programs management (College programs)
+- [x] Subject management (CRUD with department/program/year level/semester filters)
+- [x] Schedule management (PDF upload with department/program/year level/section/teacher assignment)
 
 #### **1.2 Registrar Account** 🔄 `IN PROGRESS (70%)`
 
@@ -57,8 +60,10 @@ The Developer shall deliver a complete and operational system including the foll
 - [x] Payment tracking and reconciliation
 - [ ] Monitoring and approval of student wallet/load transactions (Integrated with e-LMS)
 
-#### **1.4 Teacher Portal** ❌ `NOT IMPLEMENTED`
+#### **1.4 Teacher Portal** 🔄 `IN PROGRESS (15%)`
 
+- [x] View assigned class schedules (PDF viewer)
+- [x] View subjects by department
 - [ ] Class and subject management
 - [ ] Encoding of grades
 - [ ] Attendance monitoring
@@ -66,10 +71,11 @@ The Developer shall deliver a complete and operational system including the foll
 - [ ] Creation of assignments, quizzes, and exams
 - [ ] Grading and feedback on student submissions
 
-#### **1.5 Student Portal** ❌ `NOT IMPLEMENTED`
+#### **1.5 Student Portal** 🔄 `IN PROGRESS (15%)`
 
+- [x] View class schedules (PDF viewer, filtered by department/program)
+- [x] View subjects by department/year level
 - [ ] Viewing grades and report cards
-- [ ] Access to class schedules
 - [ ] Attendance records using RFID Portal for tap in and out
 - [ ] Enrollment Fees
 - [ ] Loadable Balance
@@ -164,19 +170,22 @@ school-mgmt_lms_pos/
 │   │   │   ├── Owner/              # Owner/Admin controllers
 │   │   │   ├── Accounting/         # Accounting controllers
 │   │   │   ├── Student/            # Student portal controllers
+│   │   │   ├── Teacher/            # Teacher portal controllers
+│   │   │   ├── Parent/             # Parent portal controllers
 │   │   │   ├── Settings/           # Settings controllers
-│   │   │   ├── StudentController.php
-│   │   │   ├── RegistrarDashboardController.php
 │   │   │   └── ...
 │   │   └── Middleware/
 │   ├── Models/
 │   │   ├── User.php
 │   │   ├── Student.php
+│   │   ├── Teacher.php
 │   │   ├── Department.php
 │   │   ├── YearLevel.php
 │   │   ├── Section.php
 │   │   ├── Strand.php
 │   │   ├── Program.php
+│   │   ├── Subject.php
+│   │   ├── Schedule.php
 │   │   ├── StudentFee.php
 │   │   ├── StudentPayment.php
 │   │   └── ...
@@ -188,17 +197,34 @@ school-mgmt_lms_pos/
 │   │   │   ├── filters/            # Reusable filter components
 │   │   │   ├── owner/              # Owner-specific components
 │   │   │   ├── registrar/          # Registrar-specific components
-│   │   │   └── accounting/         # Accounting-specific components
+│   │   │   ├── accounting/         # Accounting-specific components
+│   │   │   ├── student/            # Student-specific components
+│   │   │   ├── teacher/            # Teacher-specific components
+│   │   │   └── parent/             # Parent-specific components
 │   │   ├── layouts/
 │   │   │   ├── owner/              # Owner layout
 │   │   │   ├── registrar/          # Registrar layout
 │   │   │   ├── accounting/         # Accounting layout
-│   │   │   └── student/            # Student layout
+│   │   │   ├── student/            # Student layout
+│   │   │   ├── teacher/            # Teacher layout
+│   │   │   └── parent/             # Parent layout
 │   │   ├── pages/
 │   │   │   ├── owner/              # Owner portal pages
+│   │   │   │   ├── subjects/       # Subject CRUD
+│   │   │   │   ├── schedules/      # Schedule CRUD (PDF upload)
+│   │   │   │   ├── users/          # User management
+│   │   │   │   └── ...
 │   │   │   ├── registrar/          # Registrar portal pages
 │   │   │   ├── accounting/         # Accounting portal pages
-│   │   │   └── student/            # Student portal pages
+│   │   │   ├── student/            # Student portal pages
+│   │   │   │   ├── subjects/       # View subjects
+│   │   │   │   └── schedules/      # View schedules
+│   │   │   ├── teacher/            # Teacher portal pages
+│   │   │   │   ├── subjects/       # View subjects
+│   │   │   │   └── schedules/      # View assigned schedules
+│   │   │   └── parent/             # Parent portal pages
+│   │   │       ├── subjects/       # View subjects
+│   │   │       └── schedules/      # View children's schedules
 │   │   └── types/
 │   └── views/
 ├── database/
@@ -285,16 +311,16 @@ school-mgmt_lms_pos/
 
 ## 📊 Implementation Progress
 
-### **Overall Progress: ~35%**
+### **Overall Progress: ~40%**
 
 | Module | Status | Completion | Priority |
 |--------|--------|------------|----------|
 | 🏫 Owner/Admin Portal | ✅ Done | 95% | - |
 | 📝 Registrar Account | 🔄 In Progress | 70% | High |
 | 💰 Accounting Account | 🔄 In Progress | 60% | High |
-| 👨‍🏫 Teacher Portal | ❌ Not Started | 0% | **Critical** |
-| 👨‍🎓 Student Portal | ❌ Not Started | 0% | **Critical** |
-| 👨‍👩‍👦 Parent Portal | ❌ Not Started | 0% | **Critical** |
+| 👨‍🏫 Teacher Portal | 🔄 In Progress | 15% | **Critical** |
+| 👨‍🎓 Student Portal | 🔄 In Progress | 15% | **Critical** |
+| 👨‍👩‍👦 Parent Portal | 🔄 In Progress | 10% | **Critical** |
 | 🧑‍⚕️ Guidance Counselor | ❌ Not Started | 0% | Medium |
 | 📚 Librarian Account | ❌ Not Started | 0% | Medium |
 | 🏥 Medical/Clinic | ❌ Not Started | 0% | Low |
@@ -303,13 +329,17 @@ school-mgmt_lms_pos/
 
 ### **Detailed Breakdown**
 
-#### ✅ **Completed Features (35%)**
+#### ✅ **Completed Features (40%)**
 - [x] Authentication system (Login/Logout/Role-based access)
 - [x] Owner/Administrator dashboard
 - [x] Department management (K-12 & College)
 - [x] Year Levels management
 - [x] Sections management
 - [x] Strands management (SHS)
+- [x] Programs management (College)
+- [x] Subject management (CRUD with department/program/year level/semester filters)
+- [x] Schedule management (PDF upload with department/program/year level/section/teacher assignment)
+- [x] User management (auto default password)
 - [x] Student records management
 - [x] Student requirements tracking
 - [x] Student fees management
@@ -318,6 +348,9 @@ school-mgmt_lms_pos/
 - [x] Comprehensive filtering system (Search, Dropdowns, Date Range)
 - [x] Pagination (25 items per page)
 - [x] Registrar dashboard with analytics
+- [x] Teacher schedule view (filtered by assigned teacher)
+- [x] Student schedule & subject view (filtered by department/program)
+- [x] Parent schedule & subject view (filtered by children's departments)
 
 #### 🔄 **In Progress (15%)**
 - [ ] E-mail/Username login logic for parents & students
@@ -326,9 +359,9 @@ school-mgmt_lms_pos/
 - [ ] Academic transcript generation
 
 #### ❌ **Pending (50%)**
-- [ ] Teacher Portal (All features)
-- [ ] Student Portal (All features)
-- [ ] Parent Portal
+- [ ] Teacher Portal (Remaining features: grades, attendance, lessons, assignments)
+- [ ] Student Portal (Remaining features: grades, attendance, enrollment, wallet)
+- [ ] Parent Portal (Remaining features: view grades, fees, attendance)
 - [ ] Guidance Counselor Portal
 - [ ] Librarian Portal
 - [ ] Medical/Clinic Portal
@@ -415,18 +448,31 @@ php artisan test --coverage
 - Fix: Updated `Section` model to use `department` and `strand` instead of deprecated `program` relationship
 - Location: `app/Http/Controllers/StudentController.php:105`
 
+✅ **Schedule Section Relationship Error** *(Fixed: Feb 11, 2026)*
+- Issue: `Call to undefined relationship [program] on model [App\Models\Section]` in ScheduleController
+- Fix: Changed `Section::with(['program', 'yearLevel'])` to `Section::with(['department', 'yearLevel'])`
+- Location: `app/Http/Controllers/Owner/ScheduleController.php`
+
+✅ **Department Filtering for Portals** *(Fixed: Feb 11, 2026)*
+- Issue: Student/Teacher/Parent portals showing wrong department data
+- Fix: Student uses Program lookup, Teacher uses teacher record, Parent uses children's programs
+- Location: `app/Http/Controllers/{Student,Teacher,Parent}/SubjectController.php`
+
 ---
 
 ## 🗺️ Roadmap
 
-### **Phase 1: Core Academic Management** (Current - 35% Complete)
+### **Phase 1: Core Academic Management** (Current - 40% Complete)
 - [x] Owner/Admin Portal
 - [x] Department & Section Management
 - [x] Student Records System
 - [x] Basic Accounting
+- [x] Subject Management (Owner/Registrar CRUD + role-based viewing)
+- [x] Schedule Management (PDF upload with teacher assignment)
+- [x] Teacher/Student/Parent portals (basic schedule & subject viewing)
 
 ### **Phase 2: Academic Operations** (Next - Target: 65%)
-- [ ] Teacher Portal Implementation
+- [ ] Teacher Portal (Grades, attendance, lessons, assignments)
 - [ ] Parent Portal with Auto-Creation
 - [ ] Guidance Counselor Portal
 - [ ] Librarian Portal
@@ -477,6 +523,6 @@ For issues, questions, or feature requests:
 
 **Built with ❤️ using Laravel, React, and TypeScript**
 
-*Project Progress: 35% Complete | Last Updated: February 10, 2026*
+*Project Progress: 40% Complete | Last Updated: February 11, 2026*
 
 </div>
