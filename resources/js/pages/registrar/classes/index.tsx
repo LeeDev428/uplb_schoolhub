@@ -374,7 +374,7 @@ export default function RegistrarClassesIndex({
                                         <SelectContent>
                                             {sections.map(s => (
                                                 <SelectItem key={s.id} value={s.id.toString()}>
-                                                    {s.name} — {s.department.name} ({s.students_count}/{s.capacity || '∞'})
+                                                    {s.name} — {s.department?.name || 'N/A'} ({s.students_count}/{s.capacity || '∞'})
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -477,7 +477,7 @@ export default function RegistrarClassesIndex({
                                                     <div>
                                                         <span className="font-semibold text-sm">{section.name}</span>
                                                         <span className="text-xs text-muted-foreground ml-2">
-                                                            {section.department.name} • {section.year_level.name}
+                                                            {section.department?.name || 'N/A'} • {section.year_level?.name || 'N/A'}
                                                             {section.room_number && ` • Room ${section.room_number}`}
                                                         </span>
                                                     </div>
