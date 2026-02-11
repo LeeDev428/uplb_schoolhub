@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->foreignId('department_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('program_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('year_level_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('section_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('file_path'); // PDF file path
+            $table->string('file_name'); // Original file name
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
