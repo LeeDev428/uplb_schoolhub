@@ -11,7 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::table('sections', function (Blueprint $table) {
+            $table->string('room_number')->nullable()->after('capacity');
+        });
+
+        // Remove school_year if it exists
+        if (Schema::hasColumn('sections', 'school_year')) {
+            Schema::table('sections', function (Blueprint $table) {
+                $table->dropColumn('school_year');
+            });
+        }
     }
 
     /**
@@ -19,6 +28,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('sections', function (Blueprint $table) {
+            $table->string('school_year')->nullable();
+            $table->dropColumn('room_number');
+        });
     }
 };
