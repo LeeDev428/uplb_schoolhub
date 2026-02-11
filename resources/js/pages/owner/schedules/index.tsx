@@ -129,7 +129,13 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
     const filteredSections = (departmentId && yearLevelId)
         ? sections.filter(s => s.department_id === parseInt(departmentId) && s.year_level_id === parseInt(yearLevelId))
         : [];
-    const filteredTeachers = departmentId ? teachers.filter(t => t.department_id === parseInt(departmentId)) : teachers;
+    // Show all teachers but prioritize those from selected department
+    const filteredTeachers = departmentId
+        ? [
+            ...teachers.filter(t => t.department_id === parseInt(departmentId)),
+            ...teachers.filter(t => t.department_id !== parseInt(departmentId)),
+          ]
+        : teachers;
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
