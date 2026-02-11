@@ -26,7 +26,7 @@ interface Department {
 interface YearLevel {
     id: number;
     name: string;
-    level: number;
+    level_number: number;
     department_id: number;
     department: {
         id: number;
