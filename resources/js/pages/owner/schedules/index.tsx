@@ -5,6 +5,7 @@ import OwnerLayout from '@/layouts/owner/owner-layout';
 import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { PdfViewer } from '@/components/ui/pdf-viewer';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -445,20 +446,12 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
             </Dialog>
 
             {/* View PDF Modal */}
-            <Dialog open={!!viewingSchedule} onOpenChange={() => setViewingSchedule(null)}>
-                <DialogContent className="max-w-[95vw] w-full h-[95vh]">
-                    <DialogHeader>
-                        <DialogTitle>{viewingSchedule?.title}</DialogTitle>
-                    </DialogHeader>
-                    {viewingSchedule && (
-                        <iframe
-                            src={`/storage/${viewingSchedule.file_path}`}
-                            className="w-full h-full rounded-lg border"
-                            title={viewingSchedule.title}
-                        />
-                    )}
-                </DialogContent>
-            </Dialog>
+            <PdfViewer
+                open={!!viewingSchedule}
+                onOpenChange={() => setViewingSchedule(null)}
+                title={viewingSchedule?.title || ''}
+                filePath={viewingSchedule?.file_path || ''}
+            />
 
             <ConfirmDialog
                 open={deleteDialogOpen}
