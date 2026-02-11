@@ -15,21 +15,28 @@ class SubjectController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $parent = $user->parent;
         
-        // Get children's departments
-        $children = User::where('parent_id', $user->id)
-            ->where('role', 'student')
-            ->whereNotNull('department_id')
-            ->pluck('department_id')
-            ->unique()
-            ->toArray();
+        // Get department IDs from all children's programs
+        $departmentIds = [];
+        if ($parent) {
+            $children = Student::where('parent_id', $parent->id)->get();
+            foreach ($children as $child) {
+                if ($child->program) {
+                    $program = Program::where('name', $child->program)->first();
+                    if ($program && !in_array($program->department_id, $departmentIds)) {
+                        $departmentIds[] = $program->department_id;
+                    }
+                }
+            }
+        }
 
         $query = Subject::with(['department', 'yearLevel'])
             ->where('is_active', true);
 
         // Filter by children's departments
-        if (!empty($children)) {
-            $query->whereIn('department_id', $children);
+        if (!empty($departmentIds)) {
+            $query->whereIn('department_id', $departmentIds);
         }
 
         // Search filter
