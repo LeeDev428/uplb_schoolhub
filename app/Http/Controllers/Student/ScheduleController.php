@@ -17,7 +17,7 @@ class ScheduleController extends Controller
         $user = Auth::user();
         $student = $user->student;
         
-        $query = Schedule::with(['department', 'program', 'yearLevel', 'section'])
+        $query = Schedule::with(['department', 'program', 'yearLevel', 'section', 'teacher'])
             ->where('is_active', true);
 
         // Filter by student's department (from program)
