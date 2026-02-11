@@ -83,6 +83,16 @@ class RegistrarSubjectController extends Controller
             'prerequisites.*' => 'exists:subjects,id',
         ]);
 
+        // Convert empty year_level_id to null
+        if (empty($validated['year_level_id'])) {
+            $validated['year_level_id'] = null;
+        }
+
+        // Convert empty semester to null
+        if (empty($validated['semester'])) {
+            $validated['semester'] = null;
+        }
+
         $subject = Subject::create($validated);
 
         // Attach prerequisites if provided
@@ -110,6 +120,16 @@ class RegistrarSubjectController extends Controller
             'prerequisites' => 'nullable|array',
             'prerequisites.*' => 'exists:subjects,id',
         ]);
+
+        // Convert empty year_level_id to null
+        if (empty($validated['year_level_id'])) {
+            $validated['year_level_id'] = null;
+        }
+
+        // Convert empty semester to null
+        if (empty($validated['semester'])) {
+            $validated['semester'] = null;
+        }
 
         $subject->update($validated);
 
