@@ -66,11 +66,12 @@ const mainNavItems: NavItem[] = [
                 title: 'Sections',
                 href: '/owner/sections',
             },
-            {
-                title: 'Subjects',
-                href: '/owner/subjects',
-            },
         ],
+    },
+    {
+        title: 'Subjects',
+        href: '/owner/subjects',
+        icon: BookOpen,
     },
     {
         title: 'Calendar View',
