@@ -37,6 +37,9 @@ class Student extends Model
         'program',
         'year_level',
         'section',
+        'department_id',
+        'year_level_id',
+        'section_id',
         'enrollment_status',
         'requirements_status',
         'requirements_percentage',
@@ -121,6 +124,30 @@ class Student extends Model
     public function scopeOfType($query, string $type)
     {
         return $query->where('student_type', $type);
+    }
+
+    /**
+     * Get the section this student is assigned to
+     */
+    public function sectionModel()
+    {
+        return $this->belongsTo(Section::class, 'section_id');
+    }
+
+    /**
+     * Get the department this student belongs to
+     */
+    public function departmentModel()
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    /**
+     * Get the year level of this student
+     */
+    public function yearLevelModel()
+    {
+        return $this->belongsTo(YearLevel::class, 'year_level_id');
     }
 
     /**
