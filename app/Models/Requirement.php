@@ -18,6 +18,7 @@ class Requirement extends Model
         'description',
         'deadline_type',
         'custom_deadline',
+        'deadline_id',
         'applies_to_new_enrollee',
         'applies_to_transferee',
         'applies_to_returning',
@@ -42,6 +43,14 @@ class Requirement extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(RequirementCategory::class, 'requirement_category_id');
+    }
+
+    /**
+     * Get the academic deadline for this requirement
+     */
+    public function deadline(): BelongsTo
+    {
+        return $this->belongsTo(AcademicDeadline::class);
     }
 
     /**
