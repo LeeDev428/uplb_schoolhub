@@ -23,6 +23,10 @@ export function FilterDropdown({
     placeholder = 'Select...',
     showAll = true,
 }: FilterDropdownProps) {
+    // Prevent doubling: don't render built-in "All" if options already include value="all"
+    const hasAllOption = options.some(o => o.value === 'all');
+    const shouldShowAll = showAll && !hasAllOption;
+
     return (
         <div className="space-y-2">
             <Label className="text-xs text-gray-600">{label}</Label>
@@ -31,7 +35,7 @@ export function FilterDropdown({
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent>
-                    {showAll && <SelectItem value="all">All</SelectItem>}
+                    {shouldShowAll && <SelectItem value="all">All</SelectItem>}
                     {options.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                             {option.label}
