@@ -32,6 +32,11 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
+        title: 'Subjects',
+        href: '/teacher/subjects',
+        icon: BookOpen,
+    },
+    {
         title: 'Grades',
         href: '/teacher/grades',
         icon: ClipboardList,
