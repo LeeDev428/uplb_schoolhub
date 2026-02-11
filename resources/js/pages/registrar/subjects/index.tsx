@@ -412,14 +412,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
 
                         {subjects.last_page > 1 && (
                             <div className="mt-4">
-                                <Pagination
-                                    currentPage={subjects.current_page}
-                                    lastPage={subjects.last_page}
-                                    from={subjects.from}
-                                    to={subjects.to}
-                                    total={subjects.total}
-                                    links={subjects.links}
-                                />
+                                <Pagination data={subjects} />
                             </div>
                         )}
                     </CardContent>
