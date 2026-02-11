@@ -81,8 +81,6 @@ export default function Deadlines({ deadlines, requirements, filters }: Props) {
     const [status, setStatus] = useState(filters.status || 'all');
 
     const form = useForm({
-        name: '',
-        description: '',
         classification: 'K-12' as 'K-12' | 'College',
         deadline_date: '',
         deadline_time: '',
@@ -154,8 +152,6 @@ export default function Deadlines({ deadlines, requirements, filters }: Props) {
     const openEditModal = (deadline: Deadline) => {
         setEditingDeadline(deadline);
         form.setData({
-            name: deadline.name,
-            description: deadline.description || '',
             classification: deadline.classification,
             deadline_date: deadline.deadline_date,
             deadline_time: deadline.deadline_time || '',
@@ -423,31 +419,6 @@ export default function Deadlines({ deadlines, requirements, filters }: Props) {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid gap-4">
-                            <div>
-                                <Label htmlFor="name">Deadline Name *</Label>
-                                <Input
-                                    id="name"
-                                    value={form.data.name}
-                                    onChange={(e) => form.setData('name', e.target.value)}
-                                    placeholder="e.g., Enrollment Document Submission"
-                                    required
-                                />
-                                {form.errors.name && (
-                                    <p className="mt-1 text-sm text-destructive">{form.errors.name}</p>
-                                )}
-                            </div>
-
-                            <div>
-                                <Label htmlFor="description">Description</Label>
-                                <Textarea
-                                    id="description"
-                                    value={form.data.description}
-                                    onChange={(e) => form.setData('description', e.target.value)}
-                                    placeholder="Additional details about this deadline..."
-                                    rows={3}
-                                />
-                            </div>
-
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="classification">Classification *</Label>
