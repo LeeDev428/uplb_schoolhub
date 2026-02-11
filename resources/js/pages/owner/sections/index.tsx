@@ -62,6 +62,7 @@ interface Props {
     schoolYears: string[];
     filters: {
         search?: string;
+        classification?: string;
         department_id?: string;
         year_level_id?: string;
         strand_id?: string;
@@ -74,6 +75,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSection, setEditingSection] = useState<Section | null>(null);
     const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
     const [selectedYearLevel, setSelectedYearLevel] = useState(filters.year_level_id || 'all');
     const [selectedStrand, setSelectedStrand] = useState(filters.strand_id || 'all');
@@ -141,6 +143,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
 
     const resetFilters = () => {
         setSearch('');
+        setClassification('all');
         setSelectedDepartment('all');
         setSelectedYearLevel('all');
         setSelectedStrand('all');
@@ -153,6 +156,23 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         setSearch(value);
         router.get('/owner/sections', {
             search: value,
+            classification,
+            department_id: selectedDepartment,
+            year_level_id: selectedYearLevel,
+            strand_id: selectedStrand,
+            school_year: selectedSchoolYear,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        router.get('/owner/sections', {
+            search,
+            classification: value,
             department_id: selectedDepartment,
             year_level_id: selectedYearLevel,
             strand_id: selectedStrand,
@@ -168,6 +188,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         setSelectedDepartment(value);
         router.get('/owner/sections', {
             search,
+            classification,
             department_id: value,
             year_level_id: selectedYearLevel,
             strand_id: selectedStrand,
@@ -183,6 +204,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         setSelectedYearLevel(value);
         router.get('/owner/sections', {
             search,
+            classification,
             department_id: selectedDepartment,
             year_level_id: value,
             strand_id: selectedStrand,
@@ -198,6 +220,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         setSelectedStrand(value);
         router.get('/owner/sections', {
             search,
+            classification,
             department_id: selectedDepartment,
             year_level_id: selectedYearLevel,
             strand_id: value,
@@ -213,6 +236,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         setSelectedSchoolYear(value);
         router.get('/owner/sections', {
             search,
+            classification,
             department_id: selectedDepartment,
             year_level_id: selectedYearLevel,
             strand_id: selectedStrand,
@@ -228,6 +252,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         setStatus(value);
         router.get('/owner/sections', {
             search,
+            classification,
             department_id: selectedDepartment,
             year_level_id: selectedYearLevel,
             strand_id: selectedStrand,
@@ -263,11 +288,21 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                     </CardHeader>
                     <CardContent>
                         {/* Filter Bar */}
-                        <FilterBar onReset={resetFilters} showReset={!!(search || selectedDepartment !== 'all' || selectedYearLevel !== 'all' || selectedStrand !== 'all' || selectedSchoolYear !== 'all' || status !== 'all')}>
+                        <FilterBar onReset={resetFilters} showReset={!!(search || classification !== 'all' || selectedDepartment !== 'all' || selectedYearLevel !== 'all' || selectedStrand !== 'all' || selectedSchoolYear !== 'all' || status !== 'all')}>
                             <SearchBar 
                                 value={search}
                                 onChange={handleSearchChange}
                                 placeholder="Search sections..."
+                            />
+                            <FilterDropdown 
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' }
+                                ]}
+                                placeholder="All Classifications"
                             />
                             <FilterDropdown 
                                 label="Department"
