@@ -87,6 +87,11 @@ class Requirement extends Model
      */
     public function getDeadlineTextAttribute(): string
     {
+        // If linked to an academic deadline, show that
+        if ($this->deadline_id && $this->relationLoaded('deadline') && $this->deadline) {
+            return $this->deadline->name . ' (' . $this->deadline->deadline_date->format('M d, Y') . ')';
+        }
+
         return match ($this->deadline_type) {
             'during_enrollment' => 'During Enrollment',
             'before_classes' => 'Before Classes Start',
