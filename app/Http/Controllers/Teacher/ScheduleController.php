@@ -15,12 +15,12 @@ class ScheduleController extends Controller
         $user = Auth::user();
         $teacher = $user->teacher;
         
-        $query = Schedule::with(['department', 'program', 'yearLevel', 'section'])
+        $query = Schedule::with(['department', 'program', 'yearLevel', 'section', 'teacher'])
             ->where('is_active', true);
 
-        // Filter by teacher's department
-        if ($teacher && $teacher->department_id) {
-            $query->where('department_id', $teacher->department_id);
+        // Filter by assigned teacher
+        if ($teacher) {
+            $query->where('teacher_id', $teacher->id);
         }
 
         // Search filter
