@@ -102,7 +102,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         hours_per_week: '',
         type: 'core' as 'core' | 'major' | 'elective' | 'general',
         year_level_id: '',
-        semester: '',
+        semester: 'none',
         is_active: true,
     });
 
@@ -194,7 +194,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
             hours_per_week: subject.hours_per_week?.toString() || '',
             type: subject.type,
             year_level_id: subject.year_level_id?.toString() || '',
-            semester: subject.semester || '',
+            semester: subject.semester || 'none',
             is_active: subject.is_active,
         });
         setIsModalOpen(true);
@@ -545,12 +545,17 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                             <SelectValue placeholder="Select year level" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">None</SelectItem>
-                                            {filteredYearLevels.map((yl) => (
-                                                <SelectItem key={yl.id} value={yl.id.toString()}>
-                                                    {yl.name}
-                                                </SelectItem>
-                                            ))}
+                                            {filteredYearLevels.length === 0 ? (
+                                                <div className="p-2 text-sm text-muted-foreground">
+                                                    Select a department first
+                                                </div>
+                                            ) : (
+                                                filteredYearLevels.map((yl) => (
+                                                    <SelectItem key={yl.id} value={yl.id.toString()}>
+                                                        {yl.name}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -587,14 +592,14 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                 <div>
                                     <Label htmlFor="semester">Semester</Label>
                                     <Select
-                                        value={form.data.semester}
-                                        onValueChange={(value) => form.setData('semester', value)}
+                                        value={form.data.semester || 'none'}
+                                        onValueChange={(value) => form.setData('semester', value === 'none' ? '' : value)}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">None</SelectItem>
+                                            <SelectItem value="none">None</SelectItem>
                                             <SelectItem value="1">1st Semester</SelectItem>
                                             <SelectItem value="2">2nd Semester</SelectItem>
                                             <SelectItem value="summer">Summer</SelectItem>
