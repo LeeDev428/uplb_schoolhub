@@ -203,14 +203,14 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         };
 
         if (editingSubject) {
-            form.transform(() => submitData).put(`/owner/subjects/${editingSubject.id}`, {
+            router.put(`/owner/subjects/${editingSubject.id}`, submitData, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
             });
         } else {
-            form.transform(() => submitData).post('/owner/subjects', {
+            router.post('/owner/subjects', submitData, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
