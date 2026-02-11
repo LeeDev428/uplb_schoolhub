@@ -57,8 +57,6 @@ class RegistrarDeadlineController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'classification' => 'required|in:K-12,College',
             'deadline_date' => 'required|date',
             'deadline_time' => 'nullable|date_format:H:i',
@@ -72,6 +70,17 @@ class RegistrarDeadlineController extends Controller
 
         $requirementIds = $validated['requirement_ids'] ?? [];
         unset($validated['requirement_ids']);
+
+        // Auto-generate deadline name from requirements and date
+        if (!empty($requirementIds)) {
+            $requirements = Requirement::whereIn('id', $requirementIds)->pluck('name')->toArray();
+            $validated['name'] = implode(', ', array_slice($requirements, 0, 3)) . 
+                (count($requirements) > 3 ? ' +' . (count($requirements) - 3) . ' more' : '') .
+                ' - Due ' . date('M d, Y', strtotime($validated['deadline_date']));
+        } else {
+            $validated['name'] = $validated['classification'] . ' Deadline - ' . date('M d, Y', strtotime($validated['deadline_date']));
+        }
+        $validated['description'] = 'Auto-generated deadline for selected requirements';
 
         $deadline = AcademicDeadline::create($validated);
 
@@ -86,8 +95,6 @@ class RegistrarDeadlineController extends Controller
     public function update(Request $request, AcademicDeadline $deadline)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'classification' => 'required|in:K-12,College',
             'deadline_date' => 'required|date',
             'deadline_time' => 'nullable|date_format:H:i',
@@ -101,6 +108,17 @@ class RegistrarDeadlineController extends Controller
 
         $requirementIds = $validated['requirement_ids'] ?? [];
         unset($validated['requirement_ids']);
+
+        // Auto-generate deadline name from requirements and date
+        if (!empty($requirementIds)) {
+            $requirements = Requirement::whereIn('id', $requirementIds)->pluck('name')->toArray();
+            $validated['name'] = implode(', ', array_slice($requirements, 0, 3)) . 
+                (count($requirements) > 3 ? ' +' . (count($requirements) - 3) . ' more' : '') .
+                ' - Due ' . date('M d, Y', strtotime($validated['deadline_date']));
+        } else {
+            $validated['name'] = $validated['classification'] . ' Deadline - ' . date('M d, Y', strtotime($validated['deadline_date']));
+        }
+        $validated['description'] = 'Auto-generated deadline for selected requirements';
 
         $deadline->update($validated);
 
