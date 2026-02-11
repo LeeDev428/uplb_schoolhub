@@ -195,25 +195,35 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Prepare data for submission
-        const submitData = {
-            ...form.data,
-            semester: form.data.semester === 'none' ? '' : form.data.semester,
-            year_level_id: form.data.year_level_id || '',
-        };
+        // Transform semester and year_level for backend
+        const originalSemester = form.data.semester;
+        const originalYearLevel = form.data.year_level_id;
+        
+        form.data.semester = form.data.semester === 'none' ? '' : form.data.semester;
+        form.data.year_level_id = form.data.year_level_id || '';
 
         if (editingSubject) {
-            router.put(`/owner/subjects/${editingSubject.id}`, submitData, {
+            form.put(`/owner/subjects/${editingSubject.id}`, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
+                onError: () => {
+                    // Restore original values on error
+                    form.data.semester = originalSemester;
+                    form.data.year_level_id = originalYearLevel;
+                },
             });
         } else {
-            router.post('/owner/subjects', submitData, {
+            form.post('/owner/subjects', {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
+                },
+                onError: () => {
+                    // Restore original values on error
+                    form.data.semester = originalSemester;
+                    form.data.year_level_id = originalYearLevel;
                 },
             });
         }
