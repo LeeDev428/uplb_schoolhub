@@ -380,21 +380,6 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="password">
-                                    Password {editingUser ? '(leave blank to keep current)' : '*'}
-                                </Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={form.data.password}
-                                    onChange={(e) => form.setData('password', e.target.value)}
-                                    required={!editingUser}
-                                    minLength={6}
-                                />
-                                {form.errors.password && <p className="text-sm text-red-500">{form.errors.password}</p>}
-                            </div>
-
-                            <div className="space-y-2">
                                 <Label htmlFor="role">Role *</Label>
                                 <Select
                                     value={form.data.role}
