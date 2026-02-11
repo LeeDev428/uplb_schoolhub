@@ -211,14 +211,14 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         };
 
         if (editingSubject) {
-            form.transform(() => submitData).put(`/registrar/subjects/${editingSubject.id}`, {
+            router.put(`/registrar/subjects/${editingSubject.id}`, submitData, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
             });
         } else {
-            form.transform(() => submitData).post('/registrar/subjects', {
+            router.post('/registrar/subjects', submitData, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
