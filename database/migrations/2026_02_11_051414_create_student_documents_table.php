@@ -13,7 +13,18 @@ return new class extends Migration
     {
         Schema::create('student_documents', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('requirement_id')->constrained('requirements')->onDelete('cascade');
+            $table->string('file_path');
+            $table->string('original_filename');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->timestamp('submitted_at')->useCurrent();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('reviewer_notes')->nullable();
             $table->timestamps();
+
+            $table->index(['student_id', 'requirement_id', 'status']);
         });
     }
 
