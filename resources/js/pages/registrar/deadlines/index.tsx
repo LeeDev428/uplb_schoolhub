@@ -341,6 +341,31 @@ export default function Deadlines({ deadlines, requirements, filters }: Props) {
                                                     {getAppliesToBadge(deadline.applies_to)}
                                                 </td>
                                                 <td className="p-3">
+                                                    {deadline.requirements && deadline.requirements.length > 0 ? (
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <div className="flex items-center gap-1 cursor-default">
+                                                                        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                                                        <Badge variant="secondary">
+                                                                            {deadline.requirements.length} linked
+                                                                        </Badge>
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent side="bottom" className="max-w-xs">
+                                                                    <ul className="text-xs space-y-0.5">
+                                                                        {deadline.requirements.map((r) => (
+                                                                            <li key={r.id}>• {r.name}</li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    ) : (
+                                                        <span className="text-sm text-muted-foreground">None</span>
+                                                    )}
+                                                </td>
+                                                <td className="p-3">
                                                     {deadline.send_reminder ? (
                                                         <span className="text-sm">
                                                             {deadline.reminder_days_before} days before
@@ -522,6 +547,72 @@ export default function Deadlines({ deadlines, requirements, filters }: Props) {
                                     checked={form.data.is_active}
                                     onCheckedChange={(checked) => form.setData('is_active', checked)}
                                 />
+                            </div>
+
+                            {/* Link Requirements */}
+                            <div className="space-y-3">
+                                <Label>Link Requirements</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Select requirements that must be submitted by this deadline. This will update the deadline shown in the Documents page.
+                                </p>
+                                <div className="max-h-48 overflow-y-auto rounded-lg border p-3 space-y-2">
+                                    {requirements.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground text-center py-2">
+                                            No requirements available
+                                        </p>
+                                    ) : (
+                                        (() => {
+                                            // Group requirements by category
+                                            const grouped = requirements.reduce<Record<string, RequirementOption[]>>((acc, req) => {
+                                                const catName = req.category?.name || 'Uncategorized';
+                                                if (!acc[catName]) acc[catName] = [];
+                                                acc[catName].push(req);
+                                                return acc;
+                                            }, {});
+
+                                            return Object.entries(grouped).map(([categoryName, reqs]) => (
+                                                <div key={categoryName}>
+                                                    <p className="text-xs font-semibold text-muted-foreground mb-1">{categoryName}</p>
+                                                    {reqs.map((req) => {
+                                                        const isLinkedElsewhere = req.deadline_id !== null
+                                                            && req.deadline_id !== (editingDeadline?.id ?? 0)
+                                                            && !form.data.requirement_ids.includes(req.id);
+                                                        return (
+                                                            <label
+                                                                key={req.id}
+                                                                className={`flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer hover:bg-muted/50 text-sm ${isLinkedElsewhere ? 'opacity-50' : ''}`}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="h-4 w-4 rounded border-gray-300"
+                                                                    checked={form.data.requirement_ids.includes(req.id)}
+                                                                    onChange={(e) => {
+                                                                        if (e.target.checked) {
+                                                                            form.setData('requirement_ids', [...form.data.requirement_ids, req.id]);
+                                                                        } else {
+                                                                            form.setData('requirement_ids', form.data.requirement_ids.filter((id) => id !== req.id));
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <span>{req.name}</span>
+                                                                {isLinkedElsewhere && (
+                                                                    <Badge variant="outline" className="text-[10px] ml-auto">
+                                                                        linked to other
+                                                                    </Badge>
+                                                                )}
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ));
+                                        })()
+                                    )}
+                                </div>
+                                {form.data.requirement_ids.length > 0 && (
+                                    <p className="text-xs text-muted-foreground">
+                                        {form.data.requirement_ids.length} requirement{form.data.requirement_ids.length !== 1 ? 's' : ''} selected
+                                    </p>
+                                )}
                             </div>
                         </div>
 
