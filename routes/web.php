@@ -120,9 +120,11 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::put('student-requirements/{studentRequirement}/status', [App\Http\Controllers\StudentRequirementController::class, 'updateStatus'])->name('student-requirements.update-status');
     Route::post('student-requirements/{studentRequirement}/upload', [App\Http\Controllers\StudentRequirementController::class, 'uploadFile'])->name('student-requirements.upload');
 
-    Route::get('documents/requests', function () {
-        return Inertia::render('registrar/documents/requests');
-    })->name('documents.requests');
+    // Document Requests - Review student-submitted documents
+    Route::get('documents/requests', [App\Http\Controllers\Registrar\DocumentRequestController::class, 'index'])->name('documents.requests');
+    Route::post('documents/{document}/approve', [App\Http\Controllers\Registrar\DocumentRequestController::class, 'approve'])->name('documents.approve');
+    Route::post('documents/{document}/reject', [App\Http\Controllers\Registrar\DocumentRequestController::class, 'reject'])->name('documents.reject');
+    Route::delete('documents/{document}', [App\Http\Controllers\Registrar\DocumentRequestController::class, 'destroy'])->name('documents.destroy');
 
     // Academic Deadlines
     Route::resource('deadlines', \App\Http\Controllers\Registrar\RegistrarDeadlineController::class)->only([
