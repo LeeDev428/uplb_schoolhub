@@ -31,7 +31,7 @@ class ScheduleController extends Controller
             }
         }
         
-        $query = Schedule::with(['department', 'program', 'yearLevel', 'section'])
+        $query = Schedule::with(['department', 'program', 'yearLevel', 'section', 'teacher'])
             ->where('is_active', true);
 
         // Filter by children's departments
