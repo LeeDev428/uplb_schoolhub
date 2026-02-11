@@ -195,15 +195,22 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Prepare data for submission
+        const submitData = {
+            ...form.data,
+            semester: form.data.semester === 'none' ? '' : form.data.semester,
+            year_level_id: form.data.year_level_id || '',
+        };
+
         if (editingSubject) {
-            form.put(`/owner/subjects/${editingSubject.id}`, {
+            form.transform(() => submitData).put(`/owner/subjects/${editingSubject.id}`, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
                 },
             });
         } else {
-            form.post('/owner/subjects', {
+            form.transform(() => submitData).post('/owner/subjects', {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
