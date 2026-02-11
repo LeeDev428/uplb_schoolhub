@@ -74,7 +74,6 @@ class UserManagementController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'username' => 'nullable|string|max:255|unique:users,username',
-            'password' => 'required|string|min:6',
             'role' => ['required', Rule::in([
                 User::ROLE_REGISTRAR,
                 User::ROLE_ACCOUNTING,
@@ -94,12 +93,12 @@ class UserManagementController extends Controller
             'employment_status' => 'nullable|in:full-time,part-time,contractual',
         ]);
 
-        // Create user
+        // Create user with default password
         $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'username' => $validated['username'] ?? null,
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make('password'), // Default password
             'role' => $validated['role'],
             'phone' => $validated['phone'] ?? null,
         ];
