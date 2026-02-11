@@ -2,7 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
-import { Plus, Pencil, Trash2, FileUp, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -44,10 +44,19 @@ interface YearLevel {
 interface Section {
     id: number;
     name: string;
-    program_id: number;
+    department_id: number;
     year_level_id: number;
-    program: Program;
+    department: Department;
     year_level: YearLevel;
+}
+
+interface Teacher {
+    id: number;
+    first_name: string;
+    last_name: string;
+    suffix: string | null;
+    department_id: number;
+    full_name?: string;
 }
 
 interface Schedule {
@@ -57,6 +66,7 @@ interface Schedule {
     program_id: number | null;
     year_level_id: number | null;
     section_id: number | null;
+    teacher_id: number | null;
     file_path: string;
     file_name: string;
     is_active: boolean;
@@ -64,6 +74,7 @@ interface Schedule {
     program: Program | null;
     year_level: YearLevel | null;
     section: Section | null;
+    teacher: Teacher | null;
     created_at: string;
 }
 
@@ -82,6 +93,7 @@ interface Props {
     programs: Program[];
     yearLevels: YearLevel[];
     sections: Section[];
+    teachers: Teacher[];
     filters: {
         search?: string;
         department_id?: string;
@@ -89,7 +101,7 @@ interface Props {
     };
 }
 
-export default function SchedulesIndex({ schedules, departments, programs, yearLevels, sections, filters }: Props) {
+export default function SchedulesIndex({ schedules, departments, programs, yearLevels, sections, teachers, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -105,6 +117,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
     const [programId, setProgramId] = useState('');
     const [yearLevelId, setYearLevelId] = useState('');
     const [sectionId, setSectionId] = useState('');
+    const [teacherId, setTeacherId] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [file, setFile] = useState<File | null>(null);
     const [processing, setProcessing] = useState(false);
@@ -112,9 +125,10 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
 
     const filteredPrograms = departmentId ? programs.filter(p => p.department_id === parseInt(departmentId)) : [];
     const filteredYearLevels = departmentId ? yearLevels.filter(yl => yl.department_id === parseInt(departmentId)) : [];
-    const filteredSections = (programId && yearLevelId)
-        ? sections.filter(s => s.program_id === parseInt(programId) && s.year_level_id === parseInt(yearLevelId))
+    const filteredSections = (departmentId && yearLevelId)
+        ? sections.filter(s => s.department_id === parseInt(departmentId) && s.year_level_id === parseInt(yearLevelId))
         : [];
+    const filteredTeachers = departmentId ? teachers.filter(t => t.department_id === parseInt(departmentId)) : teachers;
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
@@ -137,6 +151,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
         setProgramId('');
         setYearLevelId('');
         setSectionId('');
+        setTeacherId('');
         setIsActive(true);
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -155,6 +170,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
         setProgramId(schedule.program_id?.toString() || '');
         setYearLevelId(schedule.year_level_id?.toString() || '');
         setSectionId(schedule.section_id?.toString() || '');
+        setTeacherId(schedule.teacher_id?.toString() || '');
         setIsActive(schedule.is_active);
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -171,6 +187,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
         if (programId) formData.append('program_id', programId);
         if (yearLevelId) formData.append('year_level_id', yearLevelId);
         if (sectionId) formData.append('section_id', sectionId);
+        if (teacherId) formData.append('teacher_id', teacherId);
         formData.append('is_active', isActive ? '1' : '0');
         if (file) formData.append('file', file);
 
@@ -260,6 +277,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                                         <th className="p-3 text-left text-sm font-semibold">Program</th>
                                         <th className="p-3 text-left text-sm font-semibold">Year Level</th>
                                         <th className="p-3 text-left text-sm font-semibold">Section</th>
+                                        <th className="p-3 text-left text-sm font-semibold">Teacher</th>
                                         <th className="p-3 text-left text-sm font-semibold">File</th>
                                         <th className="p-3 text-left text-sm font-semibold">Status</th>
                                         <th className="p-3 text-left text-sm font-semibold">Actions</th>
@@ -268,7 +286,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                                 <tbody>
                                     {schedules.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={9} className="p-8 text-center text-muted-foreground">
                                                 No schedules found
                                             </td>
                                         </tr>
@@ -280,6 +298,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                                                 <td className="p-3 text-sm">{schedule.program?.name || 'All'}</td>
                                                 <td className="p-3 text-sm">{schedule.year_level?.name || 'All'}</td>
                                                 <td className="p-3 text-sm">{schedule.section?.name || 'All'}</td>
+                                                <td className="p-3 text-sm">{schedule.teacher ? `${schedule.teacher.last_name}, ${schedule.teacher.first_name}${schedule.teacher.suffix ? ' ' + schedule.teacher.suffix : ''}` : 'N/A'}</td>
                                                 <td className="p-3 text-sm">{schedule.file_name}</td>
                                                 <td className="p-3">
                                                     <Badge variant={schedule.is_active ? 'default' : 'secondary'}>
@@ -317,7 +336,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
 
             {/* Create / Edit Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>{editingSchedule ? 'Edit Schedule' : 'Upload Schedule'}</DialogTitle>
                     </DialogHeader>
@@ -330,7 +349,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
 
                         <div>
                             <Label htmlFor="department_id">Department *</Label>
-                            <Select value={departmentId} onValueChange={(v) => { setDepartmentId(v); setProgramId(''); setYearLevelId(''); setSectionId(''); }}>
+                            <Select value={departmentId} onValueChange={(v) => { setDepartmentId(v); setProgramId(''); setYearLevelId(''); setSectionId(''); setTeacherId(''); }}>
                                 <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
                                 <SelectContent>
                                     {departments.map(d => (
@@ -340,19 +359,20 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                             </Select>
                         </div>
 
+                        <div>
+                            <Label htmlFor="program_id">Program (Optional)</Label>
+                            <Select value={programId || 'all'} onValueChange={(v) => { setProgramId(v === 'all' ? '' : v); setSectionId(''); }}>
+                                <SelectTrigger><SelectValue placeholder="All programs" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Programs</SelectItem>
+                                    {filteredPrograms.map(p => (
+                                        <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label htmlFor="program_id">Program (Optional)</Label>
-                                <Select value={programId || 'all'} onValueChange={(v) => { setProgramId(v === 'all' ? '' : v); setSectionId(''); }}>
-                                    <SelectTrigger><SelectValue placeholder="All programs" /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Programs</SelectItem>
-                                        {filteredPrograms.map(p => (
-                                            <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                             <div>
                                 <Label htmlFor="year_level_id">Year Level (Optional)</Label>
                                 <Select value={yearLevelId || 'all'} onValueChange={(v) => { setYearLevelId(v === 'all' ? '' : v); setSectionId(''); }}>
@@ -365,13 +385,10 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                                     </SelectContent>
                                 </Select>
                             </div>
-                        </div>
-
-                        {programId && yearLevelId && filteredSections.length > 0 && (
                             <div>
                                 <Label htmlFor="section_id">Section (Optional)</Label>
-                                <Select value={sectionId || 'all'} onValueChange={(v) => setSectionId(v === 'all' ? '' : v)}>
-                                    <SelectTrigger><SelectValue placeholder="All sections" /></SelectTrigger>
+                                <Select value={sectionId || 'all'} onValueChange={(v) => setSectionId(v === 'all' ? '' : v)} disabled={!departmentId || !yearLevelId}>
+                                    <SelectTrigger><SelectValue placeholder={(!departmentId || !yearLevelId) ? 'Select department & year level first' : 'All sections'} /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">All Sections</SelectItem>
                                         {filteredSections.map(s => (
@@ -380,7 +397,22 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                                     </SelectContent>
                                 </Select>
                             </div>
-                        )}
+                        </div>
+
+                        <div>
+                            <Label htmlFor="teacher_id">Assigned Teacher (Optional)</Label>
+                            <Select value={teacherId || 'none'} onValueChange={(v) => setTeacherId(v === 'none' ? '' : v)}>
+                                <SelectTrigger><SelectValue placeholder="Select teacher" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No Teacher</SelectItem>
+                                    {filteredTeachers.map(t => (
+                                        <SelectItem key={t.id} value={t.id.toString()}>
+                                            {t.last_name}, {t.first_name}{t.suffix ? ' ' + t.suffix : ''}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
                         <div>
                             <Label htmlFor="file">
@@ -414,7 +446,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
 
             {/* View PDF Modal */}
             <Dialog open={!!viewingSchedule} onOpenChange={() => setViewingSchedule(null)}>
-                <DialogContent className="max-w-4xl h-[85vh]">
+                <DialogContent className="max-w-[95vw] w-full h-[95vh]">
                     <DialogHeader>
                         <DialogTitle>{viewingSchedule?.title}</DialogTitle>
                     </DialogHeader>
