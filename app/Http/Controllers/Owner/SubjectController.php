@@ -54,7 +54,7 @@ class SubjectController extends Controller
 
         $yearLevels = YearLevel::where('is_active', true)
             ->with('department:id,name')
-            ->select('id', 'name', 'level', 'department_id')
+            ->select('id', 'name', 'level_number', 'department_id')
             ->get();
 
         return Inertia::render('owner/subjects/index', [
