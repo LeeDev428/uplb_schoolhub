@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import {
     BadgeDollarSign,
+    BookOpen,
     Calendar,
     FileText,
     LayoutGrid,
@@ -30,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'My Children',
         href: '/parent/children',
         icon: Users,
+    },
+    {
+        title: 'Subjects',
+        href: '/parent/subjects',
+        icon: BookOpen,
     },
     {
         title: 'Grades',
