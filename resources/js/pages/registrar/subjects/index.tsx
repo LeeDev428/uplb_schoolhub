@@ -203,35 +203,33 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Transform semester and year_level for backend
-        const originalSemester = form.data.semester;
-        const originalYearLevel = form.data.year_level_id;
-        
-        form.data.semester = form.data.semester === 'none' ? '' : form.data.semester;
-        form.data.year_level_id = form.data.year_level_id || '';
+        // Prepare clean data for submission
+        const submitData = {
+            code: form.data.code,
+            name: form.data.name,
+            description: form.data.description,
+            classification: form.data.classification,
+            department_id: form.data.department_id,
+            type: form.data.type,
+            units: form.data.units,
+            hours_per_week: form.data.hours_per_week,
+            year_level_id: form.data.year_level_id || '',
+            semester: form.data.semester === 'none' ? '' : form.data.semester,
+            is_active: form.data.is_active,
+        };
 
         if (editingSubject) {
-            form.put(`/registrar/subjects/${editingSubject.id}`, {
+            router.put(`/registrar/subjects/${editingSubject.id}`, submitData, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
-                },
-                onError: () => {
-                    // Restore original values on error
-                    form.data.semester = originalSemester;
-                    form.data.year_level_id = originalYearLevel;
                 },
             });
         } else {
-            form.post('/registrar/subjects', {
+            router.post('/registrar/subjects', submitData, {
                 onSuccess: () => {
                     setIsModalOpen(false);
                     form.reset();
-                },
-                onError: () => {
-                    // Restore original values on error
-                    form.data.semester = originalSemester;
-                    form.data.year_level_id = originalYearLevel;
                 },
             });
         }
