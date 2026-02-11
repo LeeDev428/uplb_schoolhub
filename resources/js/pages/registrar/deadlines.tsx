@@ -366,14 +366,7 @@ export default function Deadlines({ deadlines, filters }: Props) {
 
                         {deadlines.last_page > 1 && (
                             <div className="mt-4">
-                                <Pagination
-                                    currentPage={deadlines.current_page}
-                                    lastPage={deadlines.last_page}
-                                    from={deadlines.from}
-                                    to={deadlines.to}
-                                    total={deadlines.total}
-                                    links={deadlines.links}
-                                />
+                                <Pagination data={deadlines} />
                             </div>
                         )}
                     </CardContent>
