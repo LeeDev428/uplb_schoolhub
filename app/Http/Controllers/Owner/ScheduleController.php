@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Program;
 use App\Models\YearLevel;
 use App\Models\Section;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Schedule::with(['department', 'program', 'yearLevel', 'section']);
+        $query = Schedule::with(['department', 'program', 'yearLevel', 'section', 'teacher']);
 
         // Filters
         if ($request->filled('search')) {
@@ -40,6 +41,7 @@ class ScheduleController extends Controller
             'programs' => Program::with('department')->orderBy('name')->get(),
             'yearLevels' => YearLevel::with('department')->orderBy('level_number')->get(),
             'sections' => Section::with(['department', 'yearLevel'])->orderBy('name')->get(),
+            'teachers' => Teacher::where('is_active', true)->orderBy('last_name')->get(['id', 'first_name', 'last_name', 'suffix', 'department_id']),
             'filters' => $request->only(['search', 'department_id', 'status']),
         ]);
     }
@@ -52,6 +54,7 @@ class ScheduleController extends Controller
             'program_id' => 'nullable|exists:programs,id',
             'year_level_id' => 'nullable|exists:year_levels,id',
             'section_id' => 'nullable|exists:sections,id',
+            'teacher_id' => 'nullable|exists:teachers,id',
             'file' => 'required|file|mimes:pdf|max:10240', // 10MB max
             'is_active' => 'boolean',
         ]);
@@ -67,6 +70,7 @@ class ScheduleController extends Controller
             'program_id' => $validated['program_id'] ?? null,
             'year_level_id' => $validated['year_level_id'] ?? null,
             'section_id' => $validated['section_id'] ?? null,
+            'teacher_id' => $validated['teacher_id'] ?? null,
             'file_path' => $filePath,
             'file_name' => $file->getClientOriginalName(),
             'is_active' => $validated['is_active'] ?? true,
@@ -83,6 +87,7 @@ class ScheduleController extends Controller
             'program_id' => 'nullable|exists:programs,id',
             'year_level_id' => 'nullable|exists:year_levels,id',
             'section_id' => 'nullable|exists:sections,id',
+            'teacher_id' => 'nullable|exists:teachers,id',
             'file' => 'nullable|file|mimes:pdf|max:10240',
             'is_active' => 'boolean',
         ]);
@@ -93,6 +98,7 @@ class ScheduleController extends Controller
             'program_id' => $validated['program_id'] ?? null,
             'year_level_id' => $validated['year_level_id'] ?? null,
             'section_id' => $validated['section_id'] ?? null,
+            'teacher_id' => $validated['teacher_id'] ?? null,
             'is_active' => $validated['is_active'] ?? $schedule->is_active,
         ];
 
