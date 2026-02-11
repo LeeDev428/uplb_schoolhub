@@ -27,9 +27,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Create subject_prerequisites table (subjects that must be
-
- taken before another subject)
+        // Create subject_prerequisites table (subjects that must be taken before another subject)
         Schema::create('subject_prerequisites', function (Blueprint $table) {
             $table->id();
             $table->foreignId('subject_id')->constrained()->cascadeOnDelete(); // The subject
