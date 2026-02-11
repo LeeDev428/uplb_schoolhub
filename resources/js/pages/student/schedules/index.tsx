@@ -24,6 +24,7 @@ interface Schedule {
     program: { id: number; name: string } | null;
     year_level: { id: number; name: string } | null;
     section: { id: number; name: string } | null;
+    teacher: { id: number; first_name: string; last_name: string; suffix: string | null } | null;
     created_at: string;
 }
 
@@ -75,13 +76,14 @@ export default function StudentSchedules({ schedules, filters }: Props) {
                                         <th className="p-3 text-left text-sm font-semibold">Program</th>
                                         <th className="p-3 text-left text-sm font-semibold">Year Level</th>
                                         <th className="p-3 text-left text-sm font-semibold">Section</th>
+                                        <th className="p-3 text-left text-sm font-semibold">Teacher</th>
                                         <th className="p-3 text-left text-sm font-semibold">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {schedules.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={7} className="p-8 text-center text-muted-foreground">
                                                 No schedules available
                                             </td>
                                         </tr>
@@ -93,6 +95,7 @@ export default function StudentSchedules({ schedules, filters }: Props) {
                                                 <td className="p-3 text-sm">{schedule.program?.name || 'All'}</td>
                                                 <td className="p-3 text-sm">{schedule.year_level?.name || 'All'}</td>
                                                 <td className="p-3 text-sm">{schedule.section?.name || 'All'}</td>
+                                                <td className="p-3 text-sm">{schedule.teacher ? `${schedule.teacher.last_name}, ${schedule.teacher.first_name}` : 'N/A'}</td>
                                                 <td className="p-3">
                                                     <Button variant="ghost" size="icon" onClick={() => setViewingSchedule(schedule)} title="View PDF">
                                                         <Eye className="h-4 w-4" />
@@ -113,7 +116,7 @@ export default function StudentSchedules({ schedules, filters }: Props) {
             </div>
 
             <Dialog open={!!viewingSchedule} onOpenChange={() => setViewingSchedule(null)}>
-                <DialogContent className="max-w-4xl h-[85vh]">
+                <DialogContent className="max-w-[95vw] w-full h-[95vh]">
                     <DialogHeader>
                         <DialogTitle>{viewingSchedule?.title}</DialogTitle>
                     </DialogHeader>
