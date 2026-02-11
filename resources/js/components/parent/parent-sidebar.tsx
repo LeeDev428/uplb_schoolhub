@@ -38,6 +38,11 @@ const mainNavItems: NavItem[] = [
         icon: BookOpen,
     },
     {
+        title: 'Schedules',
+        href: '/parent/schedules',
+        icon: Calendar,
+    },
+    {
         title: 'Grades',
         href: '/parent/grades',
         icon: TrendingUp,
