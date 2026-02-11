@@ -598,8 +598,8 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                 <div>
                                     <Label htmlFor="semester">Semester</Label>
                                     <Select
-                                        value={form.data.semester || 'none'}
-                                        onValueChange={(value) => form.setData('semester', value === 'none' ? '' : value)}
+                                        value={form.data.semester}
+                                        onValueChange={(value) => form.setData('semester', value)}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select..." />
