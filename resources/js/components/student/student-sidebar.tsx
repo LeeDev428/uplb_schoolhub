@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
+    BookOpen,
     GraduationCap,
     LayoutGrid,
     FileCheck,
@@ -30,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'My Requirements',
         href: '/student/requirements',
         icon: FileCheck,
+    },
+    {
+        title: 'Subjects',
+        href: '/student/subjects',
+        icon: BookOpen,
     },
     {
         title: 'Profile',
