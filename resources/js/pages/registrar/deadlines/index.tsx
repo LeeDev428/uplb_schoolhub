@@ -2,7 +2,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { Plus, Pencil, Trash2, Calendar, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Clock, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import { FilterBar } from '@/components/filters/filter-bar';
 import { Pagination } from '@/components/ui/pagination';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -24,6 +25,16 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/registrar/deadlines',
     },
 ];
+
+interface RequirementOption {
+    id: number;
+    name: string;
+    deadline_id: number | null;
+    category: {
+        id: number;
+        name: string;
+    } | null;
+}
 
 interface Deadline {
     id: number;
@@ -36,6 +47,7 @@ interface Deadline {
     send_reminder: boolean;
     reminder_days_before: number | null;
     is_active: boolean;
+    requirements: RequirementOption[];
 }
 
 interface Props {
@@ -49,6 +61,7 @@ interface Props {
         to: number;
         links: any[];
     };
+    requirements: RequirementOption[];
     filters: {
         search?: string;
         classification?: string;
@@ -57,7 +70,7 @@ interface Props {
     };
 }
 
-export default function Deadlines({ deadlines, filters }: Props) {
+export default function Deadlines({ deadlines, requirements, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDeadline, setEditingDeadline] = useState<Deadline | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -77,6 +90,7 @@ export default function Deadlines({ deadlines, filters }: Props) {
         send_reminder: false,
         reminder_days_before: 3,
         is_active: true,
+        requirement_ids: [] as number[],
     });
 
     const handleSearchChange = (value: string) => {
@@ -149,6 +163,7 @@ export default function Deadlines({ deadlines, filters }: Props) {
             send_reminder: deadline.send_reminder,
             reminder_days_before: deadline.reminder_days_before || 3,
             is_active: deadline.is_active,
+            requirement_ids: deadline.requirements?.map((r) => r.id) || [],
         });
         setIsModalOpen(true);
     };
@@ -252,7 +267,6 @@ export default function Deadlines({ deadlines, filters }: Props) {
                                 onChange={handleAppliesToChange}
                                 options={[
                                     { value: 'all', label: 'All Types' },
-                                    { value: 'all', label: 'All Students' },
                                     { value: 'new_enrollee', label: 'New Enrollees' },
                                     { value: 'transferee', label: 'Transferees' },
                                     { value: 'returning', label: 'Returning' },
@@ -278,6 +292,7 @@ export default function Deadlines({ deadlines, filters }: Props) {
                                         <th className="p-3 text-left text-sm font-semibold">Classification</th>
                                         <th className="p-3 text-left text-sm font-semibold">Deadline</th>
                                         <th className="p-3 text-left text-sm font-semibold">Applies To</th>
+                                        <th className="p-3 text-left text-sm font-semibold">Requirements</th>
                                         <th className="p-3 text-left text-sm font-semibold">Reminder</th>
                                         <th className="p-3 text-left text-sm font-semibold">Status</th>
                                         <th className="p-3 text-left text-sm font-semibold">Actions</th>
@@ -286,7 +301,7 @@ export default function Deadlines({ deadlines, filters }: Props) {
                                 <tbody>
                                     {deadlines.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={8} className="p-8 text-center text-muted-foreground">
                                                 No deadlines found
                                             </td>
                                         </tr>
