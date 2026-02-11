@@ -43,6 +43,7 @@ interface Props {
     departments: Department[];
     filters: {
         search?: string;
+        classification?: string;
         department_id?: string;
         status?: string;
     };
@@ -52,6 +53,7 @@ export default function ProgramsIndex({ programs, departments, filters }: Props)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProgram, setEditingProgram] = useState<Program | null>(null);
     const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
     const [status, setStatus] = useState(filters.status || 'all');
 
@@ -109,6 +111,7 @@ export default function ProgramsIndex({ programs, departments, filters }: Props)
 
     const resetFilters = () => {
         setSearch('');
+        setClassification('all');
         setSelectedDepartment('all');
         setStatus('all');
         router.get('/owner/programs');
@@ -118,6 +121,20 @@ export default function ProgramsIndex({ programs, departments, filters }: Props)
         setSearch(value);
         router.get('/owner/programs', {
             search: value,
+            classification,
+            department_id: selectedDepartment,
+            status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        router.get('/owner/programs', {
+            search,
+            classification: value,
             department_id: selectedDepartment,
             status,
         }, {
@@ -130,6 +147,7 @@ export default function ProgramsIndex({ programs, departments, filters }: Props)
         setSelectedDepartment(value);
         router.get('/owner/programs', {
             search,
+            classification,
             department_id: value,
             status,
         }, {
@@ -142,6 +160,7 @@ export default function ProgramsIndex({ programs, departments, filters }: Props)
         setStatus(value);
         router.get('/owner/programs', {
             search,
+            classification,
             department_id: selectedDepartment,
             status: value,
         }, {
@@ -174,11 +193,21 @@ export default function ProgramsIndex({ programs, departments, filters }: Props)
                     </CardHeader>
                     <CardContent>
                         {/* Filter Bar */}
-                        <FilterBar onReset={resetFilters} showReset={!!(search || selectedDepartment !== 'all' || status !== 'all')}>
+                        <FilterBar onReset={resetFilters} showReset={!!(search || classification !== 'all' || selectedDepartment !== 'all' || status !== 'all')}>
                             <SearchBar 
                                 value={search}
                                 onChange={handleSearchChange}
                                 placeholder="Search programs..."
+                            />
+                            <FilterDropdown 
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' }
+                                ]}
+                                placeholder="All Classifications"
                             />
                             <FilterDropdown 
                                 label="Department"
