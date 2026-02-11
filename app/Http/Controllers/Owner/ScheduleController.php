@@ -39,7 +39,7 @@ class ScheduleController extends Controller
             'departments' => Department::orderBy('name')->get(),
             'programs' => Program::with('department')->orderBy('name')->get(),
             'yearLevels' => YearLevel::with('department')->orderBy('level_number')->get(),
-            'sections' => Section::with(['program', 'yearLevel'])->orderBy('name')->get(),
+            'sections' => Section::with(['department', 'yearLevel'])->orderBy('name')->get(),
             'filters' => $request->only(['search', 'department_id', 'status']),
         ]);
     }
