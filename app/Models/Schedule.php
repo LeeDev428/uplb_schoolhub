@@ -12,6 +12,7 @@ class Schedule extends Model
         'program_id',
         'year_level_id',
         'section_id',
+        'teacher_id',
         'file_path',
         'file_name',
         'is_active',
@@ -39,5 +40,10 @@ class Schedule extends Model
     public function section()
     {
         return $this->belongsTo(Section::class);
+    }
+
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class);
     }
 }
