@@ -13,13 +13,14 @@ class SubjectController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $teacher = $user->teacher;
         
         $query = Subject::with(['department', 'yearLevel'])
             ->where('is_active', true);
 
-        // Filter by teacher's department if they have one
-        if ($user->department_id) {
-            $query->where('department_id', $user->department_id);
+        // Filter by teacher's department
+        if ($teacher && $teacher->department_id) {
+            $query->where('department_id', $teacher->department_id);
         }
 
         // Search filter
