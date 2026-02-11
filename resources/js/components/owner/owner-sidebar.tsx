@@ -66,6 +66,10 @@ const mainNavItems: NavItem[] = [
                 title: 'Sections',
                 href: '/owner/sections',
             },
+            {
+                title: 'Subjects',
+                href: '/owner/subjects',
+            },
         ],
     },
     {
