@@ -33,6 +33,8 @@ interface Props {
         last_page: number;
         per_page: number;
         total: number;
+        from: number;
+        to: number;
         links: any[];
     };
     filters: { search?: string };
