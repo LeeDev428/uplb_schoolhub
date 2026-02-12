@@ -1,6 +1,14 @@
 import { useEffect } from 'react';
 import { toast, Toaster } from 'sonner';
 import { usePage } from '@inertiajs/react';
+import { 
+    showSuccess as flashSuccess, 
+    showError as flashError, 
+    showWarning as flashWarning, 
+    showInfo as flashInfo,
+    showLoading,
+    dismissToast
+} from '@/components/flash-messages';
 
 interface FlashMessages {
     success?: string;
@@ -38,10 +46,9 @@ export function RegistrarMessages() {
     );
 }
 
-// Helper functions for manual toast messages
-export const showSuccess = (message: string) => toast.success(message);
-export const showError = (message: string) => toast.error(message);
-export const showWarning = (message: string) => toast.warning(message);
-export const showInfo = (message: string) => toast.info(message);
-export const showLoading = (message: string) => toast.loading(message);
-export const dismissToast = (toastId: string | number) => toast.dismiss(toastId);
+// Export re-exported helper functions from flash-messages
+export const showSuccess = flashSuccess;
+export const showError = flashError;
+export const showWarning = flashWarning;
+export const showInfo = flashInfo;
+export { showLoading, dismissToast };
