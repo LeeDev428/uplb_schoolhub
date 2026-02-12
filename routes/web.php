@@ -106,6 +106,8 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 
 // Registrar Routes
 Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 'role:registrar'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', [App\Http\Controllers\RegistrarDashboardController::class, 'index'])->name('dashboard');
 
     // Student CRUD Routes
@@ -160,15 +162,13 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
         return Inertia::render('registrar/archived');
     })->name('archived');
 
-    Route::get('settings', function () {
-        return Inertia::render('registrar/settings');
-    })->name('settings');
-    
     Route::get('schedule', [App\Http\Controllers\Registrar\ScheduleController::class, 'index'])->name('schedule');
 });
 
 // Accounting Routes
 Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified', 'role:accounting'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'index'])->name('dashboard');
     
     // Student Fees Management
@@ -182,13 +182,12 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::get('reports', [App\Http\Controllers\Accounting\ReportsController::class, 'index'])->name('reports');
     Route::get('reports/export', [App\Http\Controllers\Accounting\ReportsController::class, 'export'])->name('reports.export');
     
-    Route::get('settings', function () {
-        return Inertia::render('accounting/settings');
-    })->name('settings');
 });
 
 // Student Portal Routes
 Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'role:student'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
     Route::get('requirements', [App\Http\Controllers\Student\RequirementController::class, 'index'])->name('requirements');
     Route::get('subjects', [App\Http\Controllers\Student\SubjectController::class, 'index'])->name('subjects');
@@ -198,6 +197,8 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
 
 // Teacher Portal Routes
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
     Route::get('classes', [App\Http\Controllers\Teacher\ClassController::class, 'index'])->name('classes.index');
     Route::get('classes/{section}', [App\Http\Controllers\Teacher\ClassController::class, 'show'])->name('classes.show');
@@ -209,6 +210,8 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
 
 // Guidance Counselor Portal Routes
 Route::prefix('guidance')->name('guidance.')->middleware(['auth', 'verified', 'role:guidance'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', [App\Http\Controllers\Guidance\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('records', App\Http\Controllers\Guidance\RecordController::class)->only([
         'index', 'store', 'update', 'destroy'
@@ -217,6 +220,8 @@ Route::prefix('guidance')->name('guidance.')->middleware(['auth', 'verified', 'r
 
 // Librarian Portal Routes
 Route::prefix('librarian')->name('librarian.')->middleware(['auth', 'verified', 'role:librarian'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', [App\Http\Controllers\Librarian\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('books', App\Http\Controllers\Librarian\BookController::class)->only([
         'index', 'store', 'update', 'destroy'
@@ -228,6 +233,8 @@ Route::prefix('librarian')->name('librarian.')->middleware(['auth', 'verified', 
 
 // Parent Portal Routes
 Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:parent'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', function () {
         return Inertia::render('parent/dashboard');
     })->name('dashboard');
@@ -237,6 +244,8 @@ Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:
 
 // Clinic Portal Routes
 Route::prefix('clinic')->name('clinic.')->middleware(['auth', 'verified', 'role:clinic'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', function () {
         return Inertia::render('clinic/dashboard');
     })->name('dashboard');
@@ -244,6 +253,8 @@ Route::prefix('clinic')->name('clinic.')->middleware(['auth', 'verified', 'role:
 
 // Canteen Portal Routes
 Route::prefix('canteen')->name('canteen.')->middleware(['auth', 'verified', 'role:canteen'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', function () {
         return Inertia::render('canteen/dashboard');
     })->name('dashboard');
