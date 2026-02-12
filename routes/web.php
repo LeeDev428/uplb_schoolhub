@@ -68,13 +68,11 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
         return Inertia::render('owner/dashboard');
     })->name('departments');
 
-    Route::get('calendar', function () {
-        return Inertia::render('owner/dashboard');
-    })->name('calendar');
+    Route::get('calendar', [App\Http\Controllers\Owner\CalendarController::class, 'index'])->name('calendar');
 
-    Route::get('reports', function () {
-        return Inertia::render('owner/dashboard');
-    })->name('reports');
+    Route::get('reports', [App\Http\Controllers\Owner\ReportsController::class, 'index'])->name('reports');
+    Route::get('reports/export/financial', [App\Http\Controllers\Owner\ReportsController::class, 'exportFinancial'])->name('reports.export.financial');
+    Route::get('reports/export/students', [App\Http\Controllers\Owner\ReportsController::class, 'exportStudents'])->name('reports.export.students');
 
     // Academic Structure Management
     Route::resource('departments', \App\Http\Controllers\Owner\DepartmentController::class)->only([
