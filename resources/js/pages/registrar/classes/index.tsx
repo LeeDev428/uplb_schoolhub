@@ -364,14 +364,14 @@ export default function RegistrarClassesIndex({
 
                             {/* Assign Controls */}
                             {selectedStudents.length > 0 && (
-                                <div className="flex items-center gap-2 mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                                <div className="flex items-center gap-2 mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20 z-10 relative">
                                     <Badge variant="default">{selectedStudents.length} selected</Badge>
                                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                     <Select value={targetSection} onValueChange={setTargetSection}>
                                         <SelectTrigger className="flex-1 h-8">
                                             <SelectValue placeholder="Select section..." />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent position="popper" className="z-50">
                                             {sections.map(s => (
                                                 <SelectItem key={s.id} value={s.id.toString()}>
                                                     {s.name} — {s.department?.name || 'N/A'} ({s.students_count}/{s.capacity || '∞'})
