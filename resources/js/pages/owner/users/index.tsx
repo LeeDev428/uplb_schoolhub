@@ -409,6 +409,25 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
                                 />
                             </div>
 
+                            {/* Password field - only shown when editing */}
+                            {editingUser && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="password">New Password</Label>
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        value={form.data.password}
+                                        onChange={(e) => form.setData('password', e.target.value)}
+                                        placeholder="Leave blank to keep current password"
+                                        autoComplete="new-password"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        As owner, you can reset user passwords without knowing their current password.
+                                    </p>
+                                    {form.errors.password && <p className="text-sm text-red-500">{form.errors.password}</p>}
+                                </div>
+                            )}
+
                             {/* Teacher-specific fields */}
                             {form.data.role === 'teacher' && !editingUser && (
                                 <div className="space-y-4 rounded-lg border p-4">
