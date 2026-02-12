@@ -2,7 +2,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { RegistrarSidebar } from '@/components/registrar/registrar-sidebar';
-import { Toaster } from '@/components/ui/sonner';
+import { FlashMessages } from '@/components/flash-messages';
 import type { AppLayoutProps } from '@/types';
 
 export default function RegistrarLayout({
@@ -16,7 +16,7 @@ export default function RegistrarLayout({
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
-            <Toaster position="top-right" />
+            <FlashMessages />
         </AppShell>
     );
 }
