@@ -1,29 +1,25 @@
 import { Head } from '@inertiajs/react';
 import { TwoFactorForm } from '@/components/settings';
-import ParentLayout from '@/layouts/parent/parent-layout';
+import DynamicRoleLayout, { useRoleInfo } from '@/layouts/dynamic-role-layout';
 import RoleSettingsLayout from '@/layouts/settings/role-settings-layout';
-import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Settings', href: '/parent/settings/profile' },
-    { title: 'Two-Factor Auth', href: '/parent/settings/two-factor' },
-];
 
 interface Props {
     requiresConfirmation?: boolean;
     twoFactorEnabled?: boolean;
 }
 
-export default function ParentTwoFactor({ requiresConfirmation, twoFactorEnabled }: Props) {
+export default function RoleTwoFactor({ requiresConfirmation, twoFactorEnabled }: Props) {
+    const { role, roleName } = useRoleInfo();
+
     return (
-        <ParentLayout breadcrumbs={breadcrumbs}>
+        <DynamicRoleLayout settingsPage="Two-Factor Auth">
             <Head title="Two-Factor Authentication" />
-            <RoleSettingsLayout rolePrefix="parent" roleName="Parent">
+            <RoleSettingsLayout rolePrefix={role} roleName={roleName}>
                 <TwoFactorForm
                     requiresConfirmation={requiresConfirmation}
                     twoFactorEnabled={twoFactorEnabled}
                 />
             </RoleSettingsLayout>
-        </ParentLayout>
+        </DynamicRoleLayout>
     );
 }
