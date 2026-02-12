@@ -11,17 +11,35 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
-import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
 type Props = {
     user: User;
 };
 
+// Get role-specific settings URL
+function getSettingsUrl(role: string): string {
+    const roleSettingsMap: Record<string, string> = {
+        owner: '/owner/settings/profile',
+        registrar: '/registrar/settings/profile',
+        student: '/student/settings/profile',
+        teacher: '/teacher/settings/profile',
+        parent: '/parent/settings/profile',
+        accounting: '/accounting/settings/profile',
+        guidance: '/guidance/settings/profile',
+        librarian: '/librarian/settings/profile',
+        clinic: '/clinic/settings/profile',
+        canteen: '/canteen/settings/profile',
+    };
+    return roleSettingsMap[role] || '/settings/profile';
+}
+
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const settingsUrl = getSettingsUrl(user.role || '');
 
     const handleLogoutClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -54,7 +72,7 @@ export function UserMenuContent({ user }: Props) {
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full cursor-pointer"
-                        href={edit()}
+                        href={settingsUrl}
                         prefetch
                         onClick={cleanup}
                     >
