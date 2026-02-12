@@ -20,7 +20,7 @@ interface CalendarEvent {
     title: string;
     date: string;
     type: 'deadline';
-    category?: string;
+    classification?: string;
     requirements_count?: number;
     description?: string;
 }
@@ -160,8 +160,8 @@ export default function OwnerCalendar({ events, currentMonth, currentYear, month
                                         {event.description && (
                                             <p className="text-sm text-muted-foreground">{event.description}</p>
                                         )}
-                                        {event.category && (
-                                            <p className="text-sm text-muted-foreground">Category: {event.category}</p>
+                                        {event.classification && (
+                                            <p className="text-sm text-muted-foreground">Classification: {event.classification}</p>
                                         )}
                                         {event.requirements_count && event.requirements_count > 0 && (
                                             <p className="text-sm text-muted-foreground">
