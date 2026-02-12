@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Calendar as CalendarIcon, Clock, FileText, GraduationCap } from 'lucide-react';
+import { Calendar as CalendarIcon, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,13 +19,10 @@ interface CalendarEvent {
     id: string | number;
     title: string;
     date: string;
-    type: 'deadline' | 'schedule';
+    type: 'deadline';
     category?: string;
     requirements_count?: number;
-    time?: string;
-    teacher?: string;
-    section?: string;
-    subject?: string;
+    description?: string;
 }
 
 interface CalendarProps {
@@ -101,7 +98,7 @@ export default function OwnerCalendar({ events, currentMonth, currentYear, month
                                     }
                                     
                                     const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                                    const dayEvents = getEventsForDate (day);
+                                    const dayEvents = getEventsForDate(day);
                                     const hasEvents = dayEvents.length > 0;
 
                                     return (
@@ -120,10 +117,7 @@ export default function OwnerCalendar({ events, currentMonth, currentYear, month
                                                     {dayEvents.slice(0, 2).map((event, idx) => (
                                                         <div
                                                             key={idx}
-                                                            className={cn(
-                                                                'h-1.5 w-1.5 rounded-full',
-                                                                event.type === 'deadline' ? 'bg-red-500' : 'bg-blue-500'
-                                                            )}
+                                                            className="h-1.5 w-1.5 rounded-full bg-red-500"
                                                         />
                                                     ))}
                                                     {dayEvents.length > 2 && (
@@ -156,28 +150,23 @@ export default function OwnerCalendar({ events, currentMonth, currentYear, month
                                     <div key={event.id} className="space-y-2 rounded-lg border p-3">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2">
-                                                {event.type === 'deadline' ? (
-                                                    <FileText className="h-4 w-4 text-red-500" />
-                                                ) : (
-                                                    <GraduationCap className="h-4 w-4 text-blue-500" />
-                                                )}
-                                                <Badge variant={event.type === 'deadline' ? 'destructive' : 'default'}>
+                                                <FileText className="h-4 w-4 text-red-500" />
+                                                <Badge variant="destructive">
                                                     {event.type}
                                                 </Badge>
                                             </div>
                                         </div>
                                         <h4 className="font-semibold">{event.title}</h4>
-                                        {event.time && (
-                                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                                <Clock className="h-3 w-3" />
-                                                {event.time}
-                                            </div>
-                                        )}
-                                        {event.teacher && (
-                                            <p className="text-sm text-muted-foreground">Teacher: {event.teacher}</p>
+                                        {event.description && (
+                                            <p className="text-sm text-muted-foreground">{event.description}</p>
                                         )}
                                         {event.category && (
                                             <p className="text-sm text-muted-foreground">Category: {event.category}</p>
+                                        )}
+                                        {event.requirements_count && event.requirements_count > 0 && (
+                                            <p className="text-sm text-muted-foreground">
+                                                Requirements: {event.requirements_count}
+                                            </p>
                                         )}
                                     </div>
                                 ))
@@ -191,11 +180,7 @@ export default function OwnerCalendar({ events, currentMonth, currentYear, month
                     <CardContent className="flex items-center gap-6 p-4">
                         <div className="flex items-center gap-2">
                             <div className="h-3 w-3 rounded-full bg-red-500" />
-                            <span className="text-sm">Deadlines</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-blue-500" />
-                            <span className="text-sm">Schedules</span>
+                            <span className="text-sm">Academic Deadlines</span>
                         </div>
                     </CardContent>
                 </Card>
