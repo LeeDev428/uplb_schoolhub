@@ -21,7 +21,51 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function OwnerDashboard() {
+interface DashboardProps {
+    todayIncome: number;
+    todayTarget: number;
+    todayAchievement: number;
+    overallIncome: number;
+    overallTarget: number;
+    overallAchievement: number;
+    expectedIncome: number;
+    expectedTarget: number;
+    expectedAchievement: number;
+    departmentStats: Array<{
+        id: number;
+        name: string;
+        code: string;
+        enrollments: number;
+        revenue: number;
+        expected: number;
+        collection_rate: number;
+    }>;
+    revenueTrend: Array<{
+        date: string;
+        label: string;
+        amount: number;
+    }>;
+    totalStudents: number;
+    totalPayments: number;
+    schoolYear: string;
+}
+
+export default function OwnerDashboard({
+    todayIncome,
+    todayTarget,
+    todayAchievement,
+    overallIncome,
+    overallTarget,
+    overallAchievement,
+    expectedIncome,
+    expectedTarget,
+    expectedAchievement,
+    departmentStats,
+    revenueTrend,
+    totalStudents,
+    totalPayments,
+    schoolYear,
+}: DashboardProps) {
     return (
         <OwnerLayout breadcrumbs={breadcrumbs}>
             <Head title="Financial Dashboard" />
@@ -58,28 +102,28 @@ export default function OwnerDashboard() {
                 <div className="grid gap-6 md:grid-cols-3">
                     <IncomeCard
                         title="Today's Income"
-                        amount={421250}
-                        target={500000}
-                        achievement={84.3}
+                        amount={todayIncome}
+                        target={todayTarget}
+                        achievement={todayAchievement}
                         period="Live"
                         variant="today"
                     />
                     <IncomeCard
                         title="Overall Income"
-                        amount={22023500}
-                        target={22500000}
-                        achievement={97.9}
-                        period="Jan 1 - Mar 31, 2024"
+                        amount={overallIncome}
+                        target={overallTarget}
+                        achievement={overallAchievement}
+                        period={schoolYear}
                         variant="overall"
                     />
                     <IncomeCard
                         title="Expected Income"
-                        amount={24600000}
-                        target={90000000 / 12}
-                        achievement={102.5}
-                        period="Apr 1 - Jun 30, 2024"
+                        amount={expectedIncome}
+                        target={expectedTarget}
+                        achievement={expectedAchievement}
+                        period="Remaining Balance"
                         variant="expected"
-                        projected={102.5}
+                        projected={expectedAchievement}
                     />
                 </div>
 
