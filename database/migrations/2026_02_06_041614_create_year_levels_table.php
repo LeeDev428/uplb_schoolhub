@@ -18,6 +18,9 @@ return new class extends Migration
             $table->integer('level_number'); // 1-6 for elem, 7-10 for JHS, 11-12 for SHS, 1-4 for college
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            
+            // Add unique constraint to prevent duplicates
+            $table->unique(['department_id', 'level_number']);
         });
     }
 
