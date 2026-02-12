@@ -2,7 +2,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { StudentSidebar } from '@/components/student/student-sidebar';
-import { Toaster } from '@/components/ui/sonner';
+import { FlashMessages } from '@/components/flash-messages';
 import type { AppLayoutProps } from '@/types';
 
 export default function StudentLayout({
@@ -16,7 +16,7 @@ export default function StudentLayout({
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
-            <Toaster position="top-right" />
+            <FlashMessages />
         </AppShell>
     );
 }
