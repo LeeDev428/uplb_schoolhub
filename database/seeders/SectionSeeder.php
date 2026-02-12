@@ -12,7 +12,6 @@ class SectionSeeder extends Seeder
 {
     public function run(): void
     {
-        $currentSchoolYear = date('Y') . '-' . (date('Y') + 1);
         $sectionNames = ['A', 'B', 'C', 'Einstein', 'Newton', 'Rizal'];
 
         // Elementary, JHS, SHS Sections (without programs)
@@ -28,11 +27,11 @@ class SectionSeeder extends Seeder
                         [
                             'year_level_id' => $yearLevel->id,
                             'name' => 'Section ' . $sectionNames[$i],
-                            'school_year' => $currentSchoolYear,
                         ],
                         [
                             'program_id' => null, // No program for basic education
                             'capacity' => 40,
+                            'room_number' => null,
                             'is_active' => true,
                         ]
                     );
@@ -56,10 +55,10 @@ class SectionSeeder extends Seeder
                                 'year_level_id' => $yearLevel->id,
                                 'program_id' => $program->id,
                                 'name' => 'Section ' . $sectionNames[$i + 3],
-                                'school_year' => $currentSchoolYear,
                             ],
                             [
                                 'capacity' => 45,
+                                'room_number' => null,
                                 'is_active' => true,
                             ]
                         );
