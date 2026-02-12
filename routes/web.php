@@ -34,8 +34,22 @@ Route::get('dashboard', function () {
     };
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Helper function to register settings routes for any role
+function registerSettingsRoutes(): void {
+    Route::redirect('settings', 'settings/profile');
+    Route::get('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editProfile'])->name('settings.profile');
+    Route::patch('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'updateProfile'])->name('settings.profile.update');
+    Route::delete('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'destroyProfile'])->name('settings.profile.destroy');
+    Route::get('settings/password', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editPassword'])->name('settings.password');
+    Route::put('settings/password', [App\Http\Controllers\Settings\RoleSettingsController::class, 'updatePassword'])->name('settings.password.update');
+    Route::get('settings/two-factor', [App\Http\Controllers\Settings\RoleSettingsController::class, 'showTwoFactor'])->name('settings.two-factor');
+    Route::get('settings/appearance', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editAppearance'])->name('settings.appearance');
+}
+
 // Owner Routes
 Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:owner'])->group(function () {
+    registerSettingsRoutes();
+    
     Route::get('dashboard', function () {
         return Inertia::render('owner/dashboard');
     })->name('dashboard');
