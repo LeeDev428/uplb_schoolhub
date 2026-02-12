@@ -55,6 +55,8 @@ class RegistrarSubjectController extends Controller
         $yearLevels = YearLevel::where('is_active', true)
             ->with('department:id,name')
             ->select('id', 'name', 'level_number', 'department_id')
+            ->orderBy('department_id')
+            ->orderBy('level_number')
             ->get();
 
         return Inertia::render('registrar/subjects/index', [
