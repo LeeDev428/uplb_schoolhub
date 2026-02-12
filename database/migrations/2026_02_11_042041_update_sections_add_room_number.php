@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sections', function (Blueprint $table) {
-            $table->string('room_number')->nullable()->after('capacity');
-        });
+        // Add room_number if it doesn't exist yet
+        if (!Schema::hasColumn('sections', 'room_number')) {
+            Schema::table('sections', function (Blueprint $table) {
+                $table->string('room_number')->nullable()->after('capacity');
+            });
+        }
 
         // Remove school_year if it exists
         if (Schema::hasColumn('sections', 'school_year')) {
