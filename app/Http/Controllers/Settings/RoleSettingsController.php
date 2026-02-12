@@ -22,7 +22,7 @@ class RoleSettingsController extends Controller
      */
     public function editProfile(Request $request): Response
     {
-        return Inertia::render('components/role-settings/profile', [
+        return Inertia::render('role-settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
         ]);
@@ -66,7 +66,7 @@ class RoleSettingsController extends Controller
      */
     public function editPassword(): Response
     {
-        return Inertia::render('components/role-settings/password');
+        return Inertia::render('role-settings/password');
     }
 
     /**
@@ -88,7 +88,7 @@ class RoleSettingsController extends Controller
     {
         $request->ensureStateIsValid();
 
-        return Inertia::render('components/role-settings/two-factor', [
+        return Inertia::render('role-settings/two-factor', [
             'twoFactorEnabled' => $request->user()->hasEnabledTwoFactorAuthentication(),
             'requiresConfirmation' => Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm'),
         ]);
@@ -99,6 +99,6 @@ class RoleSettingsController extends Controller
      */
     public function editAppearance(): Response
     {
-        return Inertia::render('components/role-settings/appearance');
+        return Inertia::render('role-settings/appearance');
     }
 }
