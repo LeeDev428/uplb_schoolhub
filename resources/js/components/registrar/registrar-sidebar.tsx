@@ -79,16 +79,16 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Archived',
-        href: '/registrar/archived',
-        icon: Archive,
-    },
-    {
-        title: 'Settings',
-        href: '/registrar/settings',
-        icon: Settings,
-    },
+    // {
+    //     title: 'Archived',
+    //     href: '/registrar/archived',
+    //     icon: Archive,
+    // },
+    // {
+    //     title: 'Settings',
+    //     href: '/registrar/settings',
+    //     icon: Settings,
+    // },
 ];
 
 export function RegistrarSidebar() {
