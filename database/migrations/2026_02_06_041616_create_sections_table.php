@@ -17,9 +17,12 @@ return new class extends Migration
             $table->foreignId('program_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name'); // e.g., 'Section A', 'Section Rose'
             $table->integer('capacity')->default(50);
-            $table->string('school_year'); // e.g., '2024-2025'
+            $table->string('room_number')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            
+            // Add unique constraint to prevent duplicate sections
+            $table->unique(['year_level_id', 'program_id', 'name']);
         });
     }
 
