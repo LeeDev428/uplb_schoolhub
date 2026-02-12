@@ -50,9 +50,7 @@ function registerSettingsRoutes(): void {
 Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:owner'])->group(function () {
     registerSettingsRoutes();
     
-    Route::get('dashboard', function () {
-        return Inertia::render('owner/dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\Owner\OwnerDashboardController::class, 'index'])->name('dashboard');
 
     Route::get('income/today', function () {
         return Inertia::render('owner/dashboard');
