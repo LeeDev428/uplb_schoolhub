@@ -15,12 +15,16 @@ class YearLevelSeeder extends Seeder
         
         if ($elementary) {
             for ($i = 1; $i <= 6; $i++) {
-                YearLevel::create([
-                    'department_id' => $elementary->id,
-                    'name' => "Grade {$i}",
-                    'level_number' => $i,
-                    'is_active' => true,
-                ]);
+                YearLevel::updateOrCreate(
+                    [
+                        'department_id' => $elementary->id,
+                        'level_number' => $i,
+                    ],
+                    [
+                        'name' => "Grade {$i}",
+                        'is_active' => true,
+                    ]
+                );
             }
         }
 
@@ -29,12 +33,16 @@ class YearLevelSeeder extends Seeder
         
         if ($juniorHigh) {
             for ($i = 7; $i <= 10; $i++) {
-                YearLevel::create([
-                    'department_id' => $juniorHigh->id,
-                    'name' => "Grade {$i}",
-                    'level_number' => $i,
-                    'is_active' => true,
-                ]);
+                YearLevel::updateOrCreate(
+                    [
+                        'department_id' => $juniorHigh->id,
+                        'level_number' => $i,
+                    ],
+                    [
+                        'name' => "Grade {$i}",
+                        'is_active' => true,
+                    ]
+                );
             }
         }
 
@@ -43,12 +51,16 @@ class YearLevelSeeder extends Seeder
         
         if ($seniorHigh) {
             for ($i = 11; $i <= 12; $i++) {
-                YearLevel::create([
-                    'department_id' => $seniorHigh->id,
-                    'name' => "Grade {$i}",
-                    'level_number' => $i,
-                    'is_active' => true,
-                ]);
+                YearLevel::updateOrCreate(
+                    [
+                        'department_id' => $seniorHigh->id,
+                        'level_number' => $i,
+                    ],
+                    [
+                        'name' => "Grade {$i}",
+                        'is_active' => true,
+                    ]
+                );
             }
         }
 
@@ -59,12 +71,16 @@ class YearLevelSeeder extends Seeder
         
         foreach ($collegeDepartments as $college) {
             for ($i = 1; $i <= 4; $i++) {
-                YearLevel::create([
-                    'department_id' => $college->id,
-                    'name' => $yearNames[$i - 1],
-                    'level_number' => $i,
-                    'is_active' => true,
-                ]);
+                YearLevel::updateOrCreate(
+                    [
+                        'department_id' => $college->id,
+                        'level_number' => $i,
+                    ],
+                    [
+                        'name' => $yearNames[$i - 1],
+                        'is_active' => true,
+                    ]
+                );
             }
         }
     }
