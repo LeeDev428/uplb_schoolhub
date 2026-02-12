@@ -29,7 +29,7 @@ class CalendarController extends Controller
                     'title' => $deadline->name,
                     'date' => $deadline->deadline_date->toDateString(),
                     'type' => 'deadline',
-                    'category' => $deadline->category,
+                    'classification' => $deadline->classification ?? 'All',
                     'requirements_count' => $deadline->requirements->count(),
                     'description' => $deadline->description ?? 'No description',
                 ];
