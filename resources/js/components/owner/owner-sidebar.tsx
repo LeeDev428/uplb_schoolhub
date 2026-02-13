@@ -10,6 +10,7 @@ import {
     BookOpen,
     Users,
     Grid3x3,
+    Megaphone,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -87,6 +88,11 @@ const mainNavItems: NavItem[] = [
         title: 'User Management',
         href: '/owner/users',
         icon: Users,
+    },
+    {
+        title: 'Announcements',
+        href: '/owner/announcements',
+        icon: Megaphone,
     },
     {
         title: 'Export Reports',
