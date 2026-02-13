@@ -491,12 +491,12 @@ export default function AnnouncementsIndex({ announcements, departments, filters
 
                             <div className="space-y-2">
                                 <Label htmlFor="department_id">Department (Optional)</Label>
-                                <Select value={data.department_id} onValueChange={v => setData('department_id', v)}>
+                                <Select value={data.department_id || 'all'} onValueChange={v => setData('department_id', v === 'all' ? '' : v)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="All departments" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">All Departments</SelectItem>
+                                        <SelectItem value="all">All Departments</SelectItem>
                                         {departments.map(dept => (
                                             <SelectItem key={dept.id} value={dept.id.toString()}>{dept.name}</SelectItem>
                                         ))}
