@@ -46,6 +46,11 @@ function registerSettingsRoutes(): void {
     Route::get('settings/appearance', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editAppearance'])->name('settings.appearance');
 }
 
+// Helper function to register announcements route for any role
+function registerAnnouncementsRoute(): void {
+    Route::get('announcements', [App\Http\Controllers\AnnouncementViewController::class, 'index'])->name('announcements.index');
+}
+
 // Owner Routes
 Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:owner'])->group(function () {
     registerSettingsRoutes();
