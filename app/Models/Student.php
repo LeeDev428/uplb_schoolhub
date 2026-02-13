@@ -225,4 +225,24 @@ class Student extends Model
         $completed = $this->requirements()->where('status', 'approved')->count();
         return (int) round(($completed / $total) * 100);
     }
+
+    /**
+     * Get subjects available to this student.
+     * Based on student's department and year level.
+     */
+    public function subjects()
+    {
+        $query = Subject::where('department_id', $this->department_id)
+            ->where('is_active', true);
+        
+        // Filter by year level if student has one
+        if ($this->year_level_id) {
+            $query->where(function($q) {
+                $q->where('year_level_id', $this->year_level_id)
+                  ->orWhereNull('year_level_id');
+            });
+        }
+        
+        return $query;
+    }
 }
