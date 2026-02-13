@@ -254,6 +254,10 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         return <Badge variant={config.variant}>{config.label}</Badge>;
     };
 
+    const filteredDepartments = form.data.classification
+        ? departments.filter((d) => d.classification === form.data.classification)
+        : departments;
+
     const filteredYearLevels = form.data.department_id
         ? yearLevels.filter((yl) => yl.department_id === parseInt(form.data.department_id))
         : [];
@@ -482,9 +486,11 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                     <Label htmlFor="classification">Classification *</Label>
                                     <Select
                                         value={form.data.classification}
-                                        onValueChange={(value: 'K-12' | 'College') =>
-                                            form.setData('classification', value)
-                                        }
+                                        onValueChange={(value: 'K-12' | 'College') => {
+                                            form.setData('classification', value);
+                                            form.setData('department_id', '');
+                                            form.setData('year_level_id', '');
+                                        }}
                                     >
                                         <SelectTrigger>
                                             <SelectValue />
@@ -509,7 +515,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                             <SelectValue placeholder="Select department" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {departments.map((dept) => (
+                                            {filteredDepartments.map((dept) => (
                                                 <SelectItem key={dept.id} value={dept.id.toString()}>
                                                     {dept.name}
                                                 </SelectItem>
