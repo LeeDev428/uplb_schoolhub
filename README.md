@@ -27,220 +27,347 @@ The system serves as a centralized digital platform that manages the school's **
 
 ## 🎯 System Coverage (Required Modules)
 
-The Developer shall deliver a complete and operational system including the following modules and user accounts:
+The system includes the following modules and user accounts:
 
 ### 1. 🏫 **School Management System (SMS) and e-LMS**
 
-#### **1.1 Owner / Administrator Portal** ✅ `IMPLEMENTED`
+#### **1.1 Owner / Administrator Portal** ✅ `95% COMPLETE`
 
-- [x] Full system dashboard for overall school management
-- [x] School-wide analytics and reporting
-- [x] Monitoring of enrollment, finances, and operations
-- [x] Management of user accounts and system permissions
-- [x] Oversight of LMS activity for school-wide tracking
+- [x] Full system dashboard with analytics (enrollment, payments, department stats)
+- [x] School-wide calendar with event management
 - [x] Department management (K-12 & College classification)
-- [x] Year levels and sections management
+- [x] Year levels management
+- [x] Sections management (with room numbers)
 - [x] Strands management (for Senior High School)
 - [x] Programs management (College programs)
 - [x] Subject management (CRUD with department/program/year level/semester filters)
 - [x] Schedule management (PDF upload with department/program/year level/section/teacher assignment)
+- [x] User management (CRUD with role-based auto password generation)
+- [x] Announcements management (create, pin, target by role, with attachments)
+- [x] Financial reports and exports
 
-#### **1.2 Registrar Account** 🔄 `IN PROGRESS (70%)`
+#### **1.2 Registrar Account** ✅ `75% COMPLETE`
 
-- [x] Student record management
-- [x] Enrollment and registration processing
-- [x] Class and section creation and management
-- [x] Academic record and transcript generation
+- [x] Student record management (full CRUD with enrollment status)
+- [x] Enrollment and registration processing (clearance workflow)
+- [x] Class and section creation/management (assign students to sections)
+- [x] Requirements tracking system (categories, documents, status updates)
+- [x] Document request review system
+- [x] Academic deadlines management
+- [x] Subject management (view/manage)
+- [x] Schedule viewing
+- [x] Reports and exports
+- [x] Announcements viewing (role-targeted)
+- [ ] Academic record and transcript generation
 - [ ] Integration with e-LMS for student academic tracking
 
-#### **1.3 Accounting Account** 🔄 `IN PROGRESS (60%)`
+#### **1.3 Accounting Account** ✅ `65% COMPLETE`
 
-- [x] Student billing and payments management
-- [x] Tuition, fees, and other charges processing
-- [x] Financial reporting and auditing
-- [x] Payment tracking and reconciliation
-- [ ] Monitoring and approval of student wallet/load transactions (Integrated with e-LMS)
+- [x] Student billing and fees management (CRUD)
+- [x] Student payments processing (CRUD)
+- [x] Student clearance management (individual and bulk)
+- [x] Payment tracking with status filters
+- [x] Financial reports with export functionality
+- [x] Announcements viewing (role-targeted)
+- [ ] Advanced financial auditing
+- [ ] Monitoring and approval of student wallet/load transactions
 
-#### **1.4 Teacher Portal** 🔄 `IN PROGRESS (15%)`
+#### **1.4 Teacher Portal** 🔄 `40% COMPLETE`
 
+- [x] Dashboard with analytics (classes, students, subjects)
 - [x] View assigned class schedules (PDF viewer)
+- [x] View and filter students by section
 - [x] View subjects by department
-- [ ] Class and subject management
-- [ ] Encoding of grades
+- [x] View individual student details
+- [x] **Quiz Management (Full CRUD)** - Create quizzes with multiple question types
+- [x] **Quiz Publishing** - Publish/unpublish quizzes, set time limits and attempts
+- [x] **Quiz Results** - View student attempts and scores
+- [x] **Manual Grading** - Grade text-based answers manually
+- [x] Announcements viewing (role-targeted)
+- [ ] Digital grade encoding
 - [ ] Attendance monitoring
 - [ ] Uploading of lessons, modules, and learning materials
-- [ ] Creation of assignments, quizzes, and exams
-- [ ] Grading and feedback on student submissions
+- [ ] Creation of assignments
 
-#### **1.5 Student Portal** 🔄 `IN PROGRESS (15%)`
+#### **1.5 Student Portal** 🔄 `35% COMPLETE`
 
+- [x] Dashboard with quick links
 - [x] View class schedules (PDF viewer, filtered by department/program)
 - [x] View subjects by department/year level
+- [x] Profile page with student information
+- [x] Requirements tracking (view submission status)
+- [x] **Quiz System** - Browse available quizzes
+- [x] **Quiz Taking** - Take quizzes with timer and auto-save
+- [x] **Quiz Results** - View scores and correct answers
+- [x] Announcements viewing (role-targeted)
 - [ ] Viewing grades and report cards
-- [ ] Attendance records using RFID Portal for tap in and out
-- [ ] Enrollment Fees
-- [ ] Loadable Balance
-- [ ] Access to lessons, modules, quizzes, and assignments
+- [ ] Attendance records using RFID Portal
+- [ ] Enrollment fees viewing
+- [ ] Loadable wallet balance
 - [ ] Submission of academic requirements
-- [ ] Viewing of student wallet balance and transaction history
-- [ ] Deficiency tracking (Guidance Record, Library, Others)
+- [ ] Transaction history
 
-#### **1.6 Guidance Counselor Account** ❌ `NOT IMPLEMENTED`
+#### **1.6 Parent Portal** 🔄 `10% COMPLETE`
 
-- [ ] Student guidance records
+- [x] Basic dashboard
+- [x] View children's subjects
+- [x] View children's schedules
+- [x] Announcements viewing (role-targeted)
+- [ ] View grades and report cards
+- [ ] View fees and payment status
+- [ ] View attendance records
+
+#### **1.7 Guidance Counselor Account** 🔄 `20% COMPLETE`
+
+- [x] Dashboard with statistics
+- [x] Student guidance records (CRUD)
+- [x] Announcements viewing (role-targeted)
 - [ ] Counseling notes and reports
 - [ ] Behavior and case monitoring
 - [ ] Confidential case documentation
 
-#### **1.7 Librarian Account** ❌ `NOT IMPLEMENTED`
+#### **1.8 Librarian Account** 🔄 `25% COMPLETE`
 
-- [ ] Library inventory system
-- [ ] Book borrowing and return monitoring
-- [ ] Due date and penalty tracking
-- [ ] Library usage and inventory reports
+- [x] Dashboard with library statistics
+- [x] Library book inventory management (CRUD)
+- [x] Book borrowing/return transaction management
+- [x] Announcements viewing (role-targeted)
+- [ ] Due date tracking and penalty calculation
+- [ ] Advanced library usage reports
 
-#### **1.8 Medical / Clinic Account** ❌ `NOT IMPLEMENTED`
+#### **1.9 Medical / Clinic Account** 🔄 `5% COMPLETE`
 
+- [x] Basic dashboard
+- [x] Announcements viewing (role-targeted)
 - [ ] Student medical records
 - [ ] Clinic visit logs
 - [ ] Health incident reports
 - [ ] Health monitoring summaries
 
-#### **1.9 Canteen POS - e-LMS Integrated** ❌ `NOT IMPLEMENTED`
+#### **1.10 Canteen POS** 🔄 `5% COMPLETE`
 
+- [x] Basic dashboard
+- [x] Announcements viewing (role-targeted)
 - [ ] Sales transaction processing
 - [ ] Product and price management
 - [ ] Daily and monthly sales reports
-- [ ] Integration with student accounts
-- [ ] Automatic deduction of purchases from student wallet balances
+- [ ] Integration with student wallet balances
 
 ---
 
-### 2. 📱 **Mobile Application Requirement** ❌ `NOT IMPLEMENTED`
-
-The Developer shall deliver fully functional mobile applications for:
+### 2. 📱 **Mobile Application** ❌ `NOT STARTED`
 
 - [ ] **Teacher Portal** (Android & iOS)
-- [ ] **Student Portal** (Android & iOS)  
+- [ ] **Student Portal** (Android & iOS)
 - [ ] **Parent's Portal** (Android & iOS)
 - [ ] **Owner's Portal** (Android & iOS)
-
-**System Requirements:**
-- [ ] Be available on **Android and iOS**
-- [ ] Sync in real time with the main system database
-- [ ] Include all e-LMS features (lessons, assignments, grades, wallet balance, quizzes, submissions)
-- [ ] The Client has the right and responsibility to update data in any of the system features/modules
-- [ ] The updates are to ensure all required data is complete and accurate
-- [ ] This applies only to features within the School Management System and e-LMS
-- [ ] The developer remains responsible for system functionality, but data entry and updates are from the Client as part of content management
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### **Backend**
-- **Laravel 12** - PHP Framework
-- **MySQL 8** - Database
-- **Inertia.js v2** - Server-side rendering adapter
+- **Laravel 12** - PHP Framework with Fortify for auth
+- **MySQL 8** - Relational Database
+- **Inertia.js v2** - Modern monolith approach (SPA-like without API)
+- **Laravel Wayfinder** - Type-safe route generation
 
 ### **Frontend**
-- **React 19** - UI Library
-- **TypeScript 5** - Type Safety
-- **TailwindCSS 4** - Styling
-- **shadcn/ui** - Component Library
-- **React Hook Form** - Form Management
-- **Zod** - Schema Validation
+- **React 19** - UI Library with React Compiler
+- **TypeScript 5.7** - Type Safety
+- **TailwindCSS 4** - Utility-first CSS Framework
+- **shadcn/ui + Radix UI** - Accessible Component Library
+- **Lucide React** - Icon Library
+- **date-fns** - Date manipulation
+- **Sonner** - Toast notifications
+- **next-themes** - Dark/Light mode support
 
 ### **Development Tools**
-- **Vite** - Build Tool
-- **Pest PHP** - Testing Framework
+- **Vite 7** - Next-gen Build Tool
+- **Pest PHP 3** - Elegant Testing Framework
 - **Laravel Pint** - PHP Code Style Fixer
-- **ESLint** - JavaScript Linter
+- **ESLint + Prettier** - JS/TS Linting & Formatting
 
 ---
 
 ## 📁 Project Structure
 
-This project follows a **Modular Monolithic Architecture** for clean separation of concerns:
+This project follows a **Modular Monolithic Architecture** with role-based separation:
 
 ```
 school-mgmt_lms_pos/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── Owner/              # Owner/Admin controllers
-│   │   │   ├── Accounting/         # Accounting controllers
-│   │   │   ├── Student/            # Student portal controllers
-│   │   │   ├── Teacher/            # Teacher portal controllers
-│   │   │   ├── Parent/             # Parent portal controllers
-│   │   │   ├── Settings/           # Settings controllers
-│   │   │   └── ...
+│   │   │   ├── Owner/                  # Admin portal (11 controllers)
+│   │   │   │   ├── OwnerDashboardController.php
+│   │   │   │   ├── DepartmentController.php
+│   │   │   │   ├── ProgramController.php
+│   │   │   │   ├── YearLevelController.php
+│   │   │   │   ├── SectionController.php
+│   │   │   │   ├── SubjectController.php
+│   │   │   │   ├── ScheduleController.php
+│   │   │   │   ├── UserManagementController.php
+│   │   │   │   ├── AnnouncementController.php
+│   │   │   │   ├── CalendarController.php
+│   │   │   │   └── ReportsController.php
+│   │   │   ├── Registrar/              # Registrar portal (6 controllers)
+│   │   │   │   ├── ClassController.php
+│   │   │   │   ├── DocumentRequestController.php
+│   │   │   │   ├── RegistrarDeadlineController.php
+│   │   │   │   ├── RegistrarSubjectController.php
+│   │   │   │   ├── ScheduleController.php
+│   │   │   │   └── ReportsController.php
+│   │   │   ├── Accounting/             # Accounting portal (5 controllers)
+│   │   │   │   ├── AccountingDashboardController.php
+│   │   │   │   ├── StudentFeeController.php
+│   │   │   │   ├── StudentPaymentController.php
+│   │   │   │   ├── StudentClearanceController.php
+│   │   │   │   └── ReportsController.php
+│   │   │   ├── Teacher/                # Teacher portal (8 controllers)
+│   │   │   │   ├── DashboardController.php
+│   │   │   │   ├── StudentController.php
+│   │   │   │   ├── ClassController.php
+│   │   │   │   ├── SubjectController.php
+│   │   │   │   ├── ScheduleController.php
+│   │   │   │   ├── QuizController.php      # Full quiz management
+│   │   │   │   ├── GradeController.php
+│   │   │   │   └── AttendanceController.php
+│   │   │   ├── Student/                # Student portal (6 controllers)
+│   │   │   │   ├── DashboardController.php
+│   │   │   │   ├── ProfileController.php
+│   │   │   │   ├── SubjectController.php
+│   │   │   │   ├── ScheduleController.php
+│   │   │   │   ├── RequirementController.php
+│   │   │   │   └── QuizController.php      # Quiz taking system
+│   │   │   ├── Parent/                 # Parent portal (2 controllers)
+│   │   │   ├── Guidance/               # Guidance portal (2 controllers)
+│   │   │   ├── Librarian/              # Librarian portal (3 controllers)
+│   │   │   └── Settings/               # Shared settings (profile, password, 2FA)
 │   │   └── Middleware/
-│   ├── Models/
-│   │   ├── User.php
-│   │   ├── Student.php
-│   │   ├── Teacher.php
-│   │   ├── Department.php
-│   │   ├── YearLevel.php
-│   │   ├── Section.php
-│   │   ├── Strand.php
-│   │   ├── Program.php
-│   │   ├── Subject.php
-│   │   ├── Schedule.php
-│   │   ├── StudentFee.php
-│   │   ├── StudentPayment.php
-│   │   └── ...
+│   │       ├── HandleInertiaRequests.php   # Shared auth data
+│   │       └── RoleMiddleware.php          # Role-based access control
+│   ├── Models/                         # 32 Eloquent Models
+│   │   ├── User.php                    # Central user with role relationships
+│   │   ├── Student.php                 # Student profile & enrollment
+│   │   ├── Teacher.php                 # Teacher profile
+│   │   ├── ParentModel.php             # Parent/Guardian profile
+│   │   ├── Department.php              # Academic departments
+│   │   ├── Program.php                 # College programs
+│   │   ├── YearLevel.php               # Grade/Year levels
+│   │   ├── Section.php                 # Class sections
+│   │   ├── Strand.php                  # SHS strands
+│   │   ├── Subject.php                 # Academic subjects
+│   │   ├── Schedule.php                # Class schedules (PDF)
+│   │   ├── Announcement.php            # Role-targeted announcements
+│   │   ├── Quiz.php                    # Quiz definitions
+│   │   ├── QuizQuestion.php            # Quiz questions
+│   │   ├── QuizAnswer.php              # Answer options
+│   │   ├── QuizAttempt.php             # Student attempts
+│   │   ├── QuizResponse.php            # Student responses
+│   │   ├── StudentFee.php              # Fee records
+│   │   ├── StudentPayment.php          # Payment records
+│   │   ├── GuidanceRecord.php          # Counseling records
+│   │   ├── LibraryBook.php             # Book inventory
+│   │   ├── LibraryTransaction.php      # Borrowing records
+│   │   └── ... (10 more models)
 │   └── ...
 ├── resources/
 │   ├── js/
 │   │   ├── components/
-│   │   │   ├── ui/                 # shadcn/ui components
-│   │   │   ├── filters/            # Reusable filter components
-│   │   │   ├── owner/              # Owner-specific components
-│   │   │   ├── registrar/          # Registrar-specific components
-│   │   │   ├── accounting/         # Accounting-specific components
-│   │   │   ├── student/            # Student-specific components
-│   │   │   ├── teacher/            # Teacher-specific components
-│   │   │   └── parent/             # Parent-specific components
-│   │   ├── layouts/
-│   │   │   ├── owner/              # Owner layout
-│   │   │   ├── registrar/          # Registrar layout
-│   │   │   ├── accounting/         # Accounting layout
-│   │   │   ├── student/            # Student layout
-│   │   │   ├── teacher/            # Teacher layout
-│   │   │   └── parent/             # Parent layout
+│   │   │   ├── ui/                     # 40+ shadcn/ui components
+│   │   │   ├── filters/                # Reusable filter components
+│   │   │   ├── owner/                  # Owner-specific components
+│   │   │   ├── registrar/              # Registrar components
+│   │   │   ├── accounting/             # Accounting components
+│   │   │   ├── teacher/                # Teacher components
+│   │   │   ├── student/                # Student components
+│   │   │   ├── guidance/               # Guidance components
+│   │   │   ├── librarian/              # Librarian components
+│   │   │   └── parent/                 # Parent components
+│   │   ├── layouts/                    # Role-based layouts with sidebars
 │   │   ├── pages/
-│   │   │   ├── owner/              # Owner portal pages
-│   │   │   │   ├── subjects/       # Subject CRUD
-│   │   │   │   ├── schedules/      # Schedule CRUD (PDF upload)
-│   │   │   │   ├── users/          # User management
-│   │   │   │   └── ...
-│   │   │   ├── registrar/          # Registrar portal pages
-│   │   │   ├── accounting/         # Accounting portal pages
-│   │   │   ├── student/            # Student portal pages
-│   │   │   │   ├── subjects/       # View subjects
-│   │   │   │   └── schedules/      # View schedules
-│   │   │   ├── teacher/            # Teacher portal pages
-│   │   │   │   ├── subjects/       # View subjects
-│   │   │   │   └── schedules/      # View assigned schedules
-│   │   │   └── parent/             # Parent portal pages
-│   │   │       ├── subjects/       # View subjects
-│   │   │       └── schedules/      # View children's schedules
-│   │   └── types/
+│   │   │   ├── owner/                  # Owner portal (10 page groups)
+│   │   │   │   ├── dashboard.tsx
+│   │   │   │   ├── departments/
+│   │   │   │   ├── programs/
+│   │   │   │   ├── year-levels/
+│   │   │   │   ├── sections/
+│   │   │   │   ├── subjects/
+│   │   │   │   ├── schedules/
+│   │   │   │   ├── users/
+│   │   │   │   ├── announcements/
+│   │   │   │   └── calendar.tsx
+│   │   │   ├── registrar/              # Registrar portal (10 page groups)
+│   │   │   │   ├── dashboard.tsx
+│   │   │   │   ├── students/
+│   │   │   │   ├── classes/
+│   │   │   │   ├── requirements/
+│   │   │   │   ├── documents/
+│   │   │   │   ├── deadlines/
+│   │   │   │   ├── subjects/
+│   │   │   │   ├── schedule/
+│   │   │   │   ├── reports/
+│   │   │   │   └── announcements/
+│   │   │   ├── accounting/             # Accounting portal (7 page groups)
+│   │   │   │   ├── dashboard.tsx
+│   │   │   │   ├── fees/
+│   │   │   │   ├── payments/
+│   │   │   │   ├── clearance/
+│   │   │   │   ├── reports.tsx
+│   │   │   │   └── announcements/
+│   │   │   ├── teacher/                # Teacher portal (9 page groups)
+│   │   │   │   ├── dashboard.tsx
+│   │   │   │   ├── students/
+│   │   │   │   ├── classes/
+│   │   │   │   ├── subjects/
+│   │   │   │   ├── schedules/
+│   │   │   │   ├── quizzes/            # Full quiz management UI
+│   │   │   │   ├── grades/
+│   │   │   │   ├── attendance/
+│   │   │   │   └── announcements/
+│   │   │   ├── student/                # Student portal (7 page groups)
+│   │   │   │   ├── dashboard.tsx
+│   │   │   │   ├── profile.tsx
+│   │   │   │   ├── subjects/
+│   │   │   │   ├── schedules/
+│   │   │   │   ├── requirements.tsx
+│   │   │   │   ├── quizzes/            # Quiz taking UI
+│   │   │   │   └── announcements/
+│   │   │   ├── parent/                 # Parent portal
+│   │   │   ├── guidance/               # Guidance portal
+│   │   │   ├── librarian/              # Librarian portal
+│   │   │   ├── clinic/                 # Clinic portal (placeholder)
+│   │   │   └── canteen/                # Canteen portal (placeholder)
+│   │   ├── hooks/                      # Custom React hooks
+│   │   ├── types/                      # TypeScript type definitions
+│   │   └── lib/                        # Utility functions
 │   └── views/
+│       └── app.blade.php               # Root Blade template
 ├── database/
-│   ├── migrations/
-│   └── seeders/
+│   ├── migrations/                     # 43 migration files
+│   └── seeders/                        # 9 seeder classes
+│       ├── DatabaseSeeder.php
+│       ├── RoleBasedUserSeeder.php
+│       ├── AcademicStructureSeeder.php
+│       ├── DepartmentSeeder.php
+│       ├── ProgramSeeder.php
+│       ├── YearLevelSeeder.php
+│       ├── SectionSeeder.php
+│       ├── StudentSeeder.php
+│       └── RequirementSeeder.php
 ├── routes/
-│   ├── web.php
-│   └── settings.php
+│   ├── web.php                         # Main routes (307 lines, 10 role groups)
+│   └── settings.php                    # Settings routes
 └── tests/
+    ├── Feature/                        # Feature tests
+    └── Unit/                           # Unit tests
 ```
 
 ### **Benefits of This Structure:**
 ✅ **Role-Based Separation** - Each user role has its own folder structure  
 ✅ **Easy Maintainability** - Find and update role-specific code quickly  
-✅ **Avoid Confusions** - Clear boundaries between different modules  
+✅ **Type Safety** - Full TypeScript coverage with Inertia/Wayfinder  
 ✅ **Scalable** - Easy to add new roles or features  
 ✅ **Team-Friendly** - Multiple developers can work on different roles simultaneously
 
@@ -312,66 +439,73 @@ school-mgmt_lms_pos/
 
 ## 📊 Implementation Progress
 
-### **Overall Progress: ~40%**
+### **Overall Progress: ~45%**
 
 | Module | Status | Completion | Priority |
 |--------|--------|------------|----------|
 | 🏫 Owner/Admin Portal | ✅ Done | 95% | - |
-| 📝 Registrar Account | 🔄 In Progress | 70% | High |
-| 💰 Accounting Account | 🔄 In Progress | 60% | High |
-| 👨‍🏫 Teacher Portal | 🔄 In Progress | 15% | **Critical** |
-| 👨‍🎓 Student Portal | 🔄 In Progress | 15% | **Critical** |
+| 📝 Registrar Account | ✅ Done | 75% | - |
+| 💰 Accounting Account | 🔄 In Progress | 65% | High |
+| 👨‍🏫 Teacher Portal | 🔄 In Progress | 40% | **Critical** |
+| 👨‍🎓 Student Portal | 🔄 In Progress | 35% | **Critical** |
 | 👨‍👩‍👦 Parent Portal | 🔄 In Progress | 10% | **Critical** |
-| 🧑‍⚕️ Guidance Counselor | ❌ Not Started | 0% | Medium |
-| 📚 Librarian Account | ❌ Not Started | 0% | Medium |
-| 🏥 Medical/Clinic | ❌ Not Started | 0% | Low |
-| 🍽️ Canteen POS | ❌ Not Started | 0% | Low |
+| 🧑‍⚕️ Guidance Counselor | 🔄 In Progress | 20% | Medium |
+| 📚 Librarian Account | 🔄 In Progress | 25% | Medium |
+| 🏥 Medical/Clinic | 🔄 Started | 5% | Low |
+| 🍽️ Canteen POS | 🔄 Started | 5% | Low |
 | 📱 Mobile App | ❌ Not Started | 0% | High |
 
 ### **Detailed Breakdown**
 
-#### ✅ **Completed Features (40%)**
-- [x] Authentication system (Login/Logout/Role-based access)
-- [x] Owner/Administrator dashboard
-- [x] Department management (K-12 & College)
+#### ✅ **Completed Features (45%)**
+- [x] Authentication system (Login/Logout/Role-based access with 2FA support)
+- [x] Owner/Administrator dashboard with full analytics
+- [x] Department management (K-12 & College classification)
 - [x] Year Levels management
-- [x] Sections management
+- [x] Sections management (with room assignments)
 - [x] Strands management (SHS)
 - [x] Programs management (College)
-- [x] Subject management (CRUD with department/program/year level/semester filters)
-- [x] Schedule management (PDF upload with department/program/year level/section/teacher assignment)
-- [x] User management (auto default password)
-- [x] Student records management
-- [x] Student requirements tracking
+- [x] Subject management (CRUD with multi-filter support)
+- [x] Schedule management (PDF upload with teacher assignment)
+- [x] User management (10 roles, auto password generation)
+- [x] Student records management (full CRUD with enrollment workflow)
+- [x] Student requirements tracking (categories, status updates)
 - [x] Student fees management
-- [x] Student payments management
-- [x] Financial reports
+- [x] Student payments processing
+- [x] Student clearance management (individual and bulk)
+- [x] Financial reports with export
 - [x] Comprehensive filtering system (Search, Dropdowns, Date Range)
 - [x] Pagination (25 items per page)
 - [x] Registrar dashboard with analytics
-- [x] Teacher schedule view (filtered by assigned teacher)
-- [x] Student schedule & subject view (filtered by department/program)
-- [x] Parent schedule & subject view (filtered by children's departments)
+- [x] Document request review system
+- [x] Academic deadlines management
+- [x] **Quiz System (Teacher)** - Full CRUD, publishing, results, manual grading
+- [x] **Quiz System (Student)** - Taking quizzes, auto-save, results viewing
+- [x] Role-based announcement system (create, pin, target by role)
+- [x] Teacher/Student/Parent schedule and subject views
+- [x] Dark/Light mode support
+- [x] Profile settings with photo support
+- [x] Guidance counselor records management
+- [x] Library book inventory and transactions
 
 #### 🔄 **In Progress (15%)**
-- [ ] E-mail/Username login logic for parents & students
-- [ ] Auto account creation for students & parents
-- [ ] Complete enrollment workflow
+- [ ] Teacher grade encoding
+- [ ] Teacher attendance marking
+- [ ] Complete enrollment workflow automation
 - [ ] Academic transcript generation
 
-#### ❌ **Pending (50%)**
-- [ ] Teacher Portal (Remaining features: grades, attendance, lessons, assignments)
-- [ ] Student Portal (Remaining features: grades, attendance, enrollment, wallet)
-- [ ] Parent Portal (Remaining features: view grades, fees, attendance)
-- [ ] Guidance Counselor Portal
-- [ ] Librarian Portal
-- [ ] Medical/Clinic Portal
-- [ ] Canteen POS System
-- [ ] RFID Integration for attendance
+#### ❌ **Pending (40%)**
+- [ ] Lessons and module upload system
+- [ ] Assignment creation and submission
+- [ ] Student grades viewing
+- [ ] Student attendance records (RFID)
+- [ ] Student wallet/balance system
+- [ ] Parent portal completion (grades, fees, attendance)
+- [ ] Medical/Clinic records system
+- [ ] Canteen POS with wallet integration
 - [ ] Mobile Applications (Android & iOS)
 - [ ] Real-time notifications
-- [ ] File upload system for student documents
-- [ ] E-LMS features (Lessons, Quizzes, Assignments)
+- [ ] Advanced reporting and analytics
 
 ---
 
