@@ -73,6 +73,14 @@ class Subject extends Model
     }
 
     /**
+     * Get the teachers assigned to this subject.
+     */
+    public function teachers(): BelongsToMany
+    {
+        return $this->belongsToMany(Teacher::class, 'subject_teacher');
+    }
+
+    /**
      * Scope to filter by department.
      */
     public function scopeByDepartment($query, $departmentId)
