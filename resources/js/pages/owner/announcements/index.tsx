@@ -281,7 +281,7 @@ export default function AnnouncementsIndex({ announcements, departments, availab
         formData.append('is_pinned', data.is_pinned ? '1' : '0');
         formData.append('is_active', data.is_active ? '1' : '0');
         if (data.attachment) formData.append('attachment', data.attachment);
-        if (data.remove_attachment) formData.append('remove_attachment', '1');
+        if (editingAnnouncement && data.remove_attachment) formData.append('remove_attachment', '1');
         
         if (editingAnnouncement) {
             formData.append('_method', 'PUT');
