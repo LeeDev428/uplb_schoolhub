@@ -8,7 +8,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
-import { FileViewer } from '@/components/ui/pdf-viewer';
+import { FileViewer } from '@/components/ui/file-viewer';
 import { Megaphone, Pin, FileText, Image as ImageIcon, File, Download } from 'lucide-react';
 
 interface Department {
