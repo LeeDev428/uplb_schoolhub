@@ -229,8 +229,9 @@ class Student extends Model
     /**
      * Get subjects available to this student.
      * Based on student's department and year level.
+     * Returns a query builder - call get() to retrieve results.
      */
-    public function subjects()
+    public function subjectsQuery()
     {
         $query = Subject::where('department_id', $this->department_id)
             ->where('is_active', true);
@@ -244,5 +245,13 @@ class Student extends Model
         }
         
         return $query;
+    }
+
+    /**
+     * Get subjects collection (for convenient access).
+     */
+    public function getSubjectsAttribute()
+    {
+        return $this->subjectsQuery()->get();
     }
 }
