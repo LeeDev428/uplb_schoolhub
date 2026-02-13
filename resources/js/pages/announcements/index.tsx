@@ -9,6 +9,7 @@ import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { FileViewer } from '@/components/ui/file-viewer';
+import { ImageViewer } from '@/components/ui/image-viewer';
 import { Megaphone, Pin, FileText, Image as ImageIcon, File, Download } from 'lucide-react';
 
 interface Department {
@@ -38,6 +39,9 @@ interface Announcement {
     attachment_path: string | null;
     attachment_name: string | null;
     attachment_type: string | null;
+    image_path: string | null;
+    image_name: string | null;
+    image_type: string | null;
     department?: Department | null;
     creator?: User;
 }
@@ -89,6 +93,8 @@ export default function AnnouncementsIndex({ announcements, filters, role }: Pro
     const [priority, setPriority] = useState(filters.priority || 'all');
     const [fileViewerOpen, setFileViewerOpen] = useState(false);
     const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
+    const [imageViewerOpen, setImageViewerOpen] = useState(false);
+    const [viewingImageAnnouncement, setViewingImageAnnouncement] = useState<Announcement | null>(null);
     const [expandedAnnouncements, setExpandedAnnouncements] = useState<Set<number>>(new Set());
 
     const navigate = (params: Record<string, string>) => {
@@ -117,6 +123,11 @@ export default function AnnouncementsIndex({ announcements, filters, role }: Pro
     const openFileViewer = (announcement: Announcement) => {
         setViewingAnnouncement(announcement);
         setFileViewerOpen(true);
+    };
+
+    const openImageViewer = (announcement: Announcement) => {
+        setViewingImageAnnouncement(announcement);
+        setImageViewerOpen(true);
     };
 
     const toggleExpanded = (id: number) => {
@@ -223,6 +234,16 @@ export default function AnnouncementsIndex({ announcements, filters, role }: Pro
                                                             </Button>
                                                         </div>
                                                     )}
+                                                    {announcement.image_path && (
+                                                        <div className="mt-3">
+                                                            <img
+                                                                src={announcement.image_path.startsWith('/storage/') ? announcement.image_path : `/storage/${announcement.image_path}`}
+                                                                alt={announcement.image_name || announcement.title}
+                                                                className="max-h-64 rounded-lg border object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                                                onClick={() => openImageViewer(announcement)}
+                                                            />
+                                                        </div>
+                                                    )}
                                                     <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
                                                         <span>Posted by {announcement.creator?.name || 'Admin'}</span>
                                                         <span>•</span>
@@ -256,6 +277,16 @@ export default function AnnouncementsIndex({ announcements, filters, role }: Pro
                     filePath={viewingAnnouncement.attachment_path || ''}
                     fileType={viewingAnnouncement.attachment_type || undefined}
                     fileName={viewingAnnouncement.attachment_name || undefined}
+                />
+            )}
+
+            {/* Image Viewer */}
+            {viewingImageAnnouncement && viewingImageAnnouncement.image_path && (
+                <ImageViewer
+                    open={imageViewerOpen}
+                    onOpenChange={setImageViewerOpen}
+                    title={viewingImageAnnouncement.image_name || viewingImageAnnouncement.title}
+                    imagePath={viewingImageAnnouncement.image_path}
                 />
             )}
         </>
