@@ -81,6 +81,22 @@ class Subject extends Model
     }
 
     /**
+     * Get students who should have access to this subject.
+     * Students are linked via their department and year level.
+     */
+    public function students()
+    {
+        $query = Student::where('department_id', $this->department_id);
+        
+        // If subject has a specific year level, filter students by that year level
+        if ($this->year_level_id) {
+            $query->where('year_level_id', $this->year_level_id);
+        }
+        
+        return $query;
+    }
+
+    /**
      * Scope to filter by department.
      */
     public function scopeByDepartment($query, $departmentId)
