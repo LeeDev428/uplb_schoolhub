@@ -1,10 +1,11 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Activity,
     Calendar,
     FileText,
     Heart,
     LayoutGrid,
+    Megaphone,
     Package,
     Users,
 } from 'lucide-react';
@@ -21,40 +22,48 @@ import type { NavItem } from '@/types';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/clinic/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Health Records',
-        href: '/clinic/records',
-        icon: FileText,
-    },
-    {
-        title: 'Appointments',
-        href: '/clinic/appointments',
-        icon: Calendar,
-    },
-    {
-        title: 'Students',
-        href: '/clinic/students',
-        icon: Users,
-    },
-    {
-        title: 'Medical Supplies',
-        href: '/clinic/supplies',
-        icon: Package,
-    },
-    {
-        title: 'Checkups',
-        href: '/clinic/checkups',
-        icon: Activity,
-    },
-];
-
 export function ClinicSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/clinic/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/clinic/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'Health Records',
+            href: '/clinic/records',
+            icon: FileText,
+        },
+        {
+            title: 'Appointments',
+            href: '/clinic/appointments',
+            icon: Calendar,
+        },
+        {
+            title: 'Students',
+            href: '/clinic/students',
+            icon: Users,
+        },
+        {
+            title: 'Medical Supplies',
+            href: '/clinic/supplies',
+            icon: Package,
+        },
+        {
+            title: 'Checkups',
+            href: '/clinic/checkups',
+            icon: Activity,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
