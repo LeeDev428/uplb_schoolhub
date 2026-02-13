@@ -66,6 +66,9 @@ interface Announcement {
     attachment_path: string | null;
     attachment_name: string | null;
     attachment_type: string | null;
+    image_path: string | null;
+    image_name: string | null;
+    image_type: string | null;
     department?: Department | null;
     creator?: User;
 }
@@ -154,6 +157,8 @@ export default function AnnouncementsIndex({ announcements, departments, availab
     const [announcementToDelete, setAnnouncementToDelete] = useState<Announcement | null>(null);
     const [fileViewerOpen, setFileViewerOpen] = useState(false);
     const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
+    const [imageViewerOpen, setImageViewerOpen] = useState(false);
+    const [viewingImageAnnouncement, setViewingImageAnnouncement] = useState<Announcement | null>(null);
 
     const { data, setData, post, processing, errors, reset } = useForm<{
         title: string;
@@ -166,6 +171,8 @@ export default function AnnouncementsIndex({ announcements, departments, availab
         is_active: boolean;
         attachment: File | null;
         remove_attachment: boolean;
+        image: File | null;
+        remove_image: boolean;
     }>({
         title: '',
         content: '',
@@ -177,6 +184,8 @@ export default function AnnouncementsIndex({ announcements, departments, availab
         is_active: true,
         attachment: null,
         remove_attachment: false,
+        image: null,
+        remove_image: false,
     });
 
     const navigate = (params: Record<string, string>) => {
@@ -228,6 +237,8 @@ export default function AnnouncementsIndex({ announcements, departments, availab
             is_active: true,
             attachment: null,
             remove_attachment: false,
+            image: null,
+            remove_image: false,
         });
         setModalOpen(true);
     };
@@ -245,6 +256,8 @@ export default function AnnouncementsIndex({ announcements, departments, availab
             is_active: announcement.is_active,
             attachment: null,
             remove_attachment: false,
+            image: null,
+            remove_image: false,
         });
         setModalOpen(true);
     };
@@ -282,6 +295,8 @@ export default function AnnouncementsIndex({ announcements, departments, availab
         formData.append('is_active', data.is_active ? '1' : '0');
         if (data.attachment) formData.append('attachment', data.attachment);
         if (editingAnnouncement && data.remove_attachment) formData.append('remove_attachment', '1');
+        if (data.image) formData.append('image', data.image);
+        if (editingAnnouncement && data.remove_image) formData.append('remove_image', '1');
         
         if (editingAnnouncement) {
             formData.append('_method', 'PUT');
@@ -330,6 +345,11 @@ export default function AnnouncementsIndex({ announcements, departments, availab
     const openFileViewer = (announcement: Announcement) => {
         setViewingAnnouncement(announcement);
         setFileViewerOpen(true);
+    };
+
+    const openImageViewer = (announcement: Announcement) => {
+        setViewingImageAnnouncement(announcement);
+        setImageViewerOpen(true);
     };
 
     const hasActiveFilters = !!(search || priority !== 'all' || targetRole !== 'all' || status !== 'all');
@@ -433,6 +453,17 @@ export default function AnnouncementsIndex({ announcements, departments, availab
                                                         >
                                                             {getFileIcon(announcement.attachment_type)}
                                                             <span className="ml-1 text-xs">{announcement.attachment_name || 'Attachment'}</span>
+                                                        </Button>
+                                                    )}
+                                                    {announcement.image_path && (
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="sm" 
+                                                            className="h-6 px-2"
+                                                            onClick={() => openImageViewer(announcement)}
+                                                        >
+                                                            <ImageIcon className="h-4 w-4" />
+                                                            <span className="ml-1 text-xs">Image</span>
                                                         </Button>
                                                     )}
                                                 </div>
