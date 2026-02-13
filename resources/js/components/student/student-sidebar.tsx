@@ -7,6 +7,7 @@ import {
     FileCheck,
     User,
     Settings,
+    FileQuestion,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -37,6 +38,11 @@ const mainNavItems: NavItem[] = [
         title: 'Subjects',
         href: '/student/subjects',
         icon: BookOpen,
+    },
+    {
+        title: 'Quizzes',
+        href: '/student/quizzes',
+        icon: FileQuestion,
     },
     {
         title: 'Schedules',
