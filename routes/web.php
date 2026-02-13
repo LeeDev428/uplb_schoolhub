@@ -201,6 +201,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('classes', [App\Http\Controllers\Teacher\ClassController::class, 'index'])->name('classes.index');
     Route::get('classes/{section}', [App\Http\Controllers\Teacher\ClassController::class, 'show'])->name('classes.show');
     Route::get('subjects', [App\Http\Controllers\Teacher\SubjectController::class, 'index'])->name('subjects');
+    Route::get('subjects/{subject}/students', [App\Http\Controllers\Teacher\SubjectController::class, 'students'])->name('subjects.students');
     Route::get('schedules', [App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedules');
     Route::get('grades', [App\Http\Controllers\Teacher\GradeController::class, 'index'])->name('grades.index');
     Route::get('attendance', [App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendance.index');
