@@ -14,16 +14,36 @@ class ClassController extends Controller
 {
     public function index(Request $request)
     {
+        $classification = $request->input('classification', 'all');
         $departmentFilter = $request->input('department_id', 'all');
         $yearLevelFilter = $request->input('year_level_id', 'all');
         $search = $request->input('search', '');
         $studentType = $request->input('student_type', 'all');
+
+        // Get departments based on classification
+        $departmentsQuery = Department::query()->orderBy('name');
+        if ($classification !== 'all') {
+            $departmentsQuery->where('classification', $classification);
+        }
+        $departments = $departmentsQuery->get();
+        $departmentIds = $departments->pluck('id')->toArray();
+
+        // Get year levels based on filtered departments
+        $yearLevelsQuery = YearLevel::query()->orderBy('level_number');
+        if (!empty($departmentIds)) {
+            $yearLevelsQuery->whereIn('department_id', $departmentIds);
+        }
+        $yearLevels = $yearLevelsQuery->get();
 
         // Unassigned students (section_id is null)
         $unassignedQuery = Student::query()
             ->whereNull('deleted_at')
             ->where('enrollment_status', 'enrolled')
             ->whereNull('section_id');
+
+        if ($classification !== 'all') {
+            $unassignedQuery->whereIn('department_id', $departmentIds);
+        }
 
         if ($search) {
             $unassignedQuery->where(function ($q) use ($search) {
@@ -53,6 +73,10 @@ class ClassController extends Controller
             ->withCount('students')
             ->where('is_active', true);
 
+        if ($classification !== 'all') {
+            $sectionsQuery->whereIn('department_id', $departmentIds);
+        }
+
         if ($departmentFilter !== 'all') {
             $sectionsQuery->where('department_id', $departmentFilter);
         }
@@ -80,8 +104,8 @@ class ClassController extends Controller
         return Inertia::render('registrar/classes/index', [
             'unassignedStudents' => $unassignedStudents,
             'sections' => $sections,
-            'departments' => Department::orderBy('name')->get(),
-            'yearLevels' => YearLevel::orderBy('level_number')->get(),
+            'departments' => $departments,
+            'yearLevels' => $yearLevels,
             'stats' => [
                 'totalStudents' => $totalStudents,
                 'assignedCount' => $assignedCount,
@@ -89,7 +113,7 @@ class ClassController extends Controller
                 'maleCount' => $maleCount,
                 'femaleCount' => $femaleCount,
             ],
-            'filters' => $request->only(['search', 'department_id', 'year_level_id', 'student_type']),
+            'filters' => $request->only(['search', 'classification', 'department_id', 'year_level_id', 'student_type']),
         ]);
     }
 
