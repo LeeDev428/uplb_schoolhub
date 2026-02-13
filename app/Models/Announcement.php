@@ -11,17 +11,36 @@ class Announcement extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * All available target roles for announcements.
+     */
+    public const AVAILABLE_ROLES = [
+        'registrar',
+        'accounting', 
+        'student',
+        'teacher',
+        'parent',
+        'guidance',
+        'librarian',
+        'clinic',
+        'canteen',
+    ];
+
     protected $fillable = [
         'title',
         'content',
         'priority',
         'target_audience',
+        'target_roles',
         'department_id',
         'created_by',
         'published_at',
         'expires_at',
         'is_pinned',
         'is_active',
+        'attachment_path',
+        'attachment_name',
+        'attachment_type',
     ];
 
     protected $casts = [
@@ -29,6 +48,7 @@ class Announcement extends Model
         'expires_at' => 'datetime',
         'is_pinned' => 'boolean',
         'is_active' => 'boolean',
+        'target_roles' => 'array',
     ];
 
     public function department(): BelongsTo
@@ -62,5 +82,28 @@ class Announcement extends Model
             $q->where('target_audience', 'all')
                 ->orWhere('target_audience', $audience);
         });
+    }
+
+    /**
+     * Scope to filter announcements by role using target_roles JSON field.
+     */
+    public function scopeForRole($query, string $role)
+    {
+        return $query->where(function ($q) use ($role) {
+            $q->whereJsonContains('target_roles', $role)
+                ->orWhere('target_audience', 'all');
+        });
+    }
+
+    /**
+     * Check if this announcement is targeted at a specific role.
+     */
+    public function isForRole(string $role): bool
+    {
+        if ($this->target_audience === 'all') {
+            return true;
+        }
+        
+        return in_array($role, $this->target_roles ?? []);
     }
 }
