@@ -1,10 +1,11 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BadgeDollarSign,
     BookOpen,
     Calendar,
     FileText,
     LayoutGrid,
+    Megaphone,
     TrendingUp,
     Users,
 } from 'lucide-react';
@@ -21,50 +22,58 @@ import type { NavItem } from '@/types';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/parent/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'My Children',
-        href: '/parent/children',
-        icon: Users,
-    },
-    {
-        title: 'Subjects',
-        href: '/parent/subjects',
-        icon: BookOpen,
-    },
-    {
-        title: 'Schedules',
-        href: '/parent/schedules',
-        icon: Calendar,
-    },
-    {
-        title: 'Grades',
-        href: '/parent/grades',
-        icon: TrendingUp,
-    },
-    {
-        title: 'Attendance',
-        href: '/parent/attendance',
-        icon: Calendar,
-    },
-    {
-        title: 'Fees & Payments',
-        href: '/parent/fees',
-        icon: BadgeDollarSign,
-    },
-    {
-        title: 'Requirements',
-        href: '/parent/requirements',
-        icon: FileText,
-    },
-];
-
 export function ParentSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/parent/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/parent/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'My Children',
+            href: '/parent/children',
+            icon: Users,
+        },
+        {
+            title: 'Subjects',
+            href: '/parent/subjects',
+            icon: BookOpen,
+        },
+        {
+            title: 'Schedules',
+            href: '/parent/schedules',
+            icon: Calendar,
+        },
+        {
+            title: 'Grades',
+            href: '/parent/grades',
+            icon: TrendingUp,
+        },
+        {
+            title: 'Attendance',
+            href: '/parent/attendance',
+            icon: Calendar,
+        },
+        {
+            title: 'Fees & Payments',
+            href: '/parent/fees',
+            icon: BadgeDollarSign,
+        },
+        {
+            title: 'Requirements',
+            href: '/parent/requirements',
+            icon: FileText,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
