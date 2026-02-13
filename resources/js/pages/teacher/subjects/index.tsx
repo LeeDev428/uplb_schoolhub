@@ -186,7 +186,11 @@ export default function SubjectsIndex({ subjects, filters }: Props) {
                                         </tr>
                                     ) : (
                                         subjects.data.map((subject) => (
-                                            <tr key={subject.id} className="border-b hover:bg-muted/50">
+                                            <tr 
+                                                key={subject.id} 
+                                                className="border-b hover:bg-muted/50 cursor-pointer transition-colors"
+                                                onClick={() => router.visit(`/teacher/subjects/${subject.id}/students`)}
+                                            >
                                                 <td className="p-3">
                                                     <span className="font-mono text-sm font-medium">
                                                         {subject.code}
