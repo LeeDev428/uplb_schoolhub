@@ -167,6 +167,22 @@ class Student extends Model
     }
 
     /**
+     * Get action logs for this student
+     */
+    public function actionLogs()
+    {
+        return $this->hasMany(StudentActionLog::class)->orderByDesc('created_at');
+    }
+
+    /**
+     * Get enrollment history for this student
+     */
+    public function enrollmentHistories()
+    {
+        return $this->hasMany(StudentEnrollmentHistory::class)->orderByDesc('school_year');
+    }
+
+    /**
      * Get the enrollment clearance for this student
      */
     public function enrollmentClearance()
