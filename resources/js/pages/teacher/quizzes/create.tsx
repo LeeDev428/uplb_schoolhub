@@ -223,7 +223,7 @@ export default function QuizCreate({ subjects }: Props) {
         <TeacherLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Quiz" />
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="p-6">
                 <div className="flex flex-col gap-6">
                     {/* Header */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
