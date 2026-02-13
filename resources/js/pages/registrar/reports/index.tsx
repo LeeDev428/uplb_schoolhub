@@ -255,6 +255,15 @@ export default function RegistrarReportsIndex({
                 <div className="print:hidden">
                     <FilterBar onReset={handleReset}>
                         <FilterDropdown
+                            label="Classification"
+                            value={classification}
+                            onChange={handleClassificationChange}
+                            options={[
+                                { value: 'K-12', label: 'K-12' },
+                                { value: 'College', label: 'College' },
+                            ]}
+                        />
+                        <FilterDropdown
                             label="Department"
                             value={selectedDepartment}
                             onChange={handleDepartmentChange}
