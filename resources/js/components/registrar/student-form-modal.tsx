@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { store as storeStudent, update as updateStudent } from '@/routes/registrar/students';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { Upload, X, User } from 'lucide-react';
 
 interface Department {
     id: number;
@@ -78,6 +79,17 @@ export function StudentFormModal({
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
     const [selectedProgramId, setSelectedProgramId] = useState<string>('');
     const [selectedYearLevelId, setSelectedYearLevelId] = useState<string>('');
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Initialize photo preview when student data is available
+    useEffect(() => {
+        if (student?.student_photo_url) {
+            setPhotoPreview(student.student_photo_url);
+        } else {
+            setPhotoPreview(null);
+        }
+    }, [student]);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         first_name: student?.first_name || '',
@@ -108,7 +120,7 @@ export function StudentFormModal({
         guardian_relationship: student?.guardian_relationship || '',
         guardian_contact: student?.guardian_contact || '',
         guardian_email: student?.guardian_email || '',
-        student_photo_url: student?.student_photo_url || '',
+        student_photo: null as File | null,
         remarks: student?.remarks || '',
     });
 
@@ -155,14 +167,40 @@ export function StudentFormModal({
         return uniqueSections;
     }, [selectedYearLevelId, selectedProgramId, sections]);
 
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('Photo must be less than 2MB');
+                return;
+            }
+            setData('student_photo', file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemovePhoto = () => {
+        setData('student_photo', null);
+        setPhotoPreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (mode === 'create') {
             post(storeStudent.url(), {
+                forceFormData: true,
                 onSuccess: () => {
                     toast.success('Student added successfully!');
                     reset();
+                    setPhotoPreview(null);
                     onClose();
                 },
                 onError: () => {
@@ -170,7 +208,11 @@ export function StudentFormModal({
                 },
             });
         } else {
-            put(updateStudent.url({ student: student.id }), {
+            post(updateStudent.url({ student: student.id }), {
+                forceFormData: true,
+                headers: {
+                    'X-HTTP-Method-Override': 'PUT',
+                },
                 onSuccess: () => {
                     toast.success('Student updated successfully!');
                     onClose();
@@ -708,14 +750,58 @@ export function StudentFormModal({
                         <h3 className="text-lg font-semibold">Optional Information</h3>
                         
                         <div className="space-y-2">
-                            <Label htmlFor="student_photo_url">Student Photo URL (Optional)</Label>
-                            <Input
-                                id="student_photo_url"
-                                type="url"
-                                value={data.student_photo_url}
-                                onChange={e => setData('student_photo_url', e.target.value)}
-                                placeholder="https://example.com/photo.jpg"
-                            />
+                            <Label>Student Photo (Optional)</Label>
+                            <div className="flex items-start gap-4">
+                                {/* Photo Preview */}
+                                <div className="relative h-32 w-32 overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+                                    {photoPreview ? (
+                                        <>
+                                            <img
+                                                src={photoPreview}
+                                                alt="Student photo preview"
+                                                className="h-full w-full object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleRemovePhoto}
+                                                className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white shadow-md hover:bg-red-600"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <div className="flex h-full w-full items-center justify-center">
+                                            <User className="h-12 w-12 text-gray-400" />
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Upload Button */}
+                                <div className="flex flex-col gap-2">
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                        id="student_photo"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground">
+                                        JPEG, PNG, GIF or WebP.<br />Max 2MB.
+                                    </p>
+                                    {errors.student_photo && (
+                                        <p className="text-xs text-red-500">{errors.student_photo}</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                         </div>
