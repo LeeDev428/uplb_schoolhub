@@ -85,7 +85,7 @@ class AnnouncementController extends Controller
         $validated['created_by'] = Auth::id();
         
         // If no published_at is set, publish immediately
-        if (empty($validated['published_at'])) {
+        if (!isset($validated['published_at']) || empty($validated['published_at'])) {
             $validated['published_at'] = now();
         }
 
