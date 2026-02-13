@@ -1,8 +1,9 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ChefHat,
     DollarSign,
     LayoutGrid,
+    Megaphone,
     Package,
     ShoppingCart,
     UtensilsCrossed,
@@ -20,35 +21,43 @@ import type { NavItem } from '@/types';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/canteen/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Menu',
-        href: '/canteen/menu',
-        icon: UtensilsCrossed,
-    },
-    {
-        title: 'Orders',
-        href: '/canteen/orders',
-        icon: ShoppingCart,
-    },
-    {
-        title: 'Sales',
-        href: '/canteen/sales',
-        icon: DollarSign,
-    },
-    {
-        title: 'Inventory',
-        href: '/canteen/inventory',
-        icon: Package,
-    },
-];
-
 export function CanteenSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/canteen/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/canteen/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'Menu',
+            href: '/canteen/menu',
+            icon: UtensilsCrossed,
+        },
+        {
+            title: 'Orders',
+            href: '/canteen/orders',
+            icon: ShoppingCart,
+        },
+        {
+            title: 'Sales',
+            href: '/canteen/sales',
+            icon: DollarSign,
+        },
+        {
+            title: 'Inventory',
+            href: '/canteen/inventory',
+            icon: Package,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
