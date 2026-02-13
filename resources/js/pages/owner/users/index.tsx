@@ -31,6 +31,7 @@ interface DepartmentOption {
     id: number;
     name: string;
     code: string;
+    classification?: string;
 }
 
 interface Props {
@@ -50,6 +51,7 @@ interface Props {
         role?: string;
         search?: string;
         status?: string;
+        classification?: string;
     };
 }
 
@@ -84,6 +86,7 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
     const [activeRole, setActiveRole] = useState(filters.role || 'all');
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || 'all');
+    const [classification, setClassification] = useState(filters.classification || 'all');
 
     const form = useForm({
         name: '',
@@ -113,6 +116,7 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
             role: role === 'all' ? '' : role,
             search,
             status,
+            classification,
         });
     };
 
@@ -122,6 +126,7 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
             role: activeRole === 'all' ? '' : activeRole,
             search: value,
             status,
+            classification,
         });
     };
 
@@ -131,6 +136,17 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
             role: activeRole === 'all' ? '' : activeRole,
             search,
             status: value,
+            classification,
+        });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        navigate({
+            role: activeRole === 'all' ? '' : activeRole,
+            search,
+            status,
+            classification: value,
         });
     };
 
@@ -138,6 +154,7 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
         setSearch('');
         setStatus('all');
         setActiveRole('all');
+        setClassification('all');
         router.get('/owner/users');
     };
 
