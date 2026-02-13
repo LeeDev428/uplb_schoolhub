@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\QuizResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -164,7 +165,7 @@ class QuizController extends Controller
         return redirect()->route('student.quizzes.take', $attempt->id);
     }
 
-    public function take(QuizAttempt $attempt): Response
+    public function take(QuizAttempt $attempt): Response|RedirectResponse
     {
         $student = Auth::user()->student;
 
@@ -341,7 +342,7 @@ class QuizController extends Controller
         }
     }
 
-    public function result(QuizAttempt $attempt): Response
+    public function result(QuizAttempt $attempt): Response|RedirectResponse
     {
         $student = Auth::user()->student;
 
