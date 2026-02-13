@@ -115,6 +115,7 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 // Registrar Routes
 Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 'role:registrar'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\RegistrarDashboardController::class, 'index'])->name('dashboard');
 
@@ -176,6 +177,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 // Accounting Routes
 Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified', 'role:accounting'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'index'])->name('dashboard');
     
@@ -201,6 +203,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
 // Student Portal Routes
 Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'role:student'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
     Route::get('requirements', [App\Http\Controllers\Student\RequirementController::class, 'index'])->name('requirements');
@@ -221,6 +224,7 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
 // Teacher Portal Routes
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'role:teacher'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
     Route::get('students', [App\Http\Controllers\Teacher\StudentController::class, 'index'])->name('students.index');
@@ -244,6 +248,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
 // Guidance Counselor Portal Routes
 Route::prefix('guidance')->name('guidance.')->middleware(['auth', 'verified', 'role:guidance'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\Guidance\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('records', App\Http\Controllers\Guidance\RecordController::class)->only([
@@ -254,6 +259,7 @@ Route::prefix('guidance')->name('guidance.')->middleware(['auth', 'verified', 'r
 // Librarian Portal Routes
 Route::prefix('librarian')->name('librarian.')->middleware(['auth', 'verified', 'role:librarian'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\Librarian\DashboardController::class, 'index'])->name('dashboard');
     Route::resource('books', App\Http\Controllers\Librarian\BookController::class)->only([
@@ -267,6 +273,7 @@ Route::prefix('librarian')->name('librarian.')->middleware(['auth', 'verified', 
 // Parent Portal Routes
 Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:parent'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', function () {
         return Inertia::render('parent/dashboard');
@@ -278,6 +285,7 @@ Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:
 // Clinic Portal Routes
 Route::prefix('clinic')->name('clinic.')->middleware(['auth', 'verified', 'role:clinic'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', function () {
         return Inertia::render('clinic/dashboard');
@@ -287,6 +295,7 @@ Route::prefix('clinic')->name('clinic.')->middleware(['auth', 'verified', 'role:
 // Canteen Portal Routes
 Route::prefix('canteen')->name('canteen.')->middleware(['auth', 'verified', 'role:canteen'])->group(function () {
     registerSettingsRoutes();
+    registerAnnouncementsRoute();
     
     Route::get('dashboard', function () {
         return Inertia::render('canteen/dashboard');
