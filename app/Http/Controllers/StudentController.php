@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class StudentController extends Controller
@@ -122,7 +123,16 @@ class StudentController extends Controller
     public function store(StoreStudentRequest $request)
     {
         return DB::transaction(function () use ($request) {
-            $student = Student::create($request->validated());
+            $data = $request->validated();
+            
+            // Handle photo upload
+            if ($request->hasFile('student_photo')) {
+                $path = $request->file('student_photo')->store('student-photos', 'public');
+                $data['student_photo_url'] = '/storage/' . $path;
+            }
+            unset($data['student_photo']);
+            
+            $student = Student::create($data);
 
             // Generate random username and create User account for student
             $username = $this->generateUniqueUsername($student);
@@ -282,7 +292,22 @@ class StudentController extends Controller
      */
     public function update(UpdateStudentRequest $request, Student $student)
     {
-        $student->update($request->validated());
+        $data = $request->validated();
+        
+        // Handle photo upload
+        if ($request->hasFile('student_photo')) {
+            // Delete old photo if exists
+            if ($student->student_photo_url) {
+                $oldPath = str_replace('/storage/', '', $student->student_photo_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            
+            $path = $request->file('student_photo')->store('student-photos', 'public');
+            $data['student_photo_url'] = '/storage/' . $path;
+        }
+        unset($data['student_photo']);
+        
+        $student->update($data);
 
         return redirect()->route('registrar.students.index')
             ->with('success', 'Student updated successfully!');
