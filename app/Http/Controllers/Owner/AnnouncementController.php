@@ -80,6 +80,7 @@ class AnnouncementController extends Controller
             'is_pinned' => 'boolean',
             'is_active' => 'boolean',
             'attachment' => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png,gif,doc,docx',
+            'image' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -89,7 +90,7 @@ class AnnouncementController extends Controller
             $validated['published_at'] = now();
         }
 
-        // Handle file upload
+        // Handle attachment upload
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
             $path = $file->store('announcements', 'public');
@@ -98,6 +99,16 @@ class AnnouncementController extends Controller
             $validated['attachment_type'] = $file->getMimeType();
         }
         unset($validated['attachment']);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $path = $file->store('announcements/images', 'public');
+            $validated['image_path'] = $path;
+            $validated['image_name'] = $file->getClientOriginalName();
+            $validated['image_type'] = $file->getMimeType();
+        }
+        unset($validated['image']);
 
         // Set target_audience to 'custom' since we're using target_roles
         $validated['target_audience'] = count($validated['target_roles']) === count(Announcement::AVAILABLE_ROLES) ? 'all' : 'custom';
@@ -126,6 +137,8 @@ class AnnouncementController extends Controller
             'is_active' => 'boolean',
             'attachment' => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png,gif,doc,docx',
             'remove_attachment' => 'boolean',
+            'image' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp',
+            'remove_image' => 'boolean',
         ]);
 
         // If published_at is cleared, set to now (publish immediately)
@@ -138,7 +151,7 @@ class AnnouncementController extends Controller
             $validated['expires_at'] = null;
         }
 
-        // Handle file removal
+        // Handle attachment removal
         if ($request->boolean('remove_attachment') && $announcement->attachment_path) {
             Storage::disk('public')->delete($announcement->attachment_path);
             $validated['attachment_path'] = null;
@@ -146,9 +159,8 @@ class AnnouncementController extends Controller
             $validated['attachment_type'] = null;
         }
 
-        // Handle file upload
+        // Handle attachment upload
         if ($request->hasFile('attachment')) {
-            // Delete old attachment if exists
             if ($announcement->attachment_path) {
                 Storage::disk('public')->delete($announcement->attachment_path);
             }
@@ -159,6 +171,27 @@ class AnnouncementController extends Controller
             $validated['attachment_type'] = $file->getMimeType();
         }
         unset($validated['attachment'], $validated['remove_attachment']);
+
+        // Handle image removal
+        if ($request->boolean('remove_image') && $announcement->image_path) {
+            Storage::disk('public')->delete($announcement->image_path);
+            $validated['image_path'] = null;
+            $validated['image_name'] = null;
+            $validated['image_type'] = null;
+        }
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            if ($announcement->image_path) {
+                Storage::disk('public')->delete($announcement->image_path);
+            }
+            $file = $request->file('image');
+            $path = $file->store('announcements/images', 'public');
+            $validated['image_path'] = $path;
+            $validated['image_name'] = $file->getClientOriginalName();
+            $validated['image_type'] = $file->getMimeType();
+        }
+        unset($validated['image'], $validated['remove_image']);
 
         // Set target_audience based on selected roles
         $validated['target_audience'] = count($validated['target_roles']) === count(Announcement::AVAILABLE_ROLES) ? 'all' : 'custom';
@@ -177,6 +210,11 @@ class AnnouncementController extends Controller
         // Delete attachment if exists
         if ($announcement->attachment_path) {
             Storage::disk('public')->delete($announcement->attachment_path);
+        }
+
+        // Delete image if exists
+        if ($announcement->image_path) {
+            Storage::disk('public')->delete($announcement->image_path);
         }
 
         $announcement->delete();
