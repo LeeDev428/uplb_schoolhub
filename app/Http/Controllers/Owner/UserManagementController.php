@@ -17,6 +17,7 @@ class UserManagementController extends Controller
     public function index(Request $request)
     {
         $role = $request->get('role', 'all');
+        $classification = $request->input('classification', 'all');
         $query = User::query();
 
         // Exclude owner from the list (owners manage others, not themselves)
@@ -43,6 +44,13 @@ class UserManagementController extends Controller
             }
         }
 
+        // Filter departments by classification
+        $departmentsQuery = Department::active()->orderBy('name');
+        if ($classification !== 'all') {
+            $departmentsQuery->where('classification', $classification);
+        }
+        $departments = $departmentsQuery->get(['id', 'name', 'code', 'classification']);
+
         $users = $query->orderBy('created_at', 'desc')
             ->paginate(25)
             ->withQueryString();
@@ -54,8 +62,6 @@ class UserManagementController extends Controller
             ->pluck('count', 'role')
             ->toArray();
 
-        $departments = Department::active()->orderBy('name')->get(['id', 'name', 'code']);
-
         return Inertia::render('owner/users/index', [
             'users' => $users,
             'roleCounts' => $roleCounts,
@@ -64,6 +70,7 @@ class UserManagementController extends Controller
                 'role' => $request->role,
                 'search' => $request->search,
                 'status' => $request->status,
+                'classification' => $classification,
             ],
         ]);
     }
