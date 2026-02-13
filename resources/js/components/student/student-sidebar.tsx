@@ -1,10 +1,11 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     Calendar,
     GraduationCap,
     LayoutGrid,
     FileCheck,
+    Megaphone,
     User,
     Settings,
     FileQuestion,
@@ -23,39 +24,6 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/student/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'My Requirements',
-        href: '/student/requirements',
-        icon: FileCheck,
-    },
-    {
-        title: 'Subjects',
-        href: '/student/subjects',
-        icon: BookOpen,
-    },
-    {
-        title: 'Quizzes',
-        href: '/student/quizzes',
-        icon: FileQuestion,
-    },
-    {
-        title: 'Schedules',
-        href: '/student/schedules',
-        icon: Calendar,
-    },
-    {
-        title: 'Profile',
-        href: '/student/profile',
-        icon: User,
-    },
-];
-
 const footerNavItems: NavItem[] = [
     {
         title: 'Settings',
@@ -65,6 +33,47 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function StudentSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/student/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/student/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'My Requirements',
+            href: '/student/requirements',
+            icon: FileCheck,
+        },
+        {
+            title: 'Subjects',
+            href: '/student/subjects',
+            icon: BookOpen,
+        },
+        {
+            title: 'Quizzes',
+            href: '/student/quizzes',
+            icon: FileQuestion,
+        },
+        {
+            title: 'Schedules',
+            href: '/student/schedules',
+            icon: Calendar,
+        },
+        {
+            title: 'Profile',
+            href: '/student/profile',
+            icon: User,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
