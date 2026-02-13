@@ -269,8 +269,17 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
 
                 <Card>
                     <CardContent className="p-6">
-                        <FilterBar>
+                        <FilterBar onReset={handleReset}>
                             <SearchBar value={search} onChange={handleSearchChange} placeholder="Search schedules..." />
+                            <FilterDropdown
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' },
+                                ]}
+                            />
                             <FilterDropdown
                                 label="Department"
                                 value={selectedDepartment}
