@@ -196,6 +196,15 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('subjects', [App\Http\Controllers\Student\SubjectController::class, 'index'])->name('subjects');
     Route::get('schedules', [App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedules');
     Route::get('profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
+    
+    // Quizzes
+    Route::get('quizzes', [App\Http\Controllers\Student\QuizController::class, 'index'])->name('quizzes.index');
+    Route::get('quizzes/{quiz}', [App\Http\Controllers\Student\QuizController::class, 'show'])->name('quizzes.show');
+    Route::post('quizzes/{quiz}/start', [App\Http\Controllers\Student\QuizController::class, 'start'])->name('quizzes.start');
+    Route::get('quizzes/take/{attempt}', [App\Http\Controllers\Student\QuizController::class, 'take'])->name('quizzes.take');
+    Route::post('quizzes/take/{attempt}/save', [App\Http\Controllers\Student\QuizController::class, 'saveResponse'])->name('quizzes.save-response');
+    Route::post('quizzes/take/{attempt}/submit', [App\Http\Controllers\Student\QuizController::class, 'submit'])->name('quizzes.submit');
+    Route::get('quizzes/result/{attempt}', [App\Http\Controllers\Student\QuizController::class, 'result'])->name('quizzes.result');
 });
 
 // Teacher Portal Routes
@@ -212,6 +221,13 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('schedules', [App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedules');
     Route::get('grades', [App\Http\Controllers\Teacher\GradeController::class, 'index'])->name('grades.index');
     Route::get('attendance', [App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendance.index');
+    
+    // Quizzes
+    Route::resource('quizzes', App\Http\Controllers\Teacher\QuizController::class);
+    Route::post('quizzes/{quiz}/toggle-publish', [App\Http\Controllers\Teacher\QuizController::class, 'togglePublish'])->name('quizzes.toggle-publish');
+    Route::post('quizzes/{quiz}/toggle-active', [App\Http\Controllers\Teacher\QuizController::class, 'toggleActive'])->name('quizzes.toggle-active');
+    Route::get('quizzes/{quiz}/results', [App\Http\Controllers\Teacher\QuizController::class, 'results'])->name('quizzes.results');
+    Route::post('quiz-attempts/{attempt}/grade', [App\Http\Controllers\Teacher\QuizController::class, 'gradeAttempt'])->name('quiz-attempts.grade');
 });
 
 // Guidance Counselor Portal Routes
