@@ -7,6 +7,7 @@ use App\Models\Announcement;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AnnouncementController extends Controller
@@ -34,9 +35,9 @@ class AnnouncementController extends Controller
             $query->where('priority', $request->input('priority'));
         }
 
-        // Target audience filter
-        if ($request->filled('target_audience') && $request->input('target_audience') !== 'all') {
-            $query->where('target_audience', $request->input('target_audience'));
+        // Target role filter (filter by specific role in target_roles array)
+        if ($request->filled('target_role') && $request->input('target_role') !== 'all') {
+            $query->whereJsonContains('target_roles', $request->input('target_role'));
         }
 
         // Status filter
@@ -57,7 +58,8 @@ class AnnouncementController extends Controller
         return Inertia::render('owner/announcements/index', [
             'announcements' => $announcements,
             'departments' => $departments,
-            'filters' => $request->only(['search', 'priority', 'target_audience', 'status']),
+            'availableRoles' => Announcement::AVAILABLE_ROLES,
+            'filters' => $request->only(['search', 'priority', 'target_role', 'status']),
         ]);
     }
 
@@ -70,12 +72,14 @@ class AnnouncementController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'priority' => 'required|in:low,normal,high,urgent',
-            'target_audience' => 'required|in:all,students,teachers,parents,staff',
+            'target_roles' => 'required|array|min:1',
+            'target_roles.*' => 'in:' . implode(',', Announcement::AVAILABLE_ROLES),
             'department_id' => 'nullable|exists:departments,id',
             'published_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after:published_at',
             'is_pinned' => 'boolean',
             'is_active' => 'boolean',
+            'attachment' => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png,gif,doc,docx',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -84,6 +88,19 @@ class AnnouncementController extends Controller
         if (empty($validated['published_at'])) {
             $validated['published_at'] = now();
         }
+
+        // Handle file upload
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $path = $file->store('announcements', 'public');
+            $validated['attachment_path'] = $path;
+            $validated['attachment_name'] = $file->getClientOriginalName();
+            $validated['attachment_type'] = $file->getMimeType();
+        }
+        unset($validated['attachment']);
+
+        // Set target_audience to 'custom' since we're using target_roles
+        $validated['target_audience'] = count($validated['target_roles']) === count(Announcement::AVAILABLE_ROLES) ? 'all' : 'custom';
 
         Announcement::create($validated);
 
@@ -100,13 +117,41 @@ class AnnouncementController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'priority' => 'required|in:low,normal,high,urgent',
-            'target_audience' => 'required|in:all,students,teachers,parents,staff',
+            'target_roles' => 'required|array|min:1',
+            'target_roles.*' => 'in:' . implode(',', Announcement::AVAILABLE_ROLES),
             'department_id' => 'nullable|exists:departments,id',
             'published_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after:published_at',
             'is_pinned' => 'boolean',
             'is_active' => 'boolean',
+            'attachment' => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png,gif,doc,docx',
+            'remove_attachment' => 'boolean',
         ]);
+
+        // Handle file removal
+        if ($request->boolean('remove_attachment') && $announcement->attachment_path) {
+            Storage::disk('public')->delete($announcement->attachment_path);
+            $validated['attachment_path'] = null;
+            $validated['attachment_name'] = null;
+            $validated['attachment_type'] = null;
+        }
+
+        // Handle file upload
+        if ($request->hasFile('attachment')) {
+            // Delete old attachment if exists
+            if ($announcement->attachment_path) {
+                Storage::disk('public')->delete($announcement->attachment_path);
+            }
+            $file = $request->file('attachment');
+            $path = $file->store('announcements', 'public');
+            $validated['attachment_path'] = $path;
+            $validated['attachment_name'] = $file->getClientOriginalName();
+            $validated['attachment_type'] = $file->getMimeType();
+        }
+        unset($validated['attachment'], $validated['remove_attachment']);
+
+        // Set target_audience based on selected roles
+        $validated['target_audience'] = count($validated['target_roles']) === count(Announcement::AVAILABLE_ROLES) ? 'all' : 'custom';
 
         $announcement->update($validated);
 
@@ -119,6 +164,11 @@ class AnnouncementController extends Controller
      */
     public function destroy(Announcement $announcement)
     {
+        // Delete attachment if exists
+        if ($announcement->attachment_path) {
+            Storage::disk('public')->delete($announcement->attachment_path);
+        }
+
         $announcement->delete();
 
         return redirect()->route('owner.announcements.index')
