@@ -55,6 +55,7 @@ interface Props {
     sectionFillRates: SectionFillRate[];
     departments: Department[];
     filters: {
+        classification?: string;
         department_id?: string;
     };
 }
@@ -129,15 +130,23 @@ export default function RegistrarReportsIndex({
     departments,
     filters,
 }: Props) {
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
     const [activeTab, setActiveTab] = useState<'analytics' | 'sections'>('analytics');
 
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        setSelectedDepartment('all');
+        router.get('/registrar/reports', { classification: value, department_id: 'all' }, { preserveState: true, replace: true });
+    };
+
     const handleDepartmentChange = (value: string) => {
         setSelectedDepartment(value);
-        router.get('/registrar/reports', { department_id: value }, { preserveState: true, replace: true });
+        router.get('/registrar/reports', { classification, department_id: value }, { preserveState: true, replace: true });
     };
 
     const handleReset = () => {
+        setClassification('all');
         setSelectedDepartment('all');
         router.get('/registrar/reports', {}, { preserveState: true, replace: true });
     };
