@@ -1,10 +1,11 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     Calendar,
     ClipboardList,
     GraduationCap,
     LayoutGrid,
+    Megaphone,
     Users,
     FileQuestion,
 } from 'lucide-react';
@@ -21,50 +22,58 @@ import type { NavItem } from '@/types';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/teacher/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'My Classes',
-        href: '/teacher/classes',
-        icon: Users,
-    },
-    {
-        title: 'Students',
-        href: '/teacher/students',
-        icon: GraduationCap,
-    },
-    {
-        title: 'Subjects',
-        href: '/teacher/subjects',
-        icon: BookOpen,
-    },
-    {
-        title: 'Quizzes',
-        href: '/teacher/quizzes',
-        icon: FileQuestion,
-    },
-    {
-        title: 'Schedules',
-        href: '/teacher/schedules',
-        icon: Calendar,
-    },
-    {
-        title: 'Grades',
-        href: '/teacher/grades',
-        icon: ClipboardList,
-    },
-    {
-        title: 'Attendance',
-        href: '/teacher/attendance',
-        icon: Calendar,
-    },
-];
-
 export function TeacherSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/teacher/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/teacher/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'My Classes',
+            href: '/teacher/classes',
+            icon: Users,
+        },
+        {
+            title: 'Students',
+            href: '/teacher/students',
+            icon: GraduationCap,
+        },
+        {
+            title: 'Subjects',
+            href: '/teacher/subjects',
+            icon: BookOpen,
+        },
+        {
+            title: 'Quizzes',
+            href: '/teacher/quizzes',
+            icon: FileQuestion,
+        },
+        {
+            title: 'Schedules',
+            href: '/teacher/schedules',
+            icon: Calendar,
+        },
+        {
+            title: 'Grades',
+            href: '/teacher/grades',
+            icon: ClipboardList,
+        },
+        {
+            title: 'Attendance',
+            href: '/teacher/attendance',
+            icon: Calendar,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
