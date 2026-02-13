@@ -233,12 +233,21 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
                     <CardContent>
                         <FilterBar
                             onReset={resetFilters}
-                            showReset={!!(search || status !== 'all' || activeRole !== 'all')}
+                            showReset={!!(search || status !== 'all' || activeRole !== 'all' || classification !== 'all')}
                         >
                             <SearchBar
                                 value={search}
                                 onChange={handleSearchChange}
                                 placeholder="Search by name, email, or username..."
+                            />
+                            <FilterDropdown
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' },
+                                ]}
                             />
                             <FilterDropdown
                                 label="Status"
