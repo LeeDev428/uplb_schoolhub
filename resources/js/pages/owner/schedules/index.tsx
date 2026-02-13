@@ -25,6 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Department {
     id: number;
     name: string;
+    classification?: string;
 }
 
 interface Program {
@@ -97,6 +98,7 @@ interface Props {
     teachers: Teacher[];
     filters: {
         search?: string;
+        classification?: string;
         department_id?: string;
         status?: string;
     };
@@ -109,6 +111,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
     const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
     const [viewingSchedule, setViewingSchedule] = useState<Schedule | null>(null);
     const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
     const [status, setStatus] = useState(filters.status || 'all');
 
@@ -139,12 +142,18 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
-        router.get('/owner/schedules', { search: value, department_id: selectedDepartment, status }, { preserveState: true, replace: true });
+        router.get('/owner/schedules', { search: value, classification, department_id: selectedDepartment, status }, { preserveState: true, replace: true });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        setSelectedDepartment('all');
+        router.get('/owner/schedules', { search, classification: value, department_id: 'all', status }, { preserveState: true, replace: true });
     };
 
     const handleDepartmentFilterChange = (value: string) => {
         setSelectedDepartment(value);
-        router.get('/owner/schedules', { search, department_id: value, status }, { preserveState: true, replace: true });
+        router.get('/owner/schedules', { search, classification, department_id: value, status }, { preserveState: true, replace: true });
     };
 
     const handleStatusChange = (value: string) => {
