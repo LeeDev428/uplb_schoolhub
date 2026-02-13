@@ -287,7 +287,7 @@ export default function QuizTake({
                                 currentQuestion.type === 'true_false') && (
                                 <RadioGroup
                                     value={responses[currentQuestion.id]?.answer_id?.toString() || ''}
-                                    onValueChange={(value) =>
+                                    onValueChange={(value: string) =>
                                         handleAnswerChange(currentQuestion.id, parseInt(value))
                                     }
                                     className="space-y-3"
