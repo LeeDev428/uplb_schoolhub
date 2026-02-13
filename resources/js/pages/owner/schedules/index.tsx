@@ -139,6 +139,10 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
             ...teachers.filter(t => t.department_id !== parseInt(departmentId)),
           ]
         : teachers;
+    // Filter departments by classification for modal
+    const modalDepartments = classification !== 'all'
+        ? departments.filter(d => d.classification === classification)
+        : departments;
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
@@ -385,7 +389,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                             <Select value={departmentId} onValueChange={(v) => { setDepartmentId(v); setProgramId(''); setYearLevelId(''); setSectionId(''); setTeacherId(''); }}>
                                 <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
                                 <SelectContent>
-                                    {departments.map(d => (
+                                    {modalDepartments.map(d => (
                                         <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>
                                     ))}
                                 </SelectContent>
