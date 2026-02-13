@@ -230,6 +230,21 @@ class StudentController extends Controller
     public function show(Student $student)
     {
         $student->load(['requirements.requirement.category', 'enrollmentClearance']);
+        
+        // Auto-assign requirements if none exist for this student
+        if ($student->requirements->isEmpty()) {
+            $requirements = Requirement::where('is_active', true)->get();
+            foreach ($requirements as $requirement) {
+                StudentRequirement::firstOrCreate([
+                    'student_id' => $student->id,
+                    'requirement_id' => $requirement->id,
+                ], [
+                    'status' => 'pending',
+                ]);
+            }
+            // Reload requirements
+            $student->load('requirements.requirement.category');
+        }
 
         // Calculate requirements completion percentage
         $totalRequirements = $student->requirements->count();
