@@ -100,7 +100,7 @@ class StudentController extends Controller
         $allYearLevels = YearLevel::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id', 'level_number']);
         $sections = Section::where('is_active', true)
             ->with(['yearLevel:id,name', 'department:id,name', 'strand:id,name,code'])
-            ->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'school_year']);
+            ->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'code', 'capacity', 'room_number']);
 
         return Inertia::render('registrar/students/index', [
             'students' => $students,
@@ -258,7 +258,7 @@ class StudentController extends Controller
             'departments' => Department::where('is_active', true)->get(['id', 'name', 'code', 'classification']),
             'programs' => Program::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id']),
             'yearLevels' => YearLevel::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id', 'level_number']),
-            'sections' => Section::where('is_active', true)->with(['yearLevel:id,name', 'department:id,name', 'strand:id,name,code'])->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'school_year']),
+            'sections' => Section::where('is_active', true)->with(['yearLevel:id,name', 'department:id,name', 'strand:id,name,code'])->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'code', 'capacity', 'room_number']),
         ]);
     }
 
