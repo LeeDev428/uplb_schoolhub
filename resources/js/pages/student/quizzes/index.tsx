@@ -364,18 +364,7 @@ export default function QuizzesIndex({ quizzes, subjects, filters }: Props) {
                 {/* Pagination */}
                 {quizzes.last_page > 1 && (
                     <div className="flex justify-center">
-                        <Pagination
-                            currentPage={quizzes.current_page}
-                            totalPages={quizzes.last_page}
-                            onPageChange={(page) => {
-                                router.get('/student/quizzes', {
-                                    ...filters,
-                                    page,
-                                }, {
-                                    preserveState: true,
-                                });
-                            }}
-                        />
+                        <Pagination data={quizzes} />
                     </div>
                 )}
             </div>
