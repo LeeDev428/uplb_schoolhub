@@ -1,9 +1,10 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ClipboardList,
     FileText,
     GraduationCap,
     LayoutGrid,
+    Megaphone,
     Shield,
     Users,
 } from 'lucide-react';
@@ -20,20 +21,28 @@ import type { NavItem } from '@/types';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/guidance/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Records',
-        href: '/guidance/records',
-        icon: ClipboardList,
-    },
-];
-
 export function GuidanceSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/guidance/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/guidance/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'Records',
+            href: '/guidance/records',
+            icon: ClipboardList,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
