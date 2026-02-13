@@ -76,7 +76,7 @@ class AnnouncementController extends Controller
             'target_roles.*' => 'in:' . implode(',', Announcement::AVAILABLE_ROLES),
             'department_id' => 'nullable|exists:departments,id',
             'published_at' => 'nullable|date',
-            'expires_at' => 'nullable|date|after:published_at',
+            'expires_at' => 'nullable|date|after_or_equal:published_at',
             'is_pinned' => 'boolean',
             'is_active' => 'boolean',
             'attachment' => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png,gif,doc,docx',
@@ -121,12 +121,22 @@ class AnnouncementController extends Controller
             'target_roles.*' => 'in:' . implode(',', Announcement::AVAILABLE_ROLES),
             'department_id' => 'nullable|exists:departments,id',
             'published_at' => 'nullable|date',
-            'expires_at' => 'nullable|date|after:published_at',
+            'expires_at' => 'nullable|date|after_or_equal:published_at',
             'is_pinned' => 'boolean',
             'is_active' => 'boolean',
             'attachment' => 'nullable|file|max:10240|mimes:pdf,jpg,jpeg,png,gif,doc,docx',
             'remove_attachment' => 'boolean',
         ]);
+
+        // If published_at is cleared, set to now (publish immediately)
+        if (!isset($validated['published_at']) || empty($validated['published_at'])) {
+            $validated['published_at'] = now();
+        }
+
+        // If expires_at is cleared, set to null
+        if (!isset($validated['expires_at']) || empty($validated['expires_at'])) {
+            $validated['expires_at'] = null;
+        }
 
         // Handle file removal
         if ($request->boolean('remove_attachment') && $announcement->attachment_path) {
