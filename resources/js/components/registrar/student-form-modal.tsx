@@ -91,6 +91,21 @@ export function StudentFormModal({
         }
     }, [student]);
 
+    // Initialize selection states when editing a student
+    useEffect(() => {
+        if (student) {
+            setSelectedDepartmentId(student.department_id?.toString() || '');
+            setSelectedYearLevelId(student.year_level_id?.toString() || '');
+            // Find program ID by name if program exists
+            const matchedProgram = programs.find(p => p.name === student.program);
+            setSelectedProgramId(matchedProgram?.id?.toString() || '');
+        } else {
+            setSelectedDepartmentId('');
+            setSelectedYearLevelId('');
+            setSelectedProgramId('');
+        }
+    }, [student, programs]);
+
     const { data, setData, post, put, processing, errors, reset } = useForm({
         first_name: student?.first_name || '',
         last_name: student?.last_name || '',
@@ -110,9 +125,12 @@ export function StudentFormModal({
         zip_code: student?.zip_code || '',
         student_type: student?.student_type || 'new',
         school_year: student?.school_year || '',
+        department_id: student?.department_id?.toString() || '',
         program: student?.program || '',
         year_level: student?.year_level || '',
+        year_level_id: student?.year_level_id?.toString() || '',
         section: student?.section || '',
+        section_id: student?.section_id?.toString() || '',
         enrollment_status: student?.enrollment_status || 'pending-registrar',
         requirements_status: student?.requirements_status || 'incomplete',
         requirements_percentage: student?.requirements_percentage || 0,
@@ -402,9 +420,12 @@ export function StudentFormModal({
                                         setSelectedDepartmentId(value);
                                         setSelectedProgramId('');
                                         setSelectedYearLevelId('');
+                                        setData('department_id', value);
                                         setData('program', '');
                                         setData('year_level', '');
+                                        setData('year_level_id', '');
                                         setData('section', '');
+                                        setData('section_id', '');
                                     }}
                                 >
                                     <SelectTrigger>
@@ -430,7 +451,9 @@ export function StudentFormModal({
                                         setSelectedYearLevelId(value);
                                         const yearLevel = yearLevels.find(yl => yl.id.toString() === value);
                                         setData('year_level', yearLevel?.name || '');
+                                        setData('year_level_id', value);
                                         setData('section', '');
+                                        setData('section_id', '');
                                     }}
                                     disabled={!selectedDepartmentId}
                                 >
@@ -489,7 +512,11 @@ export function StudentFormModal({
                                 <Label htmlFor="section">Section *</Label>
                                 <Select 
                                     value={data.section} 
-                                    onValueChange={(value) => setData('section', value)}
+                                    onValueChange={(value) => {
+                                        const section = filteredSections.find(s => s.name === value);
+                                        setData('section', value);
+                                        setData('section_id', section?.id?.toString() || '');
+                                    }}
                                     disabled={!selectedYearLevelId}
                                 >
                                     <SelectTrigger className={errors.section ? 'border-red-500' : ''}>
