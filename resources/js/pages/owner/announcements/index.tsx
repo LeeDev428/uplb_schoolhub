@@ -570,21 +570,6 @@ export default function AnnouncementsIndex({ announcements, departments, availab
                                         </SelectContent>
                                     </Select>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="department_id">Department (Optional)</Label>
-                                    <Select value={data.department_id || 'none'} onValueChange={v => setData('department_id', v === 'none' ? '' : v)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="All departments" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">All Departments</SelectItem>
-                                            {departments.map(dept => (
-                                                <SelectItem key={dept.id} value={dept.id.toString()}>{dept.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </div>
 
                             {/* Target Roles Multi-Select */}
