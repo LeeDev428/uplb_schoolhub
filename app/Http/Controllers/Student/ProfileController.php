@@ -29,6 +29,7 @@ class ProfileController extends Controller
                 'last_name' => $student->last_name,
                 'suffix' => $student->suffix,
                 'full_name' => $student->full_name,
+                'student_photo_url' => $student->student_photo_url,
                 'date_of_birth' => $student->date_of_birth?->format('M d, Y'),
                 'gender' => $student->gender,
                 'phone' => $student->phone,
