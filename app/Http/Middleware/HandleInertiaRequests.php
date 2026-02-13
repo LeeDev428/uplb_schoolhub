@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Announcement;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -51,6 +52,30 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'announcementCount' => $this->getAnnouncementCount($user),
         ];
+    }
+
+    /**
+     * Get the count of active announcements for the user's role.
+     */
+    protected function getAnnouncementCount($user): int
+    {
+        if (!$user || !$user->role) {
+            return 0;
+        }
+
+        return Announcement::query()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->forRole($user->role)
+            ->count();
     }
 }
