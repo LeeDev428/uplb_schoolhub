@@ -42,6 +42,8 @@ interface Student {
     id: number;
     first_name: string;
     last_name: string;
+    middle_name?: string | null;
+    suffix?: string | null;
     lrn: string;
     student_type: string;
     program: string;
@@ -291,7 +293,9 @@ export default function RequirementsTracking({ students, requirements, programs,
                                                     <AvatarFallback>{initials}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <div className="font-medium">{`${student.first_name} ${student.last_name}`}</div>
+                                                    <div className="font-medium">
+                                                        {`${student.last_name}, ${student.first_name}${student.middle_name ? ` ${student.middle_name}` : ''}${student.suffix ? ` ${student.suffix}` : ''}`}
+                                                    </div>
                                                     <div className="text-sm text-muted-foreground">{student.lrn}</div>
                                                 </div>
                                             </div>
