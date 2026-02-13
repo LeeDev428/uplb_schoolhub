@@ -181,6 +181,12 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::get('payments/create', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'create'])->name('payments.create');
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
     
+    // Student Clearance Management
+    Route::get('clearance', [App\Http\Controllers\Accounting\StudentClearanceController::class, 'index'])->name('clearance.index');
+    Route::get('clearance/{student}', [App\Http\Controllers\Accounting\StudentClearanceController::class, 'show'])->name('clearance.show');
+    Route::put('clearance/{student}', [App\Http\Controllers\Accounting\StudentClearanceController::class, 'updateClearance'])->name('clearance.update');
+    Route::post('clearance/bulk-clear', [App\Http\Controllers\Accounting\StudentClearanceController::class, 'bulkClear'])->name('clearance.bulk');
+    
     // Reports
     Route::get('reports', [App\Http\Controllers\Accounting\ReportsController::class, 'index'])->name('reports');
     Route::get('reports/export', [App\Http\Controllers\Accounting\ReportsController::class, 'export'])->name('reports.export');
