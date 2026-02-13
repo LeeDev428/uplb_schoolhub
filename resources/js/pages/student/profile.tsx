@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import { User, Mail, Phone, MapPin, Calendar, Users, BookOpen, GraduationCap, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StudentPhoto } from '@/components/ui/student-photo';
 import StudentLayout from '@/layouts/student/student-layout';
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
         middle_name: string | null;
         last_name: string;
         full_name: string;
+        student_photo_url: string | null;
         date_of_birth: string | null;
         gender: string | null;
         contact_number: string | null;
@@ -60,9 +62,13 @@ export default function Profile({ student, user }: Props) {
                 <Card>
                     <CardHeader>
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-600 to-green-700 text-white shadow-lg">
-                                    <User className="h-8 w-8" />
+                            <div StudentPhoto
+                                    src={student.student_photo_url}
+                                    firstName={student.first_name}
+                                    lastName={student.last_name}
+                                    size="2xl"
+                                    bordered
+                                /User className="h-8 w-8" />
                                 </div>
                                 <div>
                                     <CardTitle className="text-2xl">{student.full_name}</CardTitle>
