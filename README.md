@@ -513,16 +513,16 @@ school-mgmt_lms_pos/
 
 | Role | Access Level | Key Features |
 |------|--------------|--------------|
-| **Owner/Admin** | Full System | All modules, system settings, user management |
-| **Registrar** | Academic Records | Student enrollment, records, transcripts |
-| **Accounting** | Financial | Billing, payments, financial reports |
-| **Teacher** | Academic Content | Grades, attendance, lessons, assignments |
-| **Student** | Personal Records | Grades, schedule, wallet, submissions |
-| **Parent** | Student Monitoring | View student records, grades, fees, attendance |
-| **Guidance** | Student Welfare | Counseling records, case monitoring |
-| **Librarian** | Library System | Book management, borrowing, penalties |
-| **Clinic** | Health Records | Medical records, clinic visits, health reports |
-| **Canteen** | POS System | Sales, product management, wallet integration |
+| **Owner/Admin** | Full System | Manage all modules, users, academic structure, announcements |
+| **Registrar** | Academic Records | Student enrollment, records, requirements, classes, deadlines |
+| **Accounting** | Financial | Fees, payments, clearance, financial reports |
+| **Teacher** | Academic Content | Students, classes, schedules, quizzes (create/grade) |
+| **Student** | Personal Records | Schedule, subjects, profile, quizzes (take), requirements |
+| **Parent** | Student Monitoring | View children's schedules and subjects |
+| **Guidance** | Student Welfare | Guidance records, student case management |
+| **Librarian** | Library System | Book inventory, borrowing/return transactions |
+| **Clinic** | Health Records | (Placeholder) Medical records, clinic visits |
+| **Canteen** | POS System | (Placeholder) Sales, products, wallet integration |
 
 ---
 
@@ -581,50 +581,60 @@ php artisan test --coverage
 ✅ **Section Program Relationship Error** *(Fixed: Feb 10, 2026)*
 - Issue: `Call to undefined relationship [program] on model [App\Models\Section]`
 - Fix: Updated `Section` model to use `department` and `strand` instead of deprecated `program` relationship
-- Location: `app/Http/Controllers/StudentController.php:105`
 
 ✅ **Schedule Section Relationship Error** *(Fixed: Feb 11, 2026)*
 - Issue: `Call to undefined relationship [program] on model [App\Models\Section]` in ScheduleController
 - Fix: Changed `Section::with(['program', 'yearLevel'])` to `Section::with(['department', 'yearLevel'])`
-- Location: `app/Http/Controllers/Owner/ScheduleController.php`
 
 ✅ **Department Filtering for Portals** *(Fixed: Feb 11, 2026)*
 - Issue: Student/Teacher/Parent portals showing wrong department data
 - Fix: Student uses Program lookup, Teacher uses teacher record, Parent uses children's programs
-- Location: `app/Http/Controllers/{Student,Teacher,Parent}/SubjectController.php`
+
+✅ **Announcements Not Displaying** *(Fixed: Feb 13, 2026)*
+- Issue: Role-targeted announcements not showing for some roles
+- Fix: Restored `published_at` condition to allow NULL (immediate publish) and past dates
+
+✅ **Profile Image Not Showing in Dropdown** *(Fixed: Feb 13, 2026)*
+- Issue: User dropdown showing initials instead of profile photo
+- Fix: Added `avatar` field to shared Inertia auth data from User model's `profile_photo_url` accessor
 
 ---
 
 ## 🗺️ Roadmap
 
-### **Phase 1: Core Academic Management** (Current - 40% Complete)
-- [x] Owner/Admin Portal
-- [x] Department & Section Management
-- [x] Student Records System
-- [x] Basic Accounting
-- [x] Subject Management (Owner/Registrar CRUD + role-based viewing)
-- [x] Schedule Management (PDF upload with teacher assignment)
-- [x] Teacher/Student/Parent portals (basic schedule & subject viewing)
+### **Phase 1: Core Academic Management** ✅ `COMPLETE (45%)`
+- [x] Owner/Admin Portal (95%)
+- [x] Department, Section, Year Level Management
+- [x] Student Records System with Requirements
+- [x] Registrar Portal (75%)
+- [x] Accounting Portal with Fees/Payments (65%)
+- [x] Subject Management (multi-role CRUD)
+- [x] Schedule Management (PDF upload)
+- [x] Quiz System (Teacher create, Student take)
+- [x] Role-targeted Announcements
+- [x] All portals with basic schedule & subject viewing
 
-### **Phase 2: Academic Operations** (Next - Target: 65%)
-- [ ] Teacher Portal (Grades, attendance, lessons, assignments)
-- [ ] Parent Portal with Auto-Creation
-- [ ] Guidance Counselor Portal
-- [ ] Librarian Portal
-- [ ] Update login logic (Email-based for students/parents)
+### **Phase 2: Academic Operations** 🔄 `IN PROGRESS (Target: 65%)`
+- [x] Teacher Portal with quiz management (40%)
+- [x] Student Portal with quiz taking (35%)
+- [x] Guidance Counselor basics (20%)
+- [x] Librarian basics (25%)
+- [ ] Teacher grade encoding
+- [ ] Teacher attendance marking
+- [ ] Parent Portal completion
+- [ ] Academic transcript generation
 
-### **Phase 3: E-LMS Integration** (Target: 85%)
-- [ ] Student Portal with LMS features
+### **Phase 3: E-LMS Completion** (Target: 85%)
 - [ ] Lessons & Modules Upload
-- [ ] Assignments & Quizzes
-- [ ] Student Submissions
-- [ ] Grading System
+- [ ] Assignments (create/submit)
+- [ ] Student grades viewing
+- [ ] Enhanced grading system
+- [ ] Student wallet/balance
 
 ### **Phase 4: Advanced Features** (Target: 100%)
 - [ ] RFID Attendance System
-- [ ] Medical/Clinic Module
-- [ ] Canteen POS Integration
-- [ ] Student Wallet System
+- [ ] Medical/Clinic Module completion
+- [ ] Canteen POS with wallet integration
 - [ ] Mobile Applications (Android & iOS)
 - [ ] Real-time Notifications
 - [ ] Advanced Analytics & Reports
@@ -656,8 +666,6 @@ For issues, questions, or feature requests:
 
 <div align="center">
 
-**Built with ❤️ using Laravel, React, and TypeScript**
+**Built with ❤️ using Laravel 12, React 19, TypeScript 5, and TailwindCSS 4**
 
-*Project Progress: 40% Complete | Last Updated: February 11, 2026*
-
-</div>
+*Project Progress: 45% Complete | Last Updated: February 13, 2026*
