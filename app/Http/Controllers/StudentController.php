@@ -239,7 +239,12 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        $student->load(['requirements.requirement.category', 'enrollmentClearance']);
+        $student->load([
+            'requirements.requirement.category', 
+            'enrollmentClearance',
+            'actionLogs.performer',
+            'enrollmentHistories.enrolledBy'
+        ]);
         
         // Auto-assign requirements if none exist for this student
         if ($student->requirements->isEmpty()) {
@@ -279,6 +284,8 @@ class StudentController extends Controller
             'student' => $student,
             'requirementsCompletion' => $requirementsPercentage,
             'enrollmentClearance' => $student->enrollmentClearance,
+            'actionLogs' => $student->actionLogs->sortByDesc('created_at')->values(),
+            'enrollmentHistories' => $student->enrollmentHistories->sortByDesc('school_year')->values(),
             // Academic structure data for edit modal
             'departments' => Department::where('is_active', true)->get(['id', 'name', 'code', 'classification']),
             'programs' => Program::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id']),
