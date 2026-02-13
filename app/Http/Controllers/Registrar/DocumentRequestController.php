@@ -13,12 +13,22 @@ class DocumentRequestController extends Controller
 {
     public function index(Request $request)
     {
+        $classification = $request->input('classification', 'all');
+        
         $query = StudentDocument::with([
             'student:id,name,student_id,program,year_level',
-            'requirement:id,name,requirement_category_id',
+            'requirement:id,name,requirement_category_id,deadline_id',
             'requirement.category:id,name',
+            'requirement.deadline:id,classification',
             'reviewer:id,name'
         ]);
+
+        // Classification filter - filter by requirement's deadline classification
+        if ($classification !== 'all') {
+            $query->whereHas('requirement.deadline', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
 
         // Search filter
         if ($request->filled('search')) {
@@ -41,10 +51,14 @@ class DocumentRequestController extends Controller
 
         $documents = $query->latest('submitted_at')->paginate(15)->withQueryString();
 
-        // Get all requirements for filter dropdown
-        $requirements = Requirement::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        // Get requirements for filter dropdown (optionally filtered by classification)
+        $requirementsQuery = Requirement::where('is_active', true);
+        if ($classification !== 'all') {
+            $requirementsQuery->whereHas('deadline', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
+        $requirements = $requirementsQuery->orderBy('name')->get(['id', 'name']);
 
         // Get statistics
         $stats = [
@@ -58,7 +72,7 @@ class DocumentRequestController extends Controller
             'documents' => $documents,
             'requirements' => $requirements,
             'stats' => $stats,
-            'filters' => $request->only(['search', 'status', 'requirement']),
+            'filters' => array_merge($request->only(['search', 'status', 'requirement']), ['classification' => $classification]),
         ]);
     }
 
