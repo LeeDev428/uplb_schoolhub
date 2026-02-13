@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Archive,
     BookOpen,
@@ -8,6 +8,7 @@ import {
     GraduationCap,
     LayoutGrid,
     ListChecks,
+    Megaphone,
     Settings,
     Users,
 } from 'lucide-react';
@@ -25,59 +26,6 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/registrar/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Students',
-        href: '/registrar/students',
-        icon: Users,
-    },
-    {
-        title: 'Subjects',
-        href: '/registrar/subjects',
-        icon: BookOpen,
-    },
-    {
-        title: 'Requirements',
-        href: '/registrar/requirements',
-        icon: ListChecks,
-    },
-    {
-        title: 'Create Documents',
-        href: '/registrar/documents/create',
-        icon: FileText,
-    },
-    {
-        title: 'Document Requests',
-        href: '/registrar/documents/requests',
-        icon: BookText,
-    },
-    {
-        title: 'Deadlines',
-        href: '/registrar/deadlines',
-        icon: Calendar,
-    },
-    {
-        title: 'Classes',
-        href: '/registrar/classes',
-        icon: GraduationCap,
-    },
-    {
-        title: 'Schedule',
-        href: '/registrar/schedule',
-        icon: Calendar,
-    },
-    {
-        title: 'Reports',
-        href: '/registrar/reports',
-        icon: FileText,
-    },
-];
-
 const footerNavItems: NavItem[] = [
     // {
     //     title: 'Archived',
@@ -92,6 +40,67 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function RegistrarSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/registrar/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/registrar/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'Students',
+            href: '/registrar/students',
+            icon: Users,
+        },
+        {
+            title: 'Subjects',
+            href: '/registrar/subjects',
+            icon: BookOpen,
+        },
+        {
+            title: 'Requirements',
+            href: '/registrar/requirements',
+            icon: ListChecks,
+        },
+        {
+            title: 'Create Documents',
+            href: '/registrar/documents/create',
+            icon: FileText,
+        },
+        {
+            title: 'Document Requests',
+            href: '/registrar/documents/requests',
+            icon: BookText,
+        },
+        {
+            title: 'Deadlines',
+            href: '/registrar/deadlines',
+            icon: Calendar,
+        },
+        {
+            title: 'Classes',
+            href: '/registrar/classes',
+            icon: GraduationCap,
+        },
+        {
+            title: 'Schedule',
+            href: '/registrar/schedule',
+            icon: Calendar,
+        },
+        {
+            title: 'Reports',
+            href: '/registrar/reports',
+            icon: FileText,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
