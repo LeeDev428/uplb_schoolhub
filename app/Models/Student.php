@@ -143,6 +143,14 @@ class Student extends Model
     }
 
     /**
+     * Get the department (alias for departmentModel)
+     */
+    public function department()
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    /**
      * Get the year level of this student
      */
     public function yearLevelModel()
