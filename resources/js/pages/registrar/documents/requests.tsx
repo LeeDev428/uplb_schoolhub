@@ -85,6 +85,7 @@ interface Props {
     };
     filters: {
         search?: string;
+        classification?: string;
         status?: string;
         requirement?: string;
     };
@@ -92,6 +93,7 @@ interface Props {
 
 export default function DocumentRequests({ documents, requirements, stats, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [status, setStatus] = useState(filters.status || 'all');
     const [requirement, setRequirement] = useState(filters.requirement || 'all');
     const [selectedDocument, setSelectedDocument] = useState<StudentDocument | null>(null);
@@ -103,8 +105,23 @@ export default function DocumentRequests({ documents, requirements, stats, filte
         setSearch(value);
         router.get('/registrar/documents/requests', {
             search: value,
+            classification,
             status,
             requirement,
+        }, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        setRequirement('all'); // Reset requirement when classification changes
+        router.get('/registrar/documents/requests', {
+            search,
+            classification: value,
+            status,
+            requirement: 'all',
         }, {
             preserveState: true,
             replace: true,
@@ -115,6 +132,7 @@ export default function DocumentRequests({ documents, requirements, stats, filte
         setStatus(value);
         router.get('/registrar/documents/requests', {
             search,
+            classification,
             status: value,
             requirement,
         }, {
@@ -127,12 +145,21 @@ export default function DocumentRequests({ documents, requirements, stats, filte
         setRequirement(value);
         router.get('/registrar/documents/requests', {
             search,
+            classification,
             status,
             requirement: value,
         }, {
             preserveState: true,
             replace: true,
         });
+    };
+
+    const handleReset = () => {
+        setSearch('');
+        setClassification('all');
+        setStatus('all');
+        setRequirement('all');
+        router.get('/registrar/documents/requests');
     };
 
     const openApproveDialog = (doc: StudentDocument) => {
@@ -265,11 +292,20 @@ export default function DocumentRequests({ documents, requirements, stats, filte
                 {/* Filters */}
                 <Card>
                     <CardContent className="p-6">
-                        <FilterBar>
+                        <FilterBar onReset={handleReset}>
                             <SearchBar
                                 value={search}
                                 onChange={handleSearchChange}
                                 placeholder="Search by student name or ID..."
+                            />
+                            <FilterDropdown
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' },
+                                ]}
                             />
                             <FilterDropdown
                                 label="Status"
