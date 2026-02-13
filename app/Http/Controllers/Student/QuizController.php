@@ -78,7 +78,7 @@ class QuizController extends Controller
         });
 
         // Get subjects for filtering
-        $subjects = $student->subjects()->get();
+        $subjects = $student->subjects;
 
         return Inertia::render('student/quizzes/index', [
             'quizzes' => $quizzes,
@@ -92,7 +92,7 @@ class QuizController extends Controller
         $student = Auth::user()->student;
 
         // Verify student has access to this quiz
-        if (!$quiz->subject->students()->where('students.id', $student->id)->exists()) {
+        if (!$quiz->subject->hasStudent($student->id)) {
             abort(403, 'You do not have access to this quiz.');
         }
 
@@ -126,7 +126,7 @@ class QuizController extends Controller
         $student = Auth::user()->student;
 
         // Verify student has access
-        if (!$quiz->subject->students()->where('students.id', $student->id)->exists()) {
+        if (!$quiz->subject->hasStudent($student->id)) {
             abort(403, 'You do not have access to this quiz.');
         }
 
