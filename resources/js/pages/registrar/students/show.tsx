@@ -10,7 +10,9 @@ import {
     CheckCircle2,
     Clock,
     AlertCircle,
-    UserX
+    UserX,
+    GraduationCap,
+    Calendar
 } from 'lucide-react';
 import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +24,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
+import { EnrollmentHistoryModal } from '@/components/registrar/enrollment-history-modal';
+import { UpdateHistory } from '@/components/registrar/update-history';
 
 interface StudentRequirement {
     id: number;
