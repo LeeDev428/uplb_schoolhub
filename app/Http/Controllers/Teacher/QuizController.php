@@ -72,6 +72,10 @@ class QuizController extends Controller
     {
         $teacher = Auth::user()->teacher;
 
+        if (!$teacher) {
+            abort(403, 'You must be a teacher to access this page.');
+        }
+
         $subjects = Subject::whereHas('teachers', function ($q) use ($teacher) {
             $q->where('teachers.id', $teacher->id);
         })->get();
