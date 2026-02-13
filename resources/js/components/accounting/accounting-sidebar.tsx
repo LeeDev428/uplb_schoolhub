@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import {
     BadgeDollarSign,
+    ClipboardCheck,
     FileText,
     LayoutGrid,
     Receipt,
@@ -26,6 +27,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/accounting/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Student Clearance',
+        href: '/accounting/clearance',
+        icon: ClipboardCheck,
     },
     {
         title: 'Student Fees',
@@ -73,7 +79,7 @@ export function AccountingSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={mainNavItems} title="Platform" />
+                <NavMain items={mainNavItems} />
             </SidebarContent>
             <SidebarFooter>
                 <NavFooter items={footerNavItems} />
