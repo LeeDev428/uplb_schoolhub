@@ -160,7 +160,6 @@ export default function AnnouncementsIndex({ announcements, departments, availab
         content: string;
         priority: string;
         target_roles: string[];
-        department_id: string;
         published_at: string;
         expires_at: string;
         is_pinned: boolean;
@@ -172,7 +171,6 @@ export default function AnnouncementsIndex({ announcements, departments, availab
         content: '',
         priority: 'normal',
         target_roles: [],
-        department_id: '',
         published_at: '',
         expires_at: '',
         is_pinned: false,
@@ -224,7 +222,6 @@ export default function AnnouncementsIndex({ announcements, departments, availab
             content: '',
             priority: 'normal',
             target_roles: [],
-            department_id: '',
             published_at: '',
             expires_at: '',
             is_pinned: false,
@@ -242,7 +239,6 @@ export default function AnnouncementsIndex({ announcements, departments, availab
             content: announcement.content,
             priority: announcement.priority,
             target_roles: announcement.target_roles || [],
-            department_id: announcement.department_id?.toString() || '',
             published_at: announcement.published_at ? format(new Date(announcement.published_at), 'yyyy-MM-dd\'T\'HH:mm') : '',
             expires_at: announcement.expires_at ? format(new Date(announcement.expires_at), 'yyyy-MM-dd\'T\'HH:mm') : '',
             is_pinned: announcement.is_pinned,
@@ -280,7 +276,6 @@ export default function AnnouncementsIndex({ announcements, departments, availab
         data.target_roles.forEach((role, index) => {
             formData.append(`target_roles[${index}]`, role);
         });
-        if (data.department_id) formData.append('department_id', data.department_id);
         if (data.published_at) formData.append('published_at', data.published_at);
         if (data.expires_at) formData.append('expires_at', data.expires_at);
         formData.append('is_pinned', data.is_pinned ? '1' : '0');
@@ -448,12 +443,6 @@ export default function AnnouncementsIndex({ announcements, departments, availab
                                                     <span>By {announcement.creator?.name || 'Unknown'}</span>
                                                     <span>•</span>
                                                     <span>{format(new Date(announcement.created_at), 'MMM d, yyyy h:mm a')}</span>
-                                                    {announcement.department && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span>{announcement.department.name}</span>
-                                                        </>
-                                                    )}
                                                 </div>
                                             </div>
                                             <DropdownMenu>
