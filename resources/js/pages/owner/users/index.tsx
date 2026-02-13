@@ -2,7 +2,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
-import { Plus, Pencil, Trash2, Shield, Mail, Phone, UserCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Shield, Mail, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import { FilterBar } from '@/components/filters/filter-bar';
 import { Pagination } from '@/components/ui/pagination';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface UserRecord {
     id: number;
@@ -25,6 +26,7 @@ interface UserRecord {
     phone: string | null;
     email_verified_at: string | null;
     created_at: string;
+    profile_photo_url: string | null;
 }
 
 interface DepartmentOption {
@@ -299,8 +301,13 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
                                                 users.data.map((user) => (
                                                     <tr key={user.id} className="border-b hover:bg-gray-50">
                                                         <td className="p-3 font-medium">
-                                                            <div className="flex items-center gap-2">
-                                                                <UserCircle className="h-5 w-5 text-gray-400" />
+                                                            <div className="flex items-center gap-3">
+                                                                <Avatar className="h-8 w-8">
+                                                                    <AvatarImage src={user.profile_photo_url || undefined} />
+                                                                    <AvatarFallback className="text-xs">
+                                                                        {user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
                                                                 {user.name}
                                                             </div>
                                                         </td>
