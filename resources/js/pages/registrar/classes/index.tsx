@@ -328,6 +328,15 @@ export default function RegistrarClassesIndex({
                 <FilterBar onReset={handleReset}>
                     <SearchBar value={search} onChange={handleSearchChange} placeholder="Search students..." />
                     <FilterDropdown
+                        label="Classification"
+                        value={classification}
+                        onChange={handleClassificationChange}
+                        options={[
+                            { value: 'K-12', label: 'K-12' },
+                            { value: 'College', label: 'College' },
+                        ]}
+                    />
+                    <FilterDropdown
                         label="Department"
                         value={selectedDepartment}
                         onChange={handleDepartmentChange}
