@@ -83,8 +83,9 @@ class Subject extends Model
     /**
      * Get students who should have access to this subject.
      * Students are linked via their department and year level.
+     * Returns a query builder - call get() to retrieve results.
      */
-    public function students()
+    public function studentsQuery()
     {
         $query = Student::where('department_id', $this->department_id);
         
@@ -94,6 +95,14 @@ class Subject extends Model
         }
         
         return $query;
+    }
+
+    /**
+     * Check if a student has access to this subject.
+     */
+    public function hasStudent($studentId): bool
+    {
+        return $this->studentsQuery()->where('students.id', $studentId)->exists();
     }
 
     /**
