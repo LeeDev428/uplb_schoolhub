@@ -84,6 +84,28 @@ class User extends Authenticatable
         ];
     }
 
+    protected $appends = ['profile_photo_url'];
+
+    /**
+     * Get the URL of the user's profile photo based on their role.
+     */
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if ($this->student_id && $this->student) {
+            return $this->student->student_photo_url;
+        }
+        
+        if ($this->teacher_id && $this->teacher) {
+            return $this->teacher->photo_url;
+        }
+        
+        if ($this->parent_id && $this->parent) {
+            return $this->parent->photo_url ?? null;
+        }
+        
+        return null;
+    }
+
     /**
      * Check if user is owner
      */
