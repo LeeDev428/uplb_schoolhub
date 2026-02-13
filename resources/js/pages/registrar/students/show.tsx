@@ -12,7 +12,8 @@ import {
     AlertCircle,
     UserX,
     GraduationCap,
-    Calendar
+    Calendar,
+    Plus
 } from 'lucide-react';
 import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,6 +22,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
@@ -166,6 +170,15 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
     const [showEditModal, setShowEditModal] = useState(false);
     const [showEnrollmentHistoryModal, setShowEnrollmentHistoryModal] = useState(false);
     const [activeTab, setActiveTab] = useState('requirements');
+    
+    // Notes dialog state
+    const [showNotesDialog, setShowNotesDialog] = useState(false);
+    const [pendingRequirementUpdate, setPendingRequirementUpdate] = useState<{id: number; status: string} | null>(null);
+    const [notes, setNotes] = useState('');
+    
+    // Add note dialog state
+    const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
+    const [newNote, setNewNote] = useState('');
 
     const fullName = `${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''} ${student.last_name}${student.suffix ? ' ' + student.suffix : ''}`;
     const initials = `${student.first_name[0]}${student.last_name[0]}`;
@@ -191,16 +204,48 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
     const handleRequirementToggle = (studentRequirementId: number, currentStatus: string) => {
         // Toggle between pending and approved
         const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
+        setPendingRequirementUpdate({ id: studentRequirementId, status: newStatus });
+        setNotes('');
+        setShowNotesDialog(true);
+    };
+
+    const confirmRequirementUpdate = () => {
+        if (!pendingRequirementUpdate) return;
         
-        router.put(`/registrar/student-requirements/${studentRequirementId}/status`, {
-            status: newStatus,
+        router.put(`/registrar/student-requirements/${pendingRequirementUpdate.id}/status`, {
+            status: pendingRequirementUpdate.status,
+            notes: notes || null,
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success(`Requirement marked as ${newStatus}`);
+                toast.success(`Requirement marked as ${pendingRequirementUpdate.status}`);
+                setShowNotesDialog(false);
+                setPendingRequirementUpdate(null);
+                setNotes('');
             },
             onError: () => {
                 toast.error('Failed to update requirement status');
+            },
+        });
+    };
+
+    const handleAddNote = () => {
+        if (!newNote.trim()) {
+            toast.error('Please enter a note');
+            return;
+        }
+        
+        router.post(`/registrar/students/${student.id}/notes`, {
+            notes: newNote,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Note added successfully');
+                setShowAddNoteDialog(false);
+                setNewNote('');
+            },
+            onError: () => {
+                toast.error('Failed to add note');
             },
         });
     };
@@ -585,6 +630,12 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
 
                     {/* Transaction History Tab */}
                     <TabsContent value="history" className="space-y-6">
+                        <div className="flex justify-end mb-4">
+                            <Button onClick={() => setShowAddNoteDialog(true)} variant="outline">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Note
+                            </Button>
+                        </div>
                         <UpdateHistory logs={actionLogs} />
                     </TabsContent>
                 </Tabs>
@@ -611,6 +662,70 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                 studentName={fullName}
                 enrollmentHistory={enrollmentHistories}
             />
+
+            {/* Notes Dialog for Requirement Update */}
+            <Dialog open={showNotesDialog} onOpenChange={setShowNotesDialog}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Update Requirement Status</DialogTitle>
+                        <DialogDescription>
+                            Optionally add notes for this status change. This will be recorded in the update history.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="notes">Notes (Optional)</Label>
+                            <Textarea
+                                id="notes"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Enter any notes about this update..."
+                                rows={3}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowNotesDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmRequirementUpdate}>
+                            {pendingRequirementUpdate?.status === 'approved' ? 'Approve' : 'Mark Pending'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add Note Dialog */}
+            <Dialog open={showAddNoteDialog} onOpenChange={setShowAddNoteDialog}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Add Note</DialogTitle>
+                        <DialogDescription>
+                            Add a note to the student's update history.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="newNote">Note *</Label>
+                            <Textarea
+                                id="newNote"
+                                value={newNote}
+                                onChange={(e) => setNewNote(e.target.value)}
+                                placeholder="Enter your note..."
+                                rows={4}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowAddNoteDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleAddNote}>
+                            Save Note
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </RegistrarLayout>
     );
 }
