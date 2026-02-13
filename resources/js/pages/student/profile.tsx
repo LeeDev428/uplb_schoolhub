@@ -62,14 +62,14 @@ export default function Profile({ student, user }: Props) {
                 <Card>
                     <CardHeader>
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div StudentPhoto
+                            <div className="flex items-center gap-4">
+                                <StudentPhoto
                                     src={student.student_photo_url}
                                     firstName={student.first_name}
                                     lastName={student.last_name}
                                     size="2xl"
                                     bordered
-                                /User className="h-8 w-8" />
-                                </div>
+                                />
                                 <div>
                                     <CardTitle className="text-2xl">{student.full_name}</CardTitle>
                                     <CardDescription>Student ID: {student.student_id}</CardDescription>
