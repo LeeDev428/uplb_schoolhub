@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import {
     Collapsible,
     CollapsibleContent,
@@ -9,6 +10,7 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
+    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarMenuSub,
@@ -78,6 +80,9 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     <span>{item.title}</span>
                                 </Link>
                             </SidebarMenuButton>
+                            {item.badge != null && item.badge > 0 && (
+                                <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                            )}
                         </SidebarMenuItem>
                     );
                 })}
