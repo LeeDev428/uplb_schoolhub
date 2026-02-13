@@ -401,6 +401,9 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Update History Section */}
+                        <UpdateHistory logs={actionLogs} />
                     </TabsContent>
 
                     {/* Student Information Tab - Consolidated */}
