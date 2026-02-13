@@ -98,12 +98,12 @@ export default function Login({
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label
+                                {/* <Label
                                     htmlFor="remember"
                                     className="text-sm font-normal"
                                 >
                                     Keep me signed in
-                                </Label>
+                                </Label> */}
                             </div>
 
                             <Button
