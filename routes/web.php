@@ -98,6 +98,13 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::resource('users', \App\Http\Controllers\Owner\UserManagementController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
+
+    // Announcements
+    Route::resource('announcements', \App\Http\Controllers\Owner\AnnouncementController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+    Route::post('announcements/{announcement}/toggle-pin', [\App\Http\Controllers\Owner\AnnouncementController::class, 'togglePin'])->name('announcements.toggle-pin');
+    Route::post('announcements/{announcement}/toggle-status', [\App\Http\Controllers\Owner\AnnouncementController::class, 'toggleStatus'])->name('announcements.toggle-status');
 });
 
 // Registrar Routes
