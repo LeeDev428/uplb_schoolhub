@@ -80,7 +80,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                     <span>{item.title}</span>
                                 </Link>
                             </SidebarMenuButton>
-                            {item.badge != null && item.badge > 0 && (
+                            {item.badge != null && Number(item.badge) > 0 && (
                                 <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
                             )}
                         </SidebarMenuItem>
