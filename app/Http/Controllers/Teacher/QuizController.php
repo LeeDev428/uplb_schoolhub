@@ -20,6 +20,10 @@ class QuizController extends Controller
     {
         $teacher = Auth::user()->teacher;
 
+        if (!$teacher) {
+            abort(403, 'You must be a teacher to access this page.');
+        }
+
         $query = Quiz::with(['subject', 'questions'])
             ->where('teacher_id', $teacher->id)
             ->withCount(['questions', 'attempts']);
