@@ -1,9 +1,10 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BadgeDollarSign,
     ClipboardCheck,
     FileText,
     LayoutGrid,
+    Megaphone,
     Receipt,
     Settings,
     Users,
@@ -22,34 +23,6 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/accounting/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Student Clearance',
-        href: '/accounting/clearance',
-        icon: ClipboardCheck,
-    },
-    {
-        title: 'Student Fees',
-        href: '/accounting/fees',
-        icon: BadgeDollarSign,
-    },
-    {
-        title: 'Payments',
-        href: '/accounting/payments',
-        icon: Receipt,
-    },
-    {
-        title: 'Reports',
-        href: '/accounting/reports',
-        icon: FileText,
-    },
-];
-
 const footerNavItems: NavItem[] = [
     {
         title: 'Settings',
@@ -59,6 +32,42 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AccountingSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/accounting/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/accounting/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'Student Clearance',
+            href: '/accounting/clearance',
+            icon: ClipboardCheck,
+        },
+        {
+            title: 'Student Fees',
+            href: '/accounting/fees',
+            icon: BadgeDollarSign,
+        },
+        {
+            title: 'Payments',
+            href: '/accounting/payments',
+            icon: Receipt,
+        },
+        {
+            title: 'Reports',
+            href: '/accounting/reports',
+            icon: FileText,
+        },
+    ];
+
     return (
         <Sidebar variant="inset">
             <SidebarHeader>
