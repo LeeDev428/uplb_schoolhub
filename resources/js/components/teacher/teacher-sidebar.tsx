@@ -6,6 +6,7 @@ import {
     GraduationCap,
     LayoutGrid,
     Users,
+    FileQuestion,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -40,6 +41,11 @@ const mainNavItems: NavItem[] = [
         title: 'Subjects',
         href: '/teacher/subjects',
         icon: BookOpen,
+    },
+    {
+        title: 'Quizzes',
+        href: '/teacher/quizzes',
+        icon: FileQuestion,
     },
     {
         title: 'Schedules',
