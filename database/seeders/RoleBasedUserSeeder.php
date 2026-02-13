@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Teacher;
 use Illuminate\Database\Seeder;
 
 class RoleBasedUserSeeder extends Seeder
@@ -93,7 +94,21 @@ class RoleBasedUserSeeder extends Seeder
             );
         }
 
-        // Create Teacher
+        // Create Teacher record first, then User
+        $teacher = Teacher::updateOrCreate(
+            ['email' => 'teacher@gmail.com'],
+            [
+                'employee_id' => 'TCH-001',
+                'first_name' => 'Sample',
+                'last_name' => 'Teacher',
+                'phone' => '09123456789',
+                'gender' => 'male',
+                'employment_status' => 'full-time',
+                'hire_date' => now()->subYears(2),
+                'is_active' => true,
+            ]
+        );
+
         User::updateOrCreate(
             ['email' => 'teacher@gmail.com'],
             [
@@ -101,6 +116,7 @@ class RoleBasedUserSeeder extends Seeder
                 'username' => 'teacher',
                 'password' => bcrypt('password'),
                 'role' => User::ROLE_TEACHER,
+                'teacher_id' => $teacher->id,
                 'email_verified_at' => now(),
             ]
         );
