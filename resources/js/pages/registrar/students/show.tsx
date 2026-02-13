@@ -84,6 +84,31 @@ interface Section {
     program: { id: number; name: string } | null;
 }
 
+interface ActionLog {
+    id: number;
+    action: string;
+    action_type: string;
+    details: string | null;
+    notes: string | null;
+    changes: Record<string, { old: string; new: string }> | null;
+    created_at: string;
+    performer: {
+        id: number;
+        name: string;
+    } | null;
+}
+
+interface EnrollmentHistory {
+    id: number;
+    school_year: string;
+    status: string;
+    enrolled_at: string | null;
+    program: string | null;
+    year_level: string | null;
+    section: string | null;
+    remarks: string | null;
+}
+
 interface Student {
     id: number;
     first_name: string;
@@ -133,10 +158,13 @@ interface Props {
     programs: Program[];
     yearLevels: YearLevel[];
     sections: Section[];
+    actionLogs: ActionLog[];
+    enrollmentHistories: EnrollmentHistory[];
 }
 
-export default function StudentShow({ student, requirementsCompletion, enrollmentClearance, departments, programs, yearLevels, sections }: Props) {
+export default function StudentShow({ student, requirementsCompletion, enrollmentClearance, departments, programs, yearLevels, sections, actionLogs = [], enrollmentHistories = [] }: Props) {
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showEnrollmentHistoryModal, setShowEnrollmentHistoryModal] = useState(false);
     const [activeTab, setActiveTab] = useState('requirements');
 
     const fullName = `${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''} ${student.last_name}${student.suffix ? ' ' + student.suffix : ''}`;
@@ -253,9 +281,9 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Information
                         </Button>
-                        <Button variant="outline">
+                        <Button variant="outline" onClick={() => setShowEnrollmentHistoryModal(true)}>
                             <FileText className="mr-2 h-4 w-4" />
-                            View Enrollment Status
+                            View Enrollment History
                         </Button>
                         <Button variant="outline" onClick={handlePrint}>
                             <Printer className="mr-2 h-4 w-4" />
@@ -311,8 +339,8 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                     <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="requirements">Submitted Requirements</TabsTrigger>
                         <TabsTrigger value="information">Student Information</TabsTrigger>
-                        <TabsTrigger value="address">Address Information</TabsTrigger>
-                        <TabsTrigger value="guardian">Guardian Information</TabsTrigger>
+                        <TabsTrigger value="schedules">Schedules & Grades</TabsTrigger>
+                        <TabsTrigger value="history">Transaction History</TabsTrigger>
                     </TabsList>
 
                     {/* Requirements Tab */}
