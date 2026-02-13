@@ -51,7 +51,8 @@ class UserManagementController extends Controller
         }
         $departments = $departmentsQuery->get(['id', 'name', 'code', 'classification']);
 
-        $users = $query->orderBy('created_at', 'desc')
+        $users = $query->with(['student:id,student_photo_url', 'teacher:id,photo_url', 'parent:id,photo_url'])
+            ->orderBy('created_at', 'desc')
             ->paginate(25)
             ->withQueryString();
 
