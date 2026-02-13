@@ -23,6 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Department {
     id: number;
     name: string;
+    classification?: string;
 }
 
 interface YearLevel {
@@ -79,6 +80,7 @@ interface Props {
     };
     filters: {
         search?: string;
+        classification?: string;
         department_id?: string;
         year_level_id?: string;
         student_type?: string;
@@ -94,6 +96,7 @@ export default function RegistrarClassesIndex({
     filters,
 }: Props) {
     const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
     const [selectedYearLevel, setSelectedYearLevel] = useState(filters.year_level_id || 'all');
     const [studentType, setStudentType] = useState(filters.student_type || 'all');
@@ -119,8 +122,22 @@ export default function RegistrarClassesIndex({
         setSearch(value);
         router.get('/registrar/classes', {
             search: value,
+            classification,
             department_id: selectedDepartment,
             year_level_id: selectedYearLevel,
+            student_type: studentType,
+        }, { preserveState: true, replace: true });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        setSelectedDepartment('all');
+        setSelectedYearLevel('all');
+        router.get('/registrar/classes', {
+            search,
+            classification: value,
+            department_id: 'all',
+            year_level_id: 'all',
             student_type: studentType,
         }, { preserveState: true, replace: true });
     };
@@ -130,6 +147,7 @@ export default function RegistrarClassesIndex({
         setSelectedYearLevel('all');
         router.get('/registrar/classes', {
             search,
+            classification,
             department_id: value,
             year_level_id: 'all',
             student_type: studentType,
@@ -140,6 +158,7 @@ export default function RegistrarClassesIndex({
         setSelectedYearLevel(value);
         router.get('/registrar/classes', {
             search,
+            classification,
             department_id: selectedDepartment,
             year_level_id: value,
             student_type: studentType,
@@ -150,6 +169,7 @@ export default function RegistrarClassesIndex({
         setStudentType(value);
         router.get('/registrar/classes', {
             search,
+            classification,
             department_id: selectedDepartment,
             year_level_id: selectedYearLevel,
             student_type: value,
@@ -158,6 +178,7 @@ export default function RegistrarClassesIndex({
 
     const handleReset = () => {
         setSearch('');
+        setClassification('all');
         setSelectedDepartment('all');
         setSelectedYearLevel('all');
         setStudentType('all');
