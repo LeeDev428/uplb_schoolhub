@@ -41,6 +41,9 @@ class Announcement extends Model
         'attachment_path',
         'attachment_name',
         'attachment_type',
+        'image_path',
+        'image_name',
+        'image_type',
     ];
 
     protected $casts = [
