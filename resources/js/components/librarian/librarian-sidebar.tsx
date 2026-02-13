@@ -1,9 +1,10 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     GraduationCap,
     LayoutGrid,
     Library,
+    Megaphone,
     ArrowLeftRight,
 } from 'lucide-react';
 import {
@@ -19,25 +20,33 @@ import type { NavItem } from '@/types';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/librarian/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Books',
-        href: '/librarian/books',
-        icon: BookOpen,
-    },
-    {
-        title: 'Transactions',
-        href: '/librarian/transactions',
-        icon: ArrowLeftRight,
-    },
-];
-
 export function LibrarianSidebar() {
+    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/librarian/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Announcements',
+            href: '/librarian/announcements',
+            icon: Megaphone,
+            badge: announcementCount || undefined,
+        },
+        {
+            title: 'Books',
+            href: '/librarian/books',
+            icon: BookOpen,
+        },
+        {
+            title: 'Transactions',
+            href: '/librarian/transactions',
+            icon: ArrowLeftRight,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
