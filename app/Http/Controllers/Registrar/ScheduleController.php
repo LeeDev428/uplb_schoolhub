@@ -12,8 +12,19 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
+        $classification = $request->input('classification', 'all');
+        
         $query = Schedule::with(['department', 'program', 'yearLevel', 'section', 'teacher'])
             ->where('is_active', true);
+
+        // Get departments based on classification
+        $departmentsQuery = Department::query()->orderBy('name');
+        if ($classification !== 'all') {
+            $departmentsQuery->where('classification', $classification);
+            $departmentIds = $departmentsQuery->pluck('id')->toArray();
+            $query->whereIn('department_id', $departmentIds);
+        }
+        $departments = $departmentsQuery->get();
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -28,8 +39,8 @@ class ScheduleController extends Controller
 
         return Inertia::render('registrar/schedule/index', [
             'schedules' => $schedules,
-            'departments' => Department::orderBy('name')->get(),
-            'filters' => $request->only(['search', 'department_id']),
+            'departments' => $departments,
+            'filters' => $request->only(['search', 'classification', 'department_id']),
         ]);
     }
 }
