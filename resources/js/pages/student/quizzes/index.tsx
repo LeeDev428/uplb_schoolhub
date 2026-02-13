@@ -147,7 +147,7 @@ export default function QuizzesIndex({ quizzes, subjects, filters }: Props) {
         <StudentLayout breadcrumbs={breadcrumbs}>
             <Head title="Quizzes" />
 
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 p-6">
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Quizzes</h1>
