@@ -196,6 +196,8 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     registerSettingsRoutes();
     
     Route::get('dashboard', [App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('students', [App\Http\Controllers\Teacher\StudentController::class, 'index'])->name('students.index');
+    Route::get('students/{student}', [App\Http\Controllers\Teacher\StudentController::class, 'show'])->name('students.show');
     Route::get('classes', [App\Http\Controllers\Teacher\ClassController::class, 'index'])->name('classes.index');
     Route::get('classes/{section}', [App\Http\Controllers\Teacher\ClassController::class, 'show'])->name('classes.show');
     Route::get('subjects', [App\Http\Controllers\Teacher\SubjectController::class, 'index'])->name('subjects');
