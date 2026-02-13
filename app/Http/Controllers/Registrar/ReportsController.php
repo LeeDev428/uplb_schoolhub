@@ -14,10 +14,20 @@ class ReportsController extends Controller
 {
     public function index(Request $request)
     {
+        $classification = $request->input('classification', 'all');
         $departmentFilter = $request->input('department_id', 'all');
+
+        // Get department IDs for the selected classification
+        $departmentIds = [];
+        if ($classification !== 'all') {
+            $departmentIds = Department::where('classification', $classification)->pluck('id')->toArray();
+        }
 
         // Base query
         $studentQuery = Student::query()->whereNull('deleted_at');
+        if ($classification !== 'all' && !empty($departmentIds)) {
+            $studentQuery->whereIn('department_id', $departmentIds);
+        }
         if ($departmentFilter !== 'all') {
             $studentQuery->where('department_id', $departmentFilter);
         }
@@ -29,10 +39,14 @@ class ReportsController extends Controller
         $enrolledStudents = (clone $studentQuery)->where('enrollment_status', 'enrolled')->count();
         $pendingStudents = (clone $studentQuery)->where('enrollment_status', 'pending')->count();
 
-        // Department distribution
-        $departmentDistribution = Department::withCount(['students' => function ($q) {
+        // Department distribution (filtered by classification)
+        $departmentQuery = Department::withCount(['students' => function ($q) {
             $q->whereNull('deleted_at');
-        }])->orderBy('name')->get()->map(fn ($d) => [
+        }]);
+        if ($classification !== 'all') {
+            $departmentQuery->where('classification', $classification);
+        }
+        $departmentDistribution = $departmentQuery->orderBy('name')->get()->map(fn ($d) => [
             'name' => $d->name,
             'count' => $d->students_count,
         ]);
@@ -74,6 +88,12 @@ class ReportsController extends Controller
                 'fill_rate' => $s->capacity > 0 ? round(($s->students_count / $s->capacity) * 100, 1) : 0,
             ]);
 
+        // Get departments filtered by classification for dropdown
+        $departmentsQuery = Department::orderBy('name');
+        if ($classification !== 'all') {
+            $departmentsQuery->where('classification', $classification);
+        }
+        
         return Inertia::render('registrar/reports/index', [
             'stats' => [
                 'totalStudents' => $totalStudents,
@@ -86,8 +106,11 @@ class ReportsController extends Controller
             'yearLevelDistribution' => $yearLevelDistribution,
             'enrollmentDistribution' => $enrollmentDistribution,
             'sectionFillRates' => $sectionFillRates,
-            'departments' => Department::orderBy('name')->get(),
-            'filters' => $request->only(['department_id']),
+            'departments' => $departmentsQuery->get(),
+            'filters' => [
+                'classification' => $classification,
+                'department_id' => $departmentFilter,
+            ],
         ]);
     }
 }
