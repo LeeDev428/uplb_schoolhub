@@ -6,11 +6,12 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Inertia](https://img.shields.io/badge/Inertia.js-v2-9553E9?style=for-the-badge)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 
 **A comprehensive digital platform for managing academic, administrative, financial, student support, and online learning operations.**
 
-[Features](#features) • [Tech Stack](#tech-stack) • [Getting Started](#getting-started) • [Project Structure](#project-structure) • [Progress](#progress)
+[Features](#-system-coverage-required-modules) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [Project Structure](#-project-structure) • [Progress](#-implementation-progress)
 
 </div>
 
@@ -18,9 +19,9 @@
 
 ## 📋 Project Description
 
-The Client engages the Developer to design, develop, and deliver a **fully functional School Management System (SMS)** with an integrated **Electronic Learning Management System (e-LMS)**.
+A **fully functional School Management System (SMS)** with an integrated **Electronic Learning Management System (e-LMS)**.
 
-The system shall serve as a centralized digital platform that manages the school's **academic, administrative, financial, student support, and online learning operations**.
+The system serves as a centralized digital platform that manages the school's **academic, administrative, financial, student support, and online learning operations**.
 
 ---
 
