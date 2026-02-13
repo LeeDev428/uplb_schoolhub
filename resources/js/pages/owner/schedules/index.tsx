@@ -158,7 +158,15 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
 
     const handleStatusChange = (value: string) => {
         setStatus(value);
-        router.get('/owner/schedules', { search, department_id: selectedDepartment, status: value }, { preserveState: true, replace: true });
+        router.get('/owner/schedules', { search, classification, department_id: selectedDepartment, status: value }, { preserveState: true, replace: true });
+    };
+
+    const handleReset = () => {
+        setSearch('');
+        setClassification('all');
+        setSelectedDepartment('all');
+        setStatus('all');
+        router.get('/owner/schedules');
     };
 
     const resetForm = () => {
