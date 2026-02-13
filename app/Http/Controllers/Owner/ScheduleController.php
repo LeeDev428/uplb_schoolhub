@@ -17,7 +17,18 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
+        $classification = $request->input('classification', 'all');
         $query = Schedule::with(['department', 'program', 'yearLevel', 'section', 'teacher']);
+
+        // Get departments based on classification
+        $departmentsQuery = Department::query()->orderBy('name');
+        if ($classification !== 'all') {
+            $departmentsQuery->where('classification', $classification);
+            $departmentIds = $departmentsQuery->pluck('id')->toArray();
+            $query->whereIn('department_id', $departmentIds);
+        }
+        $departments = $departmentsQuery->get();
+        $departmentIds = $departments->pluck('id')->toArray();
 
         // Filters
         if ($request->filled('search')) {
@@ -35,14 +46,27 @@ class ScheduleController extends Controller
 
         $schedules = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
+        // Filter related data by classification if selected
+        $programsQuery = Program::with('department')->orderBy('name');
+        $yearLevelsQuery = YearLevel::with('department')->orderBy('level_number');
+        $sectionsQuery = Section::with(['department', 'yearLevel'])->orderBy('name');
+        $teachersQuery = Teacher::where('is_active', true)->orderBy('last_name');
+
+        if ($classification !== 'all') {
+            $programsQuery->whereIn('department_id', $departmentIds);
+            $yearLevelsQuery->whereIn('department_id', $departmentIds);
+            $sectionsQuery->whereIn('department_id', $departmentIds);
+            $teachersQuery->whereIn('department_id', $departmentIds);
+        }
+
         return Inertia::render('owner/schedules/index', [
             'schedules' => $schedules,
-            'departments' => Department::orderBy('name')->get(),
-            'programs' => Program::with('department')->orderBy('name')->get(),
-            'yearLevels' => YearLevel::with('department')->orderBy('level_number')->get(),
-            'sections' => Section::with(['department', 'yearLevel'])->orderBy('name')->get(),
-            'teachers' => Teacher::where('is_active', true)->orderBy('last_name')->get(['id', 'first_name', 'last_name', 'suffix', 'department_id']),
-            'filters' => $request->only(['search', 'department_id', 'status']),
+            'departments' => $departments,
+            'programs' => $programsQuery->get(),
+            'yearLevels' => $yearLevelsQuery->get(),
+            'sections' => $sectionsQuery->get(),
+            'teachers' => $teachersQuery->get(['id', 'first_name', 'last_name', 'suffix', 'department_id']),
+            'filters' => $request->only(['search', 'classification', 'department_id', 'status']),
         ]);
     }
 
