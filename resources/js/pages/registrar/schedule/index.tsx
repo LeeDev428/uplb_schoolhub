@@ -48,27 +48,36 @@ interface Props {
     departments: Department[];
     filters: {
         search?: string;
+        classification?: string;
         department_id?: string;
     };
 }
 
 export default function RegistrarScheduleIndex({ schedules, departments, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
     const [viewingSchedule, setViewingSchedule] = useState<Schedule | null>(null);
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
-        router.get('/registrar/schedule', { search: value, department_id: selectedDepartment }, { preserveState: true, replace: true });
+        router.get('/registrar/schedule', { search: value, classification, department_id: selectedDepartment }, { preserveState: true, replace: true });
+    };
+
+    const handleClassificationChange = (value: string) => {
+        setClassification(value);
+        setSelectedDepartment('all');
+        router.get('/registrar/schedule', { search, classification: value, department_id: 'all' }, { preserveState: true, replace: true });
     };
 
     const handleDepartmentChange = (value: string) => {
         setSelectedDepartment(value);
-        router.get('/registrar/schedule', { search, department_id: value }, { preserveState: true, replace: true });
+        router.get('/registrar/schedule', { search, classification, department_id: value }, { preserveState: true, replace: true });
     };
 
     const handleReset = () => {
         setSearch('');
+        setClassification('all');
         setSelectedDepartment('all');
         router.get('/registrar/schedule', {}, { preserveState: true, replace: true });
     };
@@ -116,6 +125,15 @@ export default function RegistrarScheduleIndex({ schedules, departments, filters
                     <CardContent className="p-6">
                         <FilterBar onReset={handleReset}>
                             <SearchBar value={search} onChange={handleSearchChange} placeholder="Search schedules..." />
+                            <FilterDropdown
+                                label="Classification"
+                                value={classification}
+                                onChange={handleClassificationChange}
+                                options={[
+                                    { value: 'K-12', label: 'K-12' },
+                                    { value: 'College', label: 'College' },
+                                ]}
+                            />
                             <FilterDropdown
                                 label="Department"
                                 value={selectedDepartment}
