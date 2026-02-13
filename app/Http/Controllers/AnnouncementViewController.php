@@ -49,7 +49,7 @@ class AnnouncementViewController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('announcements/index', [
+        return Inertia::render("{$role}/announcements/index", [
             'announcements' => $announcements,
             'filters' => $request->only(['search', 'priority']),
             'role' => $role,
