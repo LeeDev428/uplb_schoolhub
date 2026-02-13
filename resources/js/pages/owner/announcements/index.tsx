@@ -470,6 +470,16 @@ export default function AnnouncementsIndex({ announcements, departments, availab
                                                 <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
                                                     {announcement.content}
                                                 </p>
+                                                {announcement.image_path && (
+                                                    <div className="mt-3">
+                                                        <img
+                                                            src={announcement.image_path.startsWith('/storage/') ? announcement.image_path : `/storage/${announcement.image_path}`}
+                                                            alt={announcement.image_name || announcement.title}
+                                                            className="max-h-48 rounded-lg border object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                                            onClick={() => openImageViewer(announcement)}
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                                     <span>By {announcement.creator?.name || 'Unknown'}</span>
                                                     <span>•</span>
@@ -689,6 +699,41 @@ export default function AnnouncementsIndex({ announcements, departments, availab
                                 </p>
                             </div>
 
+                            {/* Image Upload */}
+                            <div className="space-y-2">
+                                <Label>Image (Optional)</Label>
+                                {editingAnnouncement?.image_path && !data.remove_image && (
+                                    <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                                        <img
+                                            src={editingAnnouncement.image_path.startsWith('/storage/') ? editingAnnouncement.image_path : `/storage/${editingAnnouncement.image_path}`}
+                                            alt={editingAnnouncement.image_name || 'Current image'}
+                                            className="h-20 w-20 rounded object-cover"
+                                        />
+                                        <span className="flex-1 text-sm">{editingAnnouncement.image_name}</span>
+                                        <Button 
+                                            type="button" 
+                                            variant="ghost" 
+                                            size="sm"
+                                            onClick={() => setData('remove_image', true)}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                                <Input
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.gif,.webp"
+                                    onChange={e => {
+                                        const file = e.target.files?.[0];
+                                        setData('image', file || null);
+                                        if (file) setData('remove_image', false);
+                                    }}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Upload a featured image. Supported: JPG, PNG, GIF, WebP. Max 10MB.
+                                </p>
+                            </div>
+
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <Switch
@@ -750,6 +795,16 @@ export default function AnnouncementsIndex({ announcements, departments, availab
                     filePath={viewingAnnouncement.attachment_path || ''}
                     fileType={viewingAnnouncement.attachment_type || undefined}
                     fileName={viewingAnnouncement.attachment_name || undefined}
+                />
+            )}
+
+            {/* Image Viewer */}
+            {viewingImageAnnouncement && viewingImageAnnouncement.image_path && (
+                <ImageViewer
+                    open={imageViewerOpen}
+                    onOpenChange={setImageViewerOpen}
+                    title={viewingImageAnnouncement.image_name || viewingImageAnnouncement.title}
+                    imagePath={viewingImageAnnouncement.image_path}
                 />
             )}
         </OwnerLayout>
