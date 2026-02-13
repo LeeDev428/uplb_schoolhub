@@ -40,9 +40,12 @@ class StoreStudentRequest extends FormRequest
             'zip_code' => ['required', 'string', 'max:10'],
             'student_type' => ['required', 'in:new,transferee,returnee'],
             'school_year' => ['required', 'string', 'max:50'],
-            'program' => ['required', 'string', 'max:255'],
+            'department_id' => ['nullable', 'exists:departments,id'],
+            'program' => ['nullable', 'string', 'max:255'], // Optional - only for college programs
             'year_level' => ['required', 'string', 'max:50'],
+            'year_level_id' => ['nullable', 'exists:year_levels,id'],
             'section' => ['nullable', 'string', 'max:100'],
+            'section_id' => ['nullable', 'exists:sections,id'],
             'enrollment_status' => ['nullable', 'in:not-enrolled,pending-registrar,pending-accounting,enrolled,graduated,dropped'],
             'requirements_status' => ['nullable', 'in:incomplete,pending,complete'],
             'requirements_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
