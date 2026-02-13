@@ -439,10 +439,22 @@ export default function AnnouncementsIndex({ announcements, departments, availab
                                                 <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
                                                     {announcement.content}
                                                 </p>
-                                                <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                                     <span>By {announcement.creator?.name || 'Unknown'}</span>
                                                     <span>•</span>
-                                                    <span>{format(new Date(announcement.created_at), 'MMM d, yyyy h:mm a')}</span>
+                                                    <span>Created: {format(new Date(announcement.created_at), 'MMM d, yyyy h:mm a')}</span>
+                                                    {announcement.published_at && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span className="text-green-600 dark:text-green-400">Published: {format(new Date(announcement.published_at), 'MMM d, yyyy h:mm a')}</span>
+                                                        </>
+                                                    )}
+                                                    {announcement.expires_at && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span className="text-orange-600 dark:text-orange-400">Expires: {format(new Date(announcement.expires_at), 'MMM d, yyyy h:mm a')}</span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                             <DropdownMenu>
