@@ -84,22 +84,6 @@ const getFileIcon = (mimeType: string | null) => {
     return <File className="h-4 w-4" />;
 };
 
-// Role-specific layout imports - dynamically select based on role
-const layouts = {
-    registrar: () => import('@/layouts/registrar/registrar-layout').then(m => m.default),
-    accounting: () => import('@/layouts/accounting/accounting-layout').then(m => m.default),
-    student: () => import('@/layouts/student/student-layout').then(m => m.default),
-    teacher: () => import('@/layouts/teacher/teacher-layout').then(m => m.default),
-    parent: () => import('@/layouts/parent/parent-layout').then(m => m.default),
-    guidance: () => import('@/layouts/guidance/guidance-layout').then(m => m.default),
-    librarian: () => import('@/layouts/librarian/librarian-layout').then(m => m.default),
-    clinic: () => import('@/layouts/clinic/clinic-layout').then(m => m.default),
-    canteen: () => import('@/layouts/canteen/canteen-layout').then(m => m.default),
-};
-
-// For SSR compatibility, we'll render content without layout wrapper
-// and let the route handle layout wrapping via Inertia's persistent layouts
-
 export default function AnnouncementsIndex({ announcements, filters, role }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [priority, setPriority] = useState(filters.priority || 'all');
@@ -148,8 +132,6 @@ export default function AnnouncementsIndex({ announcements, filters, role }: Pro
     };
 
     const hasActiveFilters = !!(search || priority !== 'all');
-
-    const roleTitle = role.charAt(0).toUpperCase() + role.slice(1);
 
     return (
         <>
