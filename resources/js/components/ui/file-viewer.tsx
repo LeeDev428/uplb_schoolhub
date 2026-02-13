@@ -13,14 +13,22 @@ interface FileViewerProps {
     fileName?: string; // Original file name
 }
 
-// Get file type category from MIME type or extension
-const getFileCategory = (mimeType?: string, fileName?: string): 'pdf' | 'image' | 'other' => {
+// Get file type category from MIME type, file name, or stored path extension
+const getFileCategory = (mimeType?: string, fileName?: string, filePath?: string): 'pdf' | 'image' | 'other' => {
+    // 1. Check MIME type first (most reliable, set by server-side finfo detection)
     if (mimeType?.startsWith('image/')) return 'image';
     if (mimeType === 'application/pdf') return 'pdf';
     
-    // Fallback to file extension
+    // 2. Fallback to original file name extension
     if (fileName) {
         const ext = fileName.split('.').pop()?.toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext || '')) return 'image';
+        if (ext === 'pdf') return 'pdf';
+    }
+
+    // 3. Fallback to stored file path extension
+    if (filePath) {
+        const ext = filePath.split('.').pop()?.toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext || '')) return 'image';
         if (ext === 'pdf') return 'pdf';
     }
@@ -29,7 +37,7 @@ const getFileCategory = (mimeType?: string, fileName?: string): 'pdf' | 'image' 
 };
 
 export function FileViewer({ open, onOpenChange, title, filePath, fileType, fileName }: FileViewerProps) {
-    const fileCategory = getFileCategory(fileType, fileName || title);
+    const fileCategory = getFileCategory(fileType, fileName || title, filePath);
     const url = filePath.startsWith('/storage/') ? filePath : `/storage/${filePath}`;
 
     // Use specialized viewers for PDF and images
