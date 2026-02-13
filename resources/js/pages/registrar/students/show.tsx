@@ -403,11 +403,12 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                         </Card>
                     </TabsContent>
 
-                    {/* Student Information Tab */}
-                    <TabsContent value="information">
+                    {/* Student Information Tab - Consolidated */}
+                    <TabsContent value="information" className="space-y-6">
+                        {/* Personal Information */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Student Information</CardTitle>
+                                <CardTitle>Personal Information</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <dl className="grid grid-cols-2 gap-6">
@@ -468,10 +469,8 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                 </dl>
                             </CardContent>
                         </Card>
-                    </TabsContent>
 
-                    {/* Address Information Tab */}
-                    <TabsContent value="address">
+                        {/* Address Information */}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Address Information</CardTitle>
@@ -497,10 +496,8 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                 </dl>
                             </CardContent>
                         </Card>
-                    </TabsContent>
 
-                    {/* Guardian Information Tab */}
-                    <TabsContent value="guardian">
+                        {/* Guardian Information */}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Guardian Information</CardTitle>
@@ -531,10 +528,17 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                             <dd className="mt-1">{student.guardian_address}</dd>
                                         </div>
                                     )}
+                                </dl>
+                            </CardContent>
+                        </Card>
 
-                                    <div className="col-span-2 pt-4 border-t">
-                                        <h4 className="font-semibold mb-4">Emergency Contact</h4>
-                                    </div>
+                        {/* Emergency Contact */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Emergency Contact</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <dl className="grid grid-cols-2 gap-6">
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">Name</dt>
                                         <dd className="mt-1">{student.emergency_contact_name}</dd>
@@ -550,6 +554,35 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                 </dl>
                             </CardContent>
                         </Card>
+                    </TabsContent>
+
+                    {/* Schedules & Grades Tab */}
+                    <TabsContent value="schedules" className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <GraduationCap className="h-5 w-5" />
+                                    Schedules & Grades
+                                </CardTitle>
+                                <CardDescription>
+                                    View student's class schedules and academic records
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center justify-center py-12 text-muted-foreground">
+                                    <div className="text-center">
+                                        <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>No schedules or grades available yet.</p>
+                                        <p className="text-sm mt-1">This feature will be available once the student is officially enrolled.</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Transaction History Tab */}
+                    <TabsContent value="history" className="space-y-6">
+                        <UpdateHistory logs={actionLogs} />
                     </TabsContent>
                 </Tabs>
             </div>
@@ -567,6 +600,14 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                     sections={sections}
                 />
             )}
+
+            {/* Enrollment History Modal */}
+            <EnrollmentHistoryModal 
+                open={showEnrollmentHistoryModal}
+                onClose={() => setShowEnrollmentHistoryModal(false)}
+                studentName={fullName}
+                enrollmentHistory={enrollmentHistories}
+            />
         </RegistrarLayout>
     );
 }
