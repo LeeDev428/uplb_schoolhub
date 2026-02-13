@@ -32,6 +32,11 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
+        title: 'Students',
+        href: '/teacher/students',
+        icon: GraduationCap,
+    },
+    {
         title: 'Subjects',
         href: '/teacher/subjects',
         icon: BookOpen,
