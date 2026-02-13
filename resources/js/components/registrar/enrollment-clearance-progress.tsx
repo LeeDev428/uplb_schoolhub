@@ -61,12 +61,12 @@ export function EnrollmentClearanceProgress({ studentId, clearance }: Props) {
         {
             id: 3,
             title: 'Accounting Clearance',
-            description: clearance?.accounting_clearance ? 'Completed' : 'Pending',
+            description: clearance?.accounting_clearance ? 'Cleared by Accounting' : 'Pending from Accounting',
             completed: clearance?.accounting_clearance || false,
             percentage: clearance?.accounting_clearance ? 100 : 0,
             color: 'bg-orange-500',
             key: 'accounting_clearance',
-            canToggle: true,
+            canToggle: false, // Only accounting department can toggle this
         },
         {
             id: 4,
