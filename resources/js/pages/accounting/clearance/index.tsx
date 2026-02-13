@@ -11,7 +11,7 @@ import {
     Clock,
     AlertCircle,
 } from 'lucide-react';
-import AccountingLayout from '@/layouts/accounting/accounting-layout';
+import AccountingLayout from '@/layouts/accounting-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
