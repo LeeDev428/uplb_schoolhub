@@ -465,16 +465,8 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                         <dd className="mt-1">{new Date(student.date_of_birth).toLocaleDateString()}</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Place of Birth</dt>
-                                        <dd className="mt-1">{student.place_of_birth}</dd>
-                                    </div>
-                                    <div>
                                         <dt className="text-sm font-medium text-muted-foreground">Gender</dt>
                                         <dd className="mt-1 capitalize">{student.gender}</dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Nationality</dt>
-                                        <dd className="mt-1">{student.nationality}</dd>
                                     </div>
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">Religion</dt>
@@ -494,20 +486,6 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                             <Badge>{student.enrollment_status}</Badge>
                                         </dd>
                                     </div>
-                                    {student.previous_school && (
-                                        <>
-                                            <div className="col-span-2">
-                                                <dt className="text-sm font-medium text-muted-foreground">Previous School</dt>
-                                                <dd className="mt-1">{student.previous_school}</dd>
-                                            </div>
-                                            {student.previous_school_address && (
-                                                <div className="col-span-2">
-                                                    <dt className="text-sm font-medium text-muted-foreground">Previous School Address</dt>
-                                                    <dd className="mt-1">{student.previous_school_address}</dd>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
                                     {student.remarks && (
                                         <div className="col-span-2">
                                             <dt className="text-sm font-medium text-muted-foreground">Remarks</dt>
@@ -532,10 +510,6 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">City/Municipality</dt>
                                         <dd className="mt-1">{student.city_municipality}</dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Province</dt>
-                                        <dd className="mt-1">{student.province}</dd>
                                     </div>
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">Zip Code</dt>
@@ -570,35 +544,6 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                             <dd className="mt-1">{student.guardian_email}</dd>
                                         </div>
                                     )}
-                                    {student.guardian_address && (
-                                        <div className="col-span-2">
-                                            <dt className="text-sm font-medium text-muted-foreground">Address</dt>
-                                            <dd className="mt-1">{student.guardian_address}</dd>
-                                        </div>
-                                    )}
-                                </dl>
-                            </CardContent>
-                        </Card>
-
-                        {/* Emergency Contact */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Emergency Contact</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <dl className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Name</dt>
-                                        <dd className="mt-1">{student.emergency_contact_name}</dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Relationship</dt>
-                                        <dd className="mt-1 capitalize">{student.emergency_contact_relationship}</dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Contact Number</dt>
-                                        <dd className="mt-1">{student.emergency_contact_number}</dd>
-                                    </div>
                                 </dl>
                             </CardContent>
                         </Card>
