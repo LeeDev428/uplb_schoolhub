@@ -14,6 +14,7 @@ import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { FileViewer } from '@/components/ui/file-viewer';
+import { ImageViewer } from '@/components/ui/image-viewer';
 import {
     Dialog,
     DialogContent,
