@@ -19,10 +19,14 @@ class QuizController extends Controller
     {
         $student = Auth::user()->student;
 
-        // Get quizzes from subjects the student is enrolled in
+        // Get quizzes from subjects the student has access to (based on department and year level)
         $query = Quiz::with(['subject', 'teacher.user'])
-            ->whereHas('subject.students', function ($q) use ($student) {
-                $q->where('students.id', $student->id);
+            ->whereHas('subject', function ($q) use ($student) {
+                $q->where('department_id', $student->department_id)
+                    ->where(function ($yearQuery) use ($student) {
+                        $yearQuery->where('year_level_id', $student->year_level_id)
+                            ->orWhereNull('year_level_id');
+                    });
             })
             ->available()
             ->withCount('questions');
