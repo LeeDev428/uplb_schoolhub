@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StudentRequirement;
+use App\Models\StudentActionLog;
 use Illuminate\Http\Request;
 
 class StudentRequirementController extends Controller
@@ -17,14 +18,31 @@ class StudentRequirementController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $oldStatus = $studentRequirement->status;
+        $newStatus = $validated['status'];
+
         if ($validated['status'] === 'approved') {
             $validated['approved_at'] = now();
-            $validated['approved_by'] = auth()->user()?->id;
+            $validated['approved_by'] = auth()->id();
         } elseif ($validated['status'] === 'submitted' && !$studentRequirement->submitted_at) {
             $validated['submitted_at'] = now();
         }
 
         $studentRequirement->update($validated);
+
+        // Create action log
+        StudentActionLog::log(
+            studentId: $studentRequirement->student_id,
+            action: 'Requirements updated',
+            actionType: 'requirements',
+            details: "Updated {$studentRequirement->requirement->name}",
+            notes: $newStatus === 'approved' ? 'All documents verified and complete' : null,
+            changes: [
+                'requirement' => $studentRequirement->requirement->name,
+                'status' => ['old' => $oldStatus, 'new' => $newStatus]
+            ],
+            performedBy: auth()->id()
+        );
 
         return back()->with('success', 'Requirement status updated successfully');
     }
