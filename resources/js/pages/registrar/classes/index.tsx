@@ -365,13 +365,14 @@ export default function RegistrarClassesIndex({
                             {/* Assign Controls */}
                             {selectedStudents.length > 0 && (
                                 <div className="flex items-center gap-2 mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                                    <Badge variant="default">{selectedStudents.length} selected</Badge>
-                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                    <Badge variant="default" className="shrink-0">{selectedStudents.length} selected</Badge>
                                     <Select value={targetSection} onValueChange={setTargetSection}>
-                                        <SelectTrigger className="flex-1 h-8">
-                                            <SelectValue placeholder="Select section..." />
+                                        <SelectTrigger className="flex-1 min-w-0 h-8 w-auto overflow-hidden">
+                                            <span className="truncate">
+                                                <SelectValue placeholder="Select section..." />
+                                            </span>
                                         </SelectTrigger>
-                                        <SelectContent position="popper" side="top" align="start" sideOffset={4}>
+                                        <SelectContent position="popper" side="top" align="start" sideOffset={4} className="min-w-fit">
                                             {sections.map(s => (
                                                 <SelectItem key={s.id} value={s.id.toString()}>
                                                     {s.name} — {s.department?.name || 'N/A'} ({s.students_count}/{s.capacity || '∞'})
@@ -379,7 +380,7 @@ export default function RegistrarClassesIndex({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <Button size="sm" onClick={handleAssign} disabled={assigning || !targetSection}>
+                                    <Button size="sm" className="shrink-0" onClick={handleAssign} disabled={assigning || !targetSection}>
                                         Assign
                                     </Button>
                                 </div>
