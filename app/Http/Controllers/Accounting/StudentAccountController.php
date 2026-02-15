@@ -91,18 +91,30 @@ class StudentAccountController extends Controller
             ];
         });
 
-        $schoolYears = StudentFee::distinct()->pluck('school_year')->sort()->values();
+        $schoolYears = StudentFee::distinct()->pluck('school_year')->filter()->sort()->values();
 
         // Stats
         $currentSchoolYear = $schoolYear ?? $schoolYears->first();
-        $stats = [
-            'total_students' => StudentFee::forSchoolYear($currentSchoolYear)->count(),
-            'total_receivables' => StudentFee::forSchoolYear($currentSchoolYear)->sum('total_amount'),
-            'total_collected' => StudentFee::forSchoolYear($currentSchoolYear)->sum('total_paid'),
-            'total_balance' => StudentFee::forSchoolYear($currentSchoolYear)->sum('balance'),
-            'overdue_count' => StudentFee::forSchoolYear($currentSchoolYear)->overdue()->count(),
-            'fully_paid' => StudentFee::forSchoolYear($currentSchoolYear)->where('balance', '<=', 0)->count(),
-        ];
+        
+        if ($currentSchoolYear) {
+            $stats = [
+                'total_students' => StudentFee::forSchoolYear($currentSchoolYear)->count(),
+                'total_receivables' => StudentFee::forSchoolYear($currentSchoolYear)->sum('total_amount'),
+                'total_collected' => StudentFee::forSchoolYear($currentSchoolYear)->sum('total_paid'),
+                'total_balance' => StudentFee::forSchoolYear($currentSchoolYear)->sum('balance'),
+                'overdue_count' => StudentFee::forSchoolYear($currentSchoolYear)->overdue()->count(),
+                'fully_paid' => StudentFee::forSchoolYear($currentSchoolYear)->where('balance', '<=', 0)->count(),
+            ];
+        } else {
+            $stats = [
+                'total_students' => 0,
+                'total_receivables' => 0,
+                'total_collected' => 0,
+                'total_balance' => 0,
+                'overdue_count' => 0,
+                'fully_paid' => 0,
+            ];
+        }
 
         return Inertia::render('accounting/student-accounts/index', [
             'accounts' => $accounts,
