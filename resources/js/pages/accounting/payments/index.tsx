@@ -31,9 +31,11 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit, Trash2, FileText, DollarSign } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, FileText, DollarSign, Receipt, Calendar, Clipboard } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Student {
     id: number;
@@ -490,8 +492,168 @@ export default function AccountingPayments({ payments, filters, total, students 
                     </div>
                 </div>
 
+                {/* Tabs Section */}
+                <Tabs defaultValue="breakdown" className="space-y-4">
+                    <TabsList className="grid w-full grid-cols-4">
+                        <TabsTrigger value="breakdown" className="flex items-center gap-2">
+                            <Receipt className="h-4 w-4" />
+                            Payment Breakdown
+                        </TabsTrigger>
+                        <TabsTrigger value="school-year" className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            School Year Details
+                        </TabsTrigger>
+                        <TabsTrigger value="promissory" className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            Promissory Note
+                        </TabsTrigger>
+                        <TabsTrigger value="transactions" className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            Transaction Details
+                        </TabsTrigger>
+                    </TabsList>
+
+                    {/* Tab 1: Payment Breakdown */}
+                    <TabsContent value="breakdown">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Payment Records</CardTitle>
+                                <CardDescription>All student payment transactions</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>OR Number</TableHead>
+                                            <TableHead>Student</TableHead>
+                                            <TableHead>LRN</TableHead>
+                                            <TableHead className="text-right">Amount</TableHead>
+                                            <TableHead>Payment For</TableHead>
+                                            <TableHead>Recorded By</TableHead>
+                                            <TableHead className="text-center">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {payments.data.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={8} className="h-24 text-center">
+                                                    <div className="flex flex-col items-center justify-center gap-2">
+                                                        <FileText className="h-8 w-8 text-muted-foreground" />
+                                                        <p className="text-muted-foreground">No payment records found</p>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            payments.data.map((payment) => (
+                                                <TableRow key={payment.id}>
+                                                    <TableCell>{formatDate(payment.payment_date)}</TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {payment.or_number || '-'}
+                                                    </TableCell>
+                                                    <TableCell>{payment.student.full_name}</TableCell>
+                                                    <TableCell>{payment.student.lrn}</TableCell>
+                                                    <TableCell className="text-right font-semibold text-green-600">
+                                                        {formatCurrency(payment.amount)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline">
+                                                            {getPaymentForLabel(payment.payment_for)}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-sm text-muted-foreground">
+                                                        {payment.recorded_by.name}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex justify-center gap-2">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => openEditModal(payment)}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleDelete(payment.id)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+
+                                {/* Pagination */}
+                                {payments.last_page > 1 && (
+                                    <div className="flex items-center justify-between border-t px-4 py-4 mt-4">
+                                        <div className="text-sm text-muted-foreground">
+                                            Showing {payments.data.length} of {payments.total} records
+                                        </div>
+                                        <div className="flex gap-2">
+                                            {Array.from({ length: payments.last_page }, (_, i) => i + 1).map((page) => (
+                                                <Button
+                                                    key={page}
+                                                    variant={page === payments.current_page ? 'default' : 'outline'}
+                                                    size="sm"
+                                                    onClick={() => router.get(paymentsIndex.url({ query: { page } }))}
+                                                >
+                                                    {page}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Tab 2: School Year Details */}
+                    <TabsContent value="school-year">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>School Year Summary</CardTitle>
+                                <CardDescription>Payment statistics by school year</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-center py-8 text-muted-foreground">School year details will be displayed here</p>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Tab 3: Promissory Note */}
+                    <TabsContent value="promissory">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Promissory Notes</CardTitle>
+                                <CardDescription>Student promissory note requests</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-center py-8 text-muted-foreground">Promissory notes will be displayed here</p>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Tab 4: Transaction Details */}
+                    <TabsContent value="transactions">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Transaction History</CardTitle>
+                                <CardDescription>Detailed transaction logs</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-center py-8 text-muted-foreground">Transaction details will be displayed here</p>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+
                 {/* Table */}
-                <div className="rounded-lg border bg-card">
+                <div className="rounded-lg border bg-card" style={{ display: 'none' }}>
                     <Table>
                         <TableHeader>
                             <TableRow>
