@@ -201,6 +201,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     
     // Promissory Notes
     Route::get('promissory-notes', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'index'])->name('promissory-notes.index');
+    Route::post('promissory-notes', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'store'])->name('promissory-notes.store');
     Route::post('promissory-notes/{note}/approve', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'approve'])->name('promissory-notes.approve');
     Route::post('promissory-notes/{note}/decline', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'decline'])->name('promissory-notes.decline');
     
