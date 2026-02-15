@@ -9,6 +9,7 @@ import {
     FileText,
     Gift,
     Globe,
+    LayoutDashboard,
     LayoutGrid,
     Megaphone,
     Receipt,
@@ -35,8 +36,13 @@ export function AccountingSidebar() {
     const mainNavItems: NavItem[] = [
         {
             title: 'Account Dashboard',
-            href: '/accounting/dashboard',
+            href: '/accounting/account-dashboard',
             icon: LayoutGrid,
+        },
+        {
+            title: 'Main Dashboard',
+            href: '/accounting/dashboard',
+            icon: LayoutDashboard,
         },
         {
             title: 'Announcements',
