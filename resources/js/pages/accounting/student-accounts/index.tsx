@@ -94,13 +94,25 @@ interface Stats {
 interface Department {
     id: number;
     name: string;
+    code: string;
+    classification: string;
+}
+
+interface YearLevel {
+    id: number;
+    name: string;
+    level_number: number;
+    department: string;
+    classification: string;
 }
 
 interface Props {
     accounts: PaginatedAccounts;
     schoolYears: string[];
     stats: Stats;
-    departments?: Department[];
+    departments: Department[];
+    classifications: string[];
+    yearLevels: YearLevel[];
     filters: {
         search?: string;
         status?: string;
@@ -109,7 +121,7 @@ interface Props {
     };
 }
 
-export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], filters }: Props) {
+export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], classifications = [], yearLevels = [], filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || 'all');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
@@ -193,22 +205,6 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
         value: year,
         label: year,
     }));
-
-    const classificationOptions = [
-        { value: 'elementary', label: 'Elementary' },
-        { value: 'junior_high', label: 'Junior High' },
-        { value: 'senior_high', label: 'Senior High' },
-        { value: 'college', label: 'College' },
-    ];
-
-    const yearLevelOptions = [
-        { value: '1', label: 'Grade 1 / 1st Year' },
-        { value: '2', label: 'Grade 2 / 2nd Year' },
-        { value: '3', label: 'Grade 3 / 3rd Year' },
-        { value: '4', label: 'Grade 4 / 4th Year' },
-        { value: '5', label: 'Grade 5 / 5th Year' },
-        { value: '6', label: 'Grade 6 / 6th Year' },
-    ];
 
     return (
         <AccountingLayout>
@@ -352,9 +348,9 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">All Classifications</SelectItem>
-                                                {classificationOptions.map((opt) => (
-                                                    <SelectItem key={opt.value} value={opt.value}>
-                                                        {opt.label}
+                                                {classifications.map((classification) => (
+                                                    <SelectItem key={classification} value={classification}>
+                                                        {classification}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -392,9 +388,9 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">All Years</SelectItem>
-                                                {yearLevelOptions.map((opt) => (
-                                                    <SelectItem key={opt.value} value={opt.value}>
-                                                        {opt.label}
+                                                {yearLevels.map((yl) => (
+                                                    <SelectItem key={yl.id} value={yl.name}>
+                                                        {yl.name} ({yl.classification})
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
