@@ -1,0 +1,177 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class DocumentRequest extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'student_id',
+        'document_type',
+        'copies',
+        'purpose',
+        'status',
+        'fee',
+        'is_paid',
+        'or_number',
+        'request_date',
+        'release_date',
+        'remarks',
+        'processed_by',
+        'released_by',
+    ];
+
+    protected $casts = [
+        'copies' => 'integer',
+        'fee' => 'decimal:2',
+        'is_paid' => 'boolean',
+        'request_date' => 'date',
+        'release_date' => 'date',
+    ];
+
+    /**
+     * Available document types.
+     */
+    public const DOCUMENT_TYPES = [
+        'transcript' => 'Transcript of Records',
+        'certificate_good_moral' => 'Certificate of Good Moral',
+        'certificate_enrollment' => 'Certificate of Enrollment',
+        'certificate_completion' => 'Certificate of Completion',
+        'honorable_dismissal' => 'Honorable Dismissal',
+        'diploma' => 'Diploma',
+        'form_137' => 'Form 137',
+        'form_138' => 'Form 138/Report Card',
+        'cav' => 'CAV (Certification, Authentication, Verification)',
+        'other' => 'Other',
+    ];
+
+    /**
+     * Get the student who requested the document.
+     */
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    /**
+     * Get the user who processed the request.
+     */
+    public function processedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    /**
+     * Get the user who released the document.
+     */
+    public function releasedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'released_by');
+    }
+
+    /**
+     * Get the document type label.
+     */
+    public function getDocumentTypeLabelAttribute(): string
+    {
+        return self::DOCUMENT_TYPES[$this->document_type] ?? $this->document_type;
+    }
+
+    /**
+     * Get total fee (fee × copies).
+     */
+    public function getTotalFeeAttribute(): float
+    {
+        return (float) $this->fee * $this->copies;
+    }
+
+    /**
+     * Mark as paid.
+     */
+    public function markAsPaid(string $orNumber): void
+    {
+        $this->update([
+            'is_paid' => true,
+            'or_number' => $orNumber,
+        ]);
+    }
+
+    /**
+     * Process the request.
+     */
+    public function process(int $userId): void
+    {
+        $this->update([
+            'status' => 'processing',
+            'processed_by' => $userId,
+        ]);
+    }
+
+    /**
+     * Mark as ready for release.
+     */
+    public function markReady(): void
+    {
+        $this->update(['status' => 'ready']);
+    }
+
+    /**
+     * Release the document.
+     */
+    public function release(int $userId): void
+    {
+        $this->update([
+            'status' => 'released',
+            'release_date' => now(),
+            'released_by' => $userId,
+        ]);
+    }
+
+    /**
+     * Cancel the request.
+     */
+    public function cancel(?string $remarks = null): void
+    {
+        $this->update([
+            'status' => 'cancelled',
+            'remarks' => $remarks ?? $this->remarks,
+        ]);
+    }
+
+    /**
+     * Scope for pending requests.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Scope for processing requests.
+     */
+    public function scopeProcessing($query)
+    {
+        return $query->where('status', 'processing');
+    }
+
+    /**
+     * Scope for ready requests.
+     */
+    public function scopeReady($query)
+    {
+        return $query->where('status', 'ready');
+    }
+
+    /**
+     * Scope for unpaid requests.
+     */
+    public function scopeUnpaid($query)
+    {
+        return $query->where('is_paid', false);
+    }
+}
