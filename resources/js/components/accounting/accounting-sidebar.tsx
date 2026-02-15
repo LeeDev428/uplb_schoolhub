@@ -1,8 +1,14 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BadgeDollarSign,
+    BookOpen,
+    Calculator,
     ClipboardCheck,
+    CreditCard,
+    FileCheck,
     FileText,
+    Gift,
+    Globe,
     LayoutGrid,
     Megaphone,
     Receipt,
@@ -23,20 +29,12 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Settings',
-        href: '/accounting/settings',
-        icon: Settings,
-    },
-];
-
 export function AccountingSidebar() {
     const { announcementCount } = usePage<{ announcementCount: number }>().props;
 
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: 'Account Dashboard',
             href: '/accounting/dashboard',
             icon: LayoutGrid,
         },
@@ -47,24 +45,57 @@ export function AccountingSidebar() {
             badge: announcementCount || undefined,
         },
         {
+            title: 'Student Accounts',
+            href: '/accounting/student-accounts',
+            icon: Users,
+        },
+        {
+            title: 'Document Request',
+            href: '/accounting/document-requests',
+            icon: FileText,
+        },
+        {
+            title: 'Payment Processing',
+            href: '/accounting/payments',
+            icon: CreditCard,
+        },
+        {
+            title: 'Student Grants',
+            href: '/accounting/grants',
+            icon: Gift,
+        },
+        {
+            title: 'Exam Approval',
+            href: '/accounting/exam-approval',
+            icon: FileCheck,
+        },
+        {
             title: 'Student Clearance',
             href: '/accounting/clearance',
             icon: ClipboardCheck,
         },
         {
-            title: 'Student Fees',
-            href: '/accounting/fees',
-            icon: BadgeDollarSign,
-        },
-        {
-            title: 'Payments',
-            href: '/accounting/payments',
-            icon: Receipt,
-        },
-        {
             title: 'Reports',
             href: '/accounting/reports',
-            icon: FileText,
+            icon: BookOpen,
+        },
+    ];
+
+    const adminNavItems: NavItem[] = [
+        {
+            title: 'Fee Management',
+            href: '/accounting/fee-management',
+            icon: Calculator,
+        },
+        {
+            title: 'Online Transactions',
+            href: '/accounting/online-transactions',
+            icon: Globe,
+        },
+        {
+            title: 'Settings',
+            href: '/accounting/settings',
+            icon: Settings,
         },
     ];
 
@@ -88,10 +119,10 @@ export function AccountingSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} label="Main Navigation" />
+                <NavMain items={adminNavItems} label="Administration" />
             </SidebarContent>
             <SidebarFooter>
-                <NavFooter items={footerNavItems} />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
