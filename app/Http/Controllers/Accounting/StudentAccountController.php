@@ -145,6 +145,49 @@ class StudentAccountController extends Controller
     }
 
     /**
+     * Bulk mark accounts as overdue based on filters.
+     */
+    public function bulkMarkOverdue(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'classification' => 'nullable|string',
+            'department_id' => 'nullable|exists:departments,id',
+            'year_level' => 'nullable|string',
+            'overdue_date' => 'required|date',
+        ]);
+
+        $query = StudentFee::where('balance', '>', 0)
+            ->where('is_overdue', false);
+
+        if ($classification = $request->classification) {
+            $query->whereHas('student', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
+
+        if ($departmentId = $request->department_id) {
+            $query->whereHas('student', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        if ($yearLevel = $request->year_level) {
+            $query->whereHas('student', function ($q) use ($yearLevel) {
+                $q->where('year_level', $yearLevel);
+            });
+        }
+
+        $count = $query->count();
+        
+        $query->update([
+            'is_overdue' => true,
+            'due_date' => $request->overdue_date,
+        ]);
+
+        return redirect()->back()->with('success', "{$count} accounts marked as overdue.");
+    }
+
+    /**
      * Get detailed account information.
      */
     public function show(StudentFee $fee): Response
