@@ -52,6 +52,32 @@ class DocumentRequestController extends Controller
         }
 
         $requests = $query->latest()->paginate(20)->withQueryString();
+        
+        // Transform for frontend
+        $requests->through(function ($request) {
+            return [
+                'id' => $request->id,
+                'student_id' => $request->student_id,
+                'document_type' => $request->document_type,
+                'quantity' => $request->copies,
+                'purpose' => $request->purpose,
+                'fee_amount' => $request->fee,
+                'payment_status' => $request->is_paid ? 'paid' : 'unpaid',
+                'status' => $request->status,
+                'processed_at' => $request->updated_at,
+                'ready_at' => $request->status === 'ready' ? $request->updated_at : null,
+                'released_at' => $request->release_date,
+                'remarks' => $request->remarks,
+                'created_at' => $request->created_at,
+                'student' => [
+                    'id' => $request->student->id,
+                    'full_name' => $request->student->full_name,
+                    'lrn' => $request->student->lrn,
+                ],
+                'processed_by' => $request->processedBy ? ['name' => $request->processedBy->name] : null,
+                'released_by' => $request->releasedBy ? ['name' => $request->releasedBy->name] : null,
+            ];
+        });
 
         // Get students for creating requests
         $students = Student::orderBy('last_name')->orderBy('first_name')
@@ -71,7 +97,7 @@ class DocumentRequestController extends Controller
             'pending' => DocumentRequest::pending()->count(),
             'processing' => DocumentRequest::processing()->count(),
             'ready' => DocumentRequest::ready()->count(),
-            'unpaid' => DocumentRequest::unpaid()->count(),
+            'total_unpaid' => DocumentRequest::unpaid()->sum('fee'),
         ];
 
         return Inertia::render('accounting/document-requests/index', [
@@ -91,12 +117,16 @@ class DocumentRequestController extends Controller
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'document_type' => 'required|string',
-            'copies' => 'required|integer|min:1',
+            'quantity' => 'nullable|integer|min:1',
             'purpose' => 'nullable|string',
-            'fee' => 'required|numeric|min:0',
-            'request_date' => 'required|date',
+            'fee_amount' => 'required|numeric|min:0',
             'remarks' => 'nullable|string',
         ]);
+        
+        $validated['copies'] = $validated['quantity'] ?? 1;
+        $validated['fee'] = $validated['fee_amount'];
+        $validated['request_date'] = now();
+        unset($validated['quantity'], $validated['fee_amount']);
 
         DocumentRequest::create($validated);
 
