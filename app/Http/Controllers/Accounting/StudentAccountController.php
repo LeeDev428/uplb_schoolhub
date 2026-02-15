@@ -151,7 +151,7 @@ class StudentAccountController extends Controller
     {
         $request->validate([
             'classification' => 'nullable|string',
-            'department_id' => 'nullable|exists:departments,id',
+            'department_id' => 'nullable|string',
             'year_level' => 'nullable|string',
             'overdue_date' => 'required|date',
         ]);
@@ -160,21 +160,27 @@ class StudentAccountController extends Controller
             ->where('is_overdue', false);
 
         if ($classification = $request->classification) {
-            $query->whereHas('student', function ($q) use ($classification) {
-                $q->where('classification', $classification);
-            });
+            if ($classification !== 'all') {
+                $query->whereHas('student', function ($q) use ($classification) {
+                    $q->where('classification', $classification);
+                });
+            }
         }
 
         if ($departmentId = $request->department_id) {
-            $query->whereHas('student', function ($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
-            });
+            if ($departmentId !== 'all') {
+                $query->whereHas('student', function ($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
+                });
+            }
         }
 
         if ($yearLevel = $request->year_level) {
-            $query->whereHas('student', function ($q) use ($yearLevel) {
-                $q->where('year_level', $yearLevel);
-            });
+            if ($yearLevel !== 'all') {
+                $query->whereHas('student', function ($q) use ($yearLevel) {
+                    $q->where('year_level', $yearLevel);
+                });
+            }
         }
 
         $count = $query->count();
