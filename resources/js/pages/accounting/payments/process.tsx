@@ -47,6 +47,7 @@ import {
     AlertTriangle,
     GraduationCap,
     User,
+    RefreshCw,
 } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
@@ -147,6 +148,7 @@ function formatDate(dateString: string): string {
 
 export default function PaymentProcess({ student, fees, payments, promissoryNotes, grants, summary }: Props) {
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+    const [isPromissoryDialogOpen, setIsPromissoryDialogOpen] = useState(false);
     const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('all');
 
     const paymentForm = useForm({
@@ -159,6 +161,14 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
         notes: '',
     });
 
+    const promissoryForm = useForm({
+        student_id: student.id,
+        student_fee_id: '',
+        amount: '',
+        due_date: '',
+        reason: '',
+    });
+
     const handlePaymentSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         paymentForm.post('/accounting/payments', {
@@ -167,6 +177,20 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                 paymentForm.reset();
             },
         });
+    };
+
+    const handlePromissorySubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        promissoryForm.post('/accounting/promissory-notes', {
+            onSuccess: () => {
+                setIsPromissoryDialogOpen(false);
+                promissoryForm.reset();
+            },
+        });
+    };
+
+    const handleRefresh = () => {
+        router.reload({ only: ['promissoryNotes'] });
     };
 
     const handleApprovePromissory = (noteId: number) => {
