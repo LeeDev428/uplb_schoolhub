@@ -181,6 +181,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'index'])->name('dashboard');
+    Route::get('main-dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'mainDashboard'])->name('main-dashboard');
     Route::get('account-dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'accountDashboard'])->name('account-dashboard');
     
     // Student Accounts Management
