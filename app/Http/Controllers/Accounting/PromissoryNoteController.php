@@ -58,6 +58,46 @@ class PromissoryNoteController extends Controller
     }
 
     /**
+     * Store a newly created promissory note (manually created by accounting staff).
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'student_fee_id' => 'required|exists:student_fees,id',
+            'amount' => 'required|numeric|min:0.01',
+            'due_date' => 'required|date|after:today',
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        // Verify the fee belongs to the student
+        $fee = \App\Models\StudentFee::where('id', $validated['student_fee_id'])
+            ->where('student_id', $validated['student_id'])
+            ->first();
+
+        if (!$fee) {
+            return back()->withErrors(['error' => 'Invalid fee selected for this student.']);
+        }
+
+        // Check if amount doesn't exceed balance
+        if ($validated['amount'] > $fee->balance) {
+            return back()->withErrors(['amount' => 'Amount cannot exceed the remaining balance.']);
+        }
+
+        PromissoryNote::create([
+            'student_id' => $validated['student_id'],
+            'student_fee_id' => $validated['student_fee_id'],
+            'amount' => $validated['amount'],
+            'submitted_date' => now(),
+            'due_date' => $validated['due_date'],
+            'reason' => $validated['reason'],
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Promissory note created successfully.');
+    }
+
+    /**
      * Approve a promissory note.
      */
     public function approve(Request $request, PromissoryNote $note): RedirectResponse
