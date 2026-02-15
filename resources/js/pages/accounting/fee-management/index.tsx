@@ -95,7 +95,9 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
     });
 
     const formatCurrency = (amount: string | number) => {
-        return `₱${parseFloat(amount.toString()).toLocaleString('en-PH', {
+        const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+        if (isNaN(numAmount)) return '₱0.00';
+        return `₱${numAmount.toLocaleString('en-PH', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         })}`;
@@ -280,7 +282,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                             <Calculator className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(totals.cost)}</div>
+                            <div className="text-2xl font-bold">{formatCurrency(totals?.cost ?? 0)}</div>
                             <p className="text-xs text-muted-foreground">Base cost of all fee items</p>
                         </CardContent>
                     </Card>
@@ -290,7 +292,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(totals.selling)}</div>
+                            <div className="text-2xl font-bold">{formatCurrency(totals?.selling ?? 0)}</div>
                             <p className="text-xs text-muted-foreground">Total fees charged to students</p>
                         </CardContent>
                     </Card>
@@ -300,7 +302,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                             <DollarSign className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">{formatCurrency(totals.profit)}</div>
+                            <div className="text-2xl font-bold text-green-600">{formatCurrency(totals?.profit ?? 0)}</div>
                             <p className="text-xs text-muted-foreground">Revenue margin on all fees</p>
                         </CardContent>
                     </Card>
