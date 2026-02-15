@@ -1,10 +1,12 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Table,
     TableBody,
@@ -19,10 +21,26 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock } from 'lucide-react';
+import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
 interface Student {
@@ -73,10 +91,16 @@ interface Stats {
     fully_paid: number;
 }
 
+interface Department {
+    id: number;
+    name: string;
+}
+
 interface Props {
     accounts: PaginatedAccounts;
     schoolYears: string[];
     stats: Stats;
+    departments?: Department[];
     filters: {
         search?: string;
         status?: string;
@@ -85,10 +109,18 @@ interface Props {
     };
 }
 
-export default function StudentAccounts({ accounts, schoolYears, stats, filters }: Props) {
+export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || 'all');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
+    const [isOverdueDialogOpen, setIsOverdueDialogOpen] = useState(false);
+
+    const overdueForm = useForm({
+        classification: '',
+        department_id: '',
+        year_level: '',
+        overdue_date: new Date().toISOString().split('T')[0],
+    });
 
     const handleFilter = () => {
         router.get('/accounting/student-accounts', {
@@ -108,6 +140,15 @@ export default function StudentAccounts({ accounts, schoolYears, stats, filters 
         router.get('/accounting/student-accounts');
     };
 
+    const handleBulkOverdue = (e: React.FormEvent) => {
+        e.preventDefault();
+        overdueForm.post('/accounting/student-accounts/bulk-mark-overdue', {
+            onSuccess: () => {
+                setIsOverdueDialogOpen(false);
+                overdueForm.reset();
+            },
+        });
+    };
     const handleMarkOverdue = (id: number) => {
         if (confirm('Are you sure you want to mark this account as overdue?')) {
             router.post(`/accounting/student-accounts/${id}/mark-overdue`);
@@ -153,15 +194,43 @@ export default function StudentAccounts({ accounts, schoolYears, stats, filters 
         label: year,
     }));
 
+    const classificationOptions = [
+        { value: 'elementary', label: 'Elementary' },
+        { value: 'junior_high', label: 'Junior High' },
+        { value: 'senior_high', label: 'Senior High' },
+        { value: 'college', label: 'College' },
+    ];
+
+    const yearLevelOptions = [
+        { value: '1', label: 'Grade 1 / 1st Year' },
+        { value: '2', label: 'Grade 2 / 2nd Year' },
+        { value: '3', label: 'Grade 3 / 3rd Year' },
+        { value: '4', label: 'Grade 4 / 4th Year' },
+        { value: '5', label: 'Grade 5 / 5th Year' },
+        { value: '6', label: 'Grade 6 / 6th Year' },
+    ];
+
     return (
         <AccountingLayout>
             <Head title="Student Accounts" />
 
             <div className="space-y-6 p-6">
-                <PageHeader
-                    title="Student Accounts"
-                    description="View and manage student fee accounts, balances, and payment status"
-                />
+                <div className="flex items-center justify-between">
+                    <PageHeader
+                        title="Student Accounts"
+                        description="View and manage student fee accounts, balances, and payment status"
+                    />
+                    <div className="flex gap-2">
+                        <Button variant="default" className="bg-blue-600 hover:bg-blue-700">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Student
+                        </Button>
+                        <Button variant="outline">
+                            <Upload className="h-4 w-4 mr-2" />
+                            Import
+                        </Button>
+                    </div>
+                </div>
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -246,6 +315,127 @@ export default function StudentAccounts({ accounts, schoolYears, stats, filters 
                     <Button onClick={handleFilter} className="mt-auto">
                         Apply Filters
                     </Button>
+                    
+                    {/* Mark Overdue Button and Dialog */}
+                    <Dialog open={isOverdueDialogOpen} onOpenChange={setIsOverdueDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="destructive" className="mt-auto">
+                                <AlertTriangle className="h-4 w-4 mr-2" />
+                                Mark Overdue
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                            <form onSubmit={handleBulkOverdue}>
+                                <DialogHeader className="text-center">
+                                    <div className="flex justify-center mb-4">
+                                        <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+                                            <AlertTriangle className="h-8 w-8 text-red-600" />
+                                        </div>
+                                    </div>
+                                    <DialogTitle className="text-red-600 text-xl">Mark Overdue Balances</DialogTitle>
+                                    <DialogDescription className="text-amber-600 flex items-center justify-center gap-1">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        Once marked overdue, this action cannot be undone.
+                                        <AlertTriangle className="h-4 w-4" />
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label>Classification</Label>
+                                        <Select
+                                            value={overdueForm.data.classification}
+                                            onValueChange={(value) => overdueForm.setData('classification', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="All Classifications" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="">All Classifications</SelectItem>
+                                                {classificationOptions.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label>Department</Label>
+                                        <Select
+                                            value={overdueForm.data.department_id}
+                                            onValueChange={(value) => overdueForm.setData('department_id', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="All Departments" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="">All Departments</SelectItem>
+                                                {departments.map((dept) => (
+                                                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                        {dept.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label>Year Level</Label>
+                                        <Select
+                                            value={overdueForm.data.year_level}
+                                            onValueChange={(value) => overdueForm.setData('year_level', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="All Years" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="">All Years</SelectItem>
+                                                {yearLevelOptions.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label>Set Overdue Date</Label>
+                                        <Input
+                                            type="date"
+                                            value={overdueForm.data.overdue_date}
+                                            onChange={(e) => overdueForm.setData('overdue_date', e.target.value)}
+                                        />
+                                        {overdueForm.errors.overdue_date && (
+                                            <p className="text-sm text-red-500">{overdueForm.errors.overdue_date}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <DialogFooter className="flex gap-2">
+                                    <Button
+                                        type="submit"
+                                        variant="destructive"
+                                        disabled={overdueForm.processing}
+                                        className="flex-1"
+                                    >
+                                        <AlertTriangle className="h-4 w-4 mr-2" />
+                                        Confirm Overdue
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsOverdueDialogOpen(false)}
+                                        className="flex-1"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </FilterBar>
 
                 {/* Table */}
