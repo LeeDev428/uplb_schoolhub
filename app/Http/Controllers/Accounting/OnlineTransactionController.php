@@ -54,16 +54,55 @@ class OnlineTransactionController extends Controller
 
         $transactions = $query->latest('transaction_date')->paginate(20)->withQueryString();
 
+        // Transform for frontend
+        $transactions->through(function ($transaction) {
+            return [
+                'id' => $transaction->id,
+                'student_id' => $transaction->student_id,
+                'transaction_reference' => $transaction->transaction_id,
+                'payment_provider' => $transaction->payment_method,
+                'amount' => $transaction->amount,
+                'fee' => '0.00',
+                'net_amount' => $transaction->amount,
+                'status' => $transaction->status,
+                'provider_reference' => $transaction->reference_number,
+                'provider_status' => null,
+                'payment_details' => null,
+                'verified_at' => $transaction->verified_at,
+                'failed_at' => null,
+                'refunded_at' => null,
+                'failure_reason' => null,
+                'remarks' => $transaction->remarks,
+                'created_at' => $transaction->created_at,
+                'student' => [
+                    'id' => $transaction->student->id,
+                    'full_name' => $transaction->student->full_name,
+                    'lrn' => $transaction->student->lrn,
+                    'email' => $transaction->student->email ?? null,
+                ],
+                'verified_by' => $transaction->verifiedBy ? ['name' => $transaction->verifiedBy->name] : null,
+            ];
+        });
+
         // Stats
         $stats = [
             'pending' => OnlineTransaction::pending()->count(),
-            'completed' => OnlineTransaction::completed()->count(),
+            'verified' => OnlineTransaction::completed()->count(),
             'total_pending_amount' => OnlineTransaction::pending()->sum('amount'),
-            'total_completed_amount' => OnlineTransaction::completed()->sum('amount'),
+            'total_verified_today' => OnlineTransaction::completed()->whereDate('verified_at', today())->sum('amount'),
+        ];
+        
+        // Providers
+        $providers = [
+            'gcash' => 'GCash',
+            'bank' => 'Bank Transfer',
+            'card' => 'Credit/Debit Card',
+            'other' => 'Other',
         ];
 
         return Inertia::render('accounting/online-transactions/index', [
             'transactions' => $transactions,
+            'providers' => $providers,
             'stats' => $stats,
             'filters' => $request->only(['search', 'status', 'payment_method', 'from', 'to']),
         ]);
