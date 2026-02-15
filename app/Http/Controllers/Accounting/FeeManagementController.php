@@ -52,8 +52,16 @@ class FeeManagementController extends Controller
             ];
         });
 
+        // Calculate totals
+        $totals = [
+            'cost' => $categories->sum('total_cost'),
+            'selling' => $categories->sum('total_selling'),
+            'profit' => $categories->sum('total_profit'),
+        ];
+
         return Inertia::render('accounting/fee-management/index', [
             'categories' => $categories,
+            'totals' => $totals,
         ]);
     }
 
