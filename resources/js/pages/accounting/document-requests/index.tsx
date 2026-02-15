@@ -201,7 +201,9 @@ export default function DocumentRequestIndex({
     };
 
     const formatCurrency = (amount: string | number) => {
-        return `₱${parseFloat(amount.toString()).toLocaleString('en-PH', {
+        const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+        if (isNaN(numAmount)) return '₱0.00';
+        return `₱${numAmount.toLocaleString('en-PH', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         })}`;
@@ -254,7 +256,7 @@ export default function DocumentRequestIndex({
         { value: 'unpaid', label: 'Unpaid' },
     ];
 
-    const documentTypeOptions = Object.entries(documentTypes).map(([value, label]) => ({ value, label }));
+    const documentTypeOptions = documentTypes ? Object.entries(documentTypes).map(([value, label]) => ({ value, label })) : [];
 
     return (
         <AccountingLayout>
@@ -493,7 +495,7 @@ export default function DocumentRequestIndex({
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            {documentTypes[request.document_type] || request.document_type}
+                                            {documentTypes?.[request.document_type] || request.document_type}
                                         </TableCell>
                                         <TableCell className="text-center">{request.quantity}</TableCell>
                                         <TableCell className="max-w-[150px] truncate">
@@ -610,7 +612,7 @@ export default function DocumentRequestIndex({
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Document:</span>
-                                <span className="font-medium">{documentTypes[selectedRequest.document_type] || selectedRequest.document_type}</span>
+                                <span className="font-medium">{documentTypes?.[selectedRequest.document_type] || selectedRequest.document_type}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Amount:</span>
