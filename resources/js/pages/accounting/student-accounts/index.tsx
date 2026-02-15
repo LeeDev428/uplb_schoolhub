@@ -116,9 +116,9 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
     const [isOverdueDialogOpen, setIsOverdueDialogOpen] = useState(false);
 
     const overdueForm = useForm({
-        classification: '',
-        department_id: '',
-        year_level: '',
+        classification: 'all',
+        department_id: 'all',
+        year_level: 'all',
         overdue_date: new Date().toISOString().split('T')[0],
     });
 
@@ -351,7 +351,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                                 <SelectValue placeholder="All Classifications" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">All Classifications</SelectItem>
+                                                <SelectItem value="all">All Classifications</SelectItem>
                                                 {classificationOptions.map((opt) => (
                                                     <SelectItem key={opt.value} value={opt.value}>
                                                         {opt.label}
@@ -371,7 +371,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                                 <SelectValue placeholder="All Departments" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">All Departments</SelectItem>
+                                                <SelectItem value="all">All Departments</SelectItem>
                                                 {departments.map((dept) => (
                                                     <SelectItem key={dept.id} value={dept.id.toString()}>
                                                         {dept.name}
@@ -391,7 +391,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                                 <SelectValue placeholder="All Years" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">All Years</SelectItem>
+                                                <SelectItem value="all">All Years</SelectItem>
                                                 {yearLevelOptions.map((opt) => (
                                                     <SelectItem key={opt.value} value={opt.value}>
                                                         {opt.label}
