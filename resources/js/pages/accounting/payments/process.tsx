@@ -590,10 +590,109 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                     <TabsContent value="promissory" className="space-y-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Promissory Notes</CardTitle>
-                                <CardDescription>
-                                    View and manage promissory note requests from this student
-                                </CardDescription>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Promissory Notes</CardTitle>
+                                        <CardDescription>
+                                            View and manage promissory note requests from this student
+                                        </CardDescription>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Dialog open={isPromissoryDialogOpen} onOpenChange={setIsPromissoryDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button className="bg-green-600 hover:bg-green-700">
+                                                    <Plus className="h-4 w-4 mr-2" />
+                                                    New Promissory Note
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[500px]">
+                                                <form onSubmit={handlePromissorySubmit}>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Create Promissory Note</DialogTitle>
+                                                        <DialogDescription>
+                                                            Create a new promissory note for {student.full_name}
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <div className="grid gap-4 py-4">
+                                                        <div className="grid gap-2">
+                                                            <Label>Fee / School Year</Label>
+                                                            <Select
+                                                                value={promissoryForm.data.student_fee_id}
+                                                                onValueChange={(val) => promissoryForm.setData('student_fee_id', val)}
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select fee" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {fees.filter(f => f.balance > 0).map((fee) => (
+                                                                        <SelectItem key={fee.id} value={fee.id.toString()}>
+                                                                            {fee.school_year} - Balance: {formatCurrency(fee.balance)}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {promissoryForm.errors.student_fee_id && (
+                                                                <p className="text-sm text-red-500">{promissoryForm.errors.student_fee_id}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="grid gap-2">
+                                                                <Label>Amount</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    min="0.01"
+                                                                    value={promissoryForm.data.amount}
+                                                                    onChange={(e) => promissoryForm.setData('amount', e.target.value)}
+                                                                    placeholder="0.00"
+                                                                />
+                                                                {promissoryForm.errors.amount && (
+                                                                    <p className="text-sm text-red-500">{promissoryForm.errors.amount}</p>
+                                                                )}
+                                                            </div>
+                                                            <div className="grid gap-2">
+                                                                <Label>Due Date</Label>
+                                                                <Input
+                                                                    type="date"
+                                                                    value={promissoryForm.data.due_date}
+                                                                    onChange={(e) => promissoryForm.setData('due_date', e.target.value)}
+                                                                    min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                                                                />
+                                                                {promissoryForm.errors.due_date && (
+                                                                    <p className="text-sm text-red-500">{promissoryForm.errors.due_date}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid gap-2">
+                                                            <Label>Reason</Label>
+                                                            <Textarea
+                                                                value={promissoryForm.data.reason}
+                                                                onChange={(e) => promissoryForm.setData('reason', e.target.value)}
+                                                                placeholder="Reason for promissory note..."
+                                                                rows={3}
+                                                            />
+                                                            {promissoryForm.errors.reason && (
+                                                                <p className="text-sm text-red-500">{promissoryForm.errors.reason}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <DialogFooter>
+                                                        <Button type="button" variant="outline" onClick={() => setIsPromissoryDialogOpen(false)}>
+                                                            Cancel
+                                                        </Button>
+                                                        <Button type="submit" disabled={promissoryForm.processing}>
+                                                            Create Note
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </form>
+                                            </DialogContent>
+                                        </Dialog>
+                                        <Button variant="outline" className="bg-cyan-500 hover:bg-cyan-600 text-white" onClick={handleRefresh}>
+                                            <RefreshCw className="h-4 w-4 mr-2" />
+                                            Refresh
+                                        </Button>
+                                    </div>
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 {promissoryNotes.length === 0 ? (
