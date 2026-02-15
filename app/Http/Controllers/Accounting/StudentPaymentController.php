@@ -161,4 +161,123 @@ class StudentPaymentController extends Controller
             'fees' => $fees,
         ]);
     }
+
+    /**
+     * Show payment processing page for a specific student.
+     */
+    public function process(Student $student): Response
+    {
+        // Load student with all related data
+        $student->load([
+            'program', 
+            'yearLevel', 
+            'section',
+        ]);
+
+        // Get all fees for this student with detailed breakdown
+        $fees = StudentFee::where('student_id', $student->id)
+            ->with(['feeItems.feeItem.category'])
+            ->orderBy('school_year', 'desc')
+            ->get()
+            ->map(function ($fee) {
+                return [
+                    'id' => $fee->id,
+                    'school_year' => $fee->school_year,
+                    'total_amount' => (float) $fee->total_amount,
+                    'grant_discount' => (float) $fee->grant_discount,
+                    'total_paid' => (float) $fee->total_paid,
+                    'balance' => (float) $fee->balance,
+                    'status' => $fee->is_fully_paid ? 'paid' : ($fee->is_overdue ? 'overdue' : 'pending'),
+                    'is_overdue' => $fee->is_overdue,
+                    'due_date' => $fee->due_date,
+                    'items' => $fee->feeItems->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->feeItem->name ?? 'Fee',
+                            'category' => $item->feeItem->category->name ?? 'Other',
+                            'amount' => (float) $item->amount,
+                            'is_optional' => $item->feeItem->is_optional ?? false,
+                        ];
+                    }),
+                ];
+            });
+
+        // Get all payments
+        $payments = StudentPayment::where('student_id', $student->id)
+            ->with(['recordedBy'])
+            ->orderBy('payment_date', 'desc')
+            ->get()
+            ->map(function ($payment) {
+                return [
+                    'id' => $payment->id,
+                    'payment_date' => $payment->payment_date,
+                    'or_number' => $payment->or_number,
+                    'amount' => (float) $payment->amount,
+                    'payment_for' => $payment->payment_for,
+                    'notes' => $payment->notes,
+                    'recorded_by' => $payment->recordedBy?->name,
+                    'created_at' => $payment->created_at->format('Y-m-d H:i'),
+                ];
+            });
+
+        // Get promissory notes
+        $promissoryNotes = \App\Models\PromissoryNote::where('student_id', $student->id)
+            ->with(['studentFee', 'reviewer'])
+            ->orderBy('submitted_date', 'desc')
+            ->get()
+            ->map(function ($note) {
+                return [
+                    'id' => $note->id,
+                    'student_fee_id' => $note->student_fee_id,
+                    'submitted_date' => $note->submitted_date->format('Y-m-d'),
+                    'due_date' => $note->due_date->format('Y-m-d'),
+                    'amount' => (float) $note->amount,
+                    'reason' => $note->reason,
+                    'status' => $note->status,
+                    'school_year' => $note->studentFee?->school_year,
+                    'reviewed_by' => $note->reviewer?->name,
+                    'reviewed_at' => $note->reviewed_at?->format('Y-m-d H:i'),
+                    'review_notes' => $note->review_notes,
+                ];
+            });
+
+        // Calculate summary stats
+        $summary = [
+            'total_fees' => $fees->sum('total_amount'),
+            'total_discount' => $fees->sum('grant_discount'),
+            'total_paid' => $payments->sum('amount'),
+            'total_balance' => $fees->sum('balance'),
+        ];
+
+        // Get grants/scholarships for this student
+        $grants = \App\Models\GrantRecipient::where('student_id', $student->id)
+            ->with('grant')
+            ->get()
+            ->map(function ($recipient) {
+                return [
+                    'id' => $recipient->id,
+                    'name' => $recipient->grant->name,
+                    'amount' => (float) $recipient->amount,
+                    'school_year' => $recipient->school_year,
+                    'status' => $recipient->status,
+                ];
+            });
+
+        return Inertia::render('accounting/payments/process', [
+            'student' => [
+                'id' => $student->id,
+                'full_name' => $student->full_name,
+                'lrn' => $student->lrn,
+                'email' => $student->email,
+                'program' => $student->program?->name,
+                'year_level' => $student->yearLevel?->name,
+                'section' => $student->section?->name,
+            ],
+            'fees' => $fees,
+            'payments' => $payments,
+            'promissoryNotes' => $promissoryNotes,
+            'grants' => $grants,
+            'summary' => $summary,
+        ]);
+    }
 }
