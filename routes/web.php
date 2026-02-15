@@ -280,6 +280,11 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::post('quizzes/take/{attempt}/save', [App\Http\Controllers\Student\QuizController::class, 'saveResponse'])->name('quizzes.save-response');
     Route::post('quizzes/take/{attempt}/submit', [App\Http\Controllers\Student\QuizController::class, 'submit'])->name('quizzes.submit');
     Route::get('quizzes/result/{attempt}', [App\Http\Controllers\Student\QuizController::class, 'result'])->name('quizzes.result');
+    
+    // Promissory Notes
+    Route::get('promissory-notes', [App\Http\Controllers\Student\PromissoryNoteController::class, 'index'])->name('promissory-notes.index');
+    Route::post('promissory-notes', [App\Http\Controllers\Student\PromissoryNoteController::class, 'store'])->name('promissory-notes.store');
+    Route::delete('promissory-notes/{note}/cancel', [App\Http\Controllers\Student\PromissoryNoteController::class, 'cancel'])->name('promissory-notes.cancel');
 });
 
 // Teacher Portal Routes
