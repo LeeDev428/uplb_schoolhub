@@ -182,12 +182,63 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     
     Route::get('dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'index'])->name('dashboard');
     
-    // Student Fees Management
+    // Student Accounts Management
+    Route::get('student-accounts', [App\Http\Controllers\Accounting\StudentAccountController::class, 'index'])->name('student-accounts.index');
+    Route::get('student-accounts/{fee}', [App\Http\Controllers\Accounting\StudentAccountController::class, 'show'])->name('student-accounts.show');
+    Route::post('student-accounts/{fee}/mark-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'markOverdue'])->name('student-accounts.mark-overdue');
+    Route::post('student-accounts/{fee}/clear-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'clearOverdue'])->name('student-accounts.clear-overdue');
+    
+    // Student Fees Management (legacy)
     Route::resource('fees', App\Http\Controllers\Accounting\StudentFeeController::class);
     
-    // Student Payments Management
+    // Payment Processing
     Route::get('payments/create', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'create'])->name('payments.create');
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
+    
+    // Document Requests Management
+    Route::get('document-requests', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'index'])->name('document-requests.index');
+    Route::post('document-requests', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'store'])->name('document-requests.store');
+    Route::put('document-requests/{documentRequest}', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'update'])->name('document-requests.update');
+    Route::delete('document-requests/{documentRequest}', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'destroy'])->name('document-requests.destroy');
+    Route::post('document-requests/{documentRequest}/mark-paid', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'markPaid'])->name('document-requests.mark-paid');
+    Route::post('document-requests/{documentRequest}/process', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'process'])->name('document-requests.process');
+    Route::post('document-requests/{documentRequest}/mark-ready', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'markReady'])->name('document-requests.mark-ready');
+    Route::post('document-requests/{documentRequest}/release', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'release'])->name('document-requests.release');
+    Route::post('document-requests/{documentRequest}/cancel', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'cancel'])->name('document-requests.cancel');
+    
+    // Student Grants Management
+    Route::get('grants', [App\Http\Controllers\Accounting\GrantController::class, 'index'])->name('grants.index');
+    Route::post('grants', [App\Http\Controllers\Accounting\GrantController::class, 'store'])->name('grants.store');
+    Route::put('grants/{grant}', [App\Http\Controllers\Accounting\GrantController::class, 'update'])->name('grants.update');
+    Route::delete('grants/{grant}', [App\Http\Controllers\Accounting\GrantController::class, 'destroy'])->name('grants.destroy');
+    Route::post('grants/recipients', [App\Http\Controllers\Accounting\GrantController::class, 'assignRecipient'])->name('grants.assign-recipient');
+    Route::put('grants/recipients/{recipient}', [App\Http\Controllers\Accounting\GrantController::class, 'updateRecipient'])->name('grants.update-recipient');
+    Route::delete('grants/recipients/{recipient}', [App\Http\Controllers\Accounting\GrantController::class, 'removeRecipient'])->name('grants.remove-recipient');
+    
+    // Exam Approval
+    Route::get('exam-approval', [App\Http\Controllers\Accounting\ExamApprovalController::class, 'index'])->name('exam-approval.index');
+    Route::post('exam-approval', [App\Http\Controllers\Accounting\ExamApprovalController::class, 'store'])->name('exam-approval.store');
+    Route::post('exam-approval/{approval}/approve', [App\Http\Controllers\Accounting\ExamApprovalController::class, 'approve'])->name('exam-approval.approve');
+    Route::post('exam-approval/{approval}/deny', [App\Http\Controllers\Accounting\ExamApprovalController::class, 'deny'])->name('exam-approval.deny');
+    Route::put('exam-approval/{approval}/paid-amount', [App\Http\Controllers\Accounting\ExamApprovalController::class, 'updatePaidAmount'])->name('exam-approval.update-paid');
+    Route::delete('exam-approval/{approval}', [App\Http\Controllers\Accounting\ExamApprovalController::class, 'destroy'])->name('exam-approval.destroy');
+    Route::post('exam-approval/bulk-approve', [App\Http\Controllers\Accounting\ExamApprovalController::class, 'bulkApprove'])->name('exam-approval.bulk-approve');
+    
+    // Fee Management (Administration)
+    Route::get('fee-management', [App\Http\Controllers\Accounting\FeeManagementController::class, 'index'])->name('fee-management.index');
+    Route::post('fee-management/categories', [App\Http\Controllers\Accounting\FeeManagementController::class, 'storeCategory'])->name('fee-management.store-category');
+    Route::put('fee-management/categories/{category}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'updateCategory'])->name('fee-management.update-category');
+    Route::delete('fee-management/categories/{category}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'destroyCategory'])->name('fee-management.destroy-category');
+    Route::post('fee-management/items', [App\Http\Controllers\Accounting\FeeManagementController::class, 'storeItem'])->name('fee-management.store-item');
+    Route::put('fee-management/items/{item}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'updateItem'])->name('fee-management.update-item');
+    Route::delete('fee-management/items/{item}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'destroyItem'])->name('fee-management.destroy-item');
+    
+    // Online Transactions
+    Route::get('online-transactions', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'index'])->name('online-transactions.index');
+    Route::post('online-transactions/{transaction}/verify', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'verify'])->name('online-transactions.verify');
+    Route::post('online-transactions/{transaction}/failed', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'markFailed'])->name('online-transactions.failed');
+    Route::post('online-transactions/{transaction}/refund', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'refund'])->name('online-transactions.refund');
+    Route::delete('online-transactions/{transaction}', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'destroy'])->name('online-transactions.destroy');
     
     // Student Clearance Management
     Route::get('clearance', [App\Http\Controllers\Accounting\StudentClearanceController::class, 'index'])->name('clearance.index');
