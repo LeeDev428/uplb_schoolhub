@@ -17,6 +17,9 @@ class StudentPayment extends Model
         'or_number',
         'amount',
         'payment_for',
+        'payment_method',
+        'reference_number',
+        'bank_name',
         'notes',
         'recorded_by',
     ];
@@ -24,6 +27,16 @@ class StudentPayment extends Model
     protected $casts = [
         'payment_date' => 'date',
         'amount' => 'decimal:2',
+    ];
+
+    /**
+     * Available payment methods.
+     */
+    public const PAYMENT_METHODS = [
+        'cash' => 'Cash',
+        'gcash' => 'GCash',
+        'bank' => 'Bank Transfer',
+        'other' => 'Other',
     ];
 
     /**
@@ -48,6 +61,54 @@ class StudentPayment extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    /**
+     * Get the online transaction associated with this payment.
+     */
+    public function onlineTransaction()
+    {
+        return $this->hasOne(OnlineTransaction::class);
+    }
+
+    /**
+     * Get the payment method label.
+     */
+    public function getPaymentMethodLabelAttribute(): string
+    {
+        return self::PAYMENT_METHODS[$this->payment_method] ?? $this->payment_method;
+    }
+
+    /**
+     * Scope for a specific payment method.
+     */
+    public function scopeForPaymentMethod($query, string $method)
+    {
+        return $query->where('payment_method', $method);
+    }
+
+    /**
+     * Scope for cash payments.
+     */
+    public function scopeCash($query)
+    {
+        return $query->where('payment_method', 'cash');
+    }
+
+    /**
+     * Scope for GCash payments.
+     */
+    public function scopeGcash($query)
+    {
+        return $query->where('payment_method', 'gcash');
+    }
+
+    /**
+     * Scope for bank payments.
+     */
+    public function scopeBank($query)
+    {
+        return $query->where('payment_method', 'bank');
     }
 
     /**
