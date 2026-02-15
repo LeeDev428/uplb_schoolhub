@@ -181,19 +181,27 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     registerAnnouncementsRoute();
     
     Route::get('dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'index'])->name('dashboard');
+    Route::get('account-dashboard', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'accountDashboard'])->name('account-dashboard');
     
     // Student Accounts Management
     Route::get('student-accounts', [App\Http\Controllers\Accounting\StudentAccountController::class, 'index'])->name('student-accounts.index');
     Route::get('student-accounts/{fee}', [App\Http\Controllers\Accounting\StudentAccountController::class, 'show'])->name('student-accounts.show');
     Route::post('student-accounts/{fee}/mark-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'markOverdue'])->name('student-accounts.mark-overdue');
     Route::post('student-accounts/{fee}/clear-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'clearOverdue'])->name('student-accounts.clear-overdue');
+    Route::post('student-accounts/bulk-mark-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'bulkMarkOverdue'])->name('student-accounts.bulk-mark-overdue');
     
     // Student Fees Management (legacy)
     Route::resource('fees', App\Http\Controllers\Accounting\StudentFeeController::class);
     
     // Payment Processing
     Route::get('payments/create', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'create'])->name('payments.create');
+    Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
+    
+    // Promissory Notes
+    Route::get('promissory-notes', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'index'])->name('promissory-notes.index');
+    Route::post('promissory-notes/{note}/approve', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'approve'])->name('promissory-notes.approve');
+    Route::post('promissory-notes/{note}/decline', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'decline'])->name('promissory-notes.decline');
     
     // Document Requests Management
     Route::get('document-requests', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'index'])->name('document-requests.index');
