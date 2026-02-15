@@ -213,7 +213,7 @@ export default function OnlineTransactionsIndex({
         { value: 'refunded', label: 'Refunded' },
     ];
 
-    const providerOptions = Object.entries(providers).map(([value, label]) => ({ value, label }));
+    const providerOptions = providers ? Object.entries(providers).map(([value, label]) => ({ value, label })) : [];
 
     return (
         <AccountingLayout>
@@ -349,7 +349,7 @@ export default function OnlineTransactionsIndex({
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <span>{getProviderIcon(transaction.payment_provider)}</span>
-                                                <span>{providers[transaction.payment_provider] || transaction.payment_provider}</span>
+                                                <span>{providers?.[transaction.payment_provider] || transaction.payment_provider}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right font-medium">{formatCurrency(transaction.amount)}</TableCell>
@@ -467,7 +467,7 @@ export default function OnlineTransactionsIndex({
                                     <p className="text-muted-foreground">Provider</p>
                                     <p className="flex items-center gap-2">
                                         {getProviderIcon(selectedTransaction.payment_provider)}
-                                        {providers[selectedTransaction.payment_provider] || selectedTransaction.payment_provider}
+                                        {providers?.[selectedTransaction.payment_provider] || selectedTransaction.payment_provider}
                                     </p>
                                 </div>
                             </div>
