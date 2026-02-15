@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\GrantRecipient;
+use App\Models\Department;
+use App\Models\YearLevel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -116,10 +118,40 @@ class StudentAccountController extends Controller
             ];
         }
 
+        // Get all active departments with their classifications
+        $departments = Department::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'classification']);
+
+        // Get unique classifications from departments
+        $classifications = Department::where('is_active', true)
+            ->distinct()
+            ->pluck('classification')
+            ->filter()
+            ->values();
+
+        // Get all active year levels with their names
+        $yearLevels = YearLevel::where('is_active', true)
+            ->with('department:id,name')
+            ->orderBy('level_number')
+            ->get(['id', 'name', 'level_number', 'department_id', 'classification'])
+            ->map(function ($yl) {
+                return [
+                    'id' => $yl->id,
+                    'name' => $yl->name,
+                    'level_number' => $yl->level_number,
+                    'department' => $yl->department?->name,
+                    'classification' => $yl->classification,
+                ];
+            });
+
         return Inertia::render('accounting/student-accounts/index', [
             'accounts' => $accounts,
             'schoolYears' => $schoolYears,
             'stats' => $stats,
+            'departments' => $departments,
+            'classifications' => $classifications,
+            'yearLevels' => $yearLevels,
             'filters' => $request->only(['search', 'status', 'school_year', 'department_id']),
         ]);
     }
