@@ -207,6 +207,14 @@ class Student extends Model
     }
 
     /**
+     * Get all promissory notes for this student
+     */
+    public function promissoryNotes()
+    {
+        return $this->hasMany(PromissoryNote::class);
+    }
+
+    /**
      * Get the current school year fee record
      */
     public function currentFee()
