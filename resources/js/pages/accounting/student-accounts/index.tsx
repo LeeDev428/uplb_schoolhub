@@ -513,7 +513,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                                         </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem asChild>
-                                                        <Link href={`/accounting/payments?student_id=${account.student.id}`}>
+                                                        <Link href={`/accounting/payments/process/${account.student.id}`}>
                                                             <DollarSign className="h-4 w-4 mr-2" />
                                                             Process Payment
                                                         </Link>
