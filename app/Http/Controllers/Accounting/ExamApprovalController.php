@@ -46,9 +46,10 @@ class ExamApprovalController extends Controller
 
         $approvals = $query->latest()->paginate(20)->withQueryString();
 
-        // Get students with overdue fees for creating approvals
+        // Get students with overdue fees OR registrar clearance for creating approvals
+        // Include students who are cleared by registrar even if not 100% complete
         $studentsWithOverdue = StudentFee::where('is_overdue', true)
-            ->with('student')
+            ->with('student.enrollmentClearance')
             ->get()
             ->map(function ($fee) {
                 return [
@@ -60,11 +61,35 @@ class ExamApprovalController extends Controller
                 ];
             });
 
+        // Also include students with registrar clearance (even if requirements not 100% complete)
+        $studentsWithClearance = Student::whereHas('enrollmentClearance', function ($q) {
+                $q->where('registrar_clearance', true);
+            })
+            ->with('enrollmentClearance')
+            ->get()
+            ->map(function ($student) {
+                // Get their current school year fee or default
+                $currentFee = $student->fees()->latest()->first();
+                return [
+                    'id' => $student->id,
+                    'full_name' => $student->full_name,
+                    'lrn' => $student->lrn,
+                    'overdue_amount' => $currentFee->balance ?? 0,
+                    'school_year' => $currentFee->school_year ?? now()->format('Y') . '-' . (now()->year + 1),
+                    'registrar_cleared' => true,
+                ];
+            });
+
+        // Merge and remove duplicates based on student ID
+        $combinedStudents = $studentsWithOverdue->concat($studentsWithClearance)
+            ->unique('id')
+            ->values();
+
         $schoolYears = ExamApproval::distinct()->pluck('school_year')->sort()->values();
 
         return Inertia::render('accounting/exam-approval/index', [
             'approvals' => $approvals,
-            'studentsWithOverdue' => $studentsWithOverdue,
+            'studentsWithOverdue' => $combinedStudents,
             'examTypes' => ExamApproval::EXAM_TYPES,
             'terms' => ExamApproval::TERMS,
             'schoolYears' => $schoolYears,
