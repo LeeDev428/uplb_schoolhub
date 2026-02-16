@@ -84,6 +84,10 @@ class StudentFee extends Model
         if ($this->is_overdue) {
             return 'overdue';
         }
+        // If no fees have been set yet, show as unpaid
+        if ($this->total_amount <= 0) {
+            return 'unpaid';
+        }
         if ($this->balance <= 0) {
             return 'paid';
         } elseif ($this->total_paid > 0) {
