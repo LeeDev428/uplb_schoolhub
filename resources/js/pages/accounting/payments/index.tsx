@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit, Trash2, DollarSign } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, DollarSign, FileText } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
