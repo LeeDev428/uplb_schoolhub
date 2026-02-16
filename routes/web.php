@@ -242,6 +242,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::post('fee-management/items', [App\Http\Controllers\Accounting\FeeManagementController::class, 'storeItem'])->name('fee-management.store-item');
     Route::put('fee-management/items/{item}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'updateItem'])->name('fee-management.update-item');
     Route::delete('fee-management/items/{item}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'destroyItem'])->name('fee-management.destroy-item');
+    Route::post('fee-management/recalculate', [App\Http\Controllers\Accounting\FeeManagementController::class, 'recalculateFees'])->name('fee-management.recalculate');
     
     // Online Transactions
     Route::get('online-transactions', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'index'])->name('online-transactions.index');
