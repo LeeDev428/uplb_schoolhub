@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import {
     Card,
     CardContent,
@@ -56,6 +58,13 @@ interface BalanceReport {
     payment_status: string;
 }
 
+interface Department {
+    id: number;
+    name: string;
+    code: string;
+    classification: string;
+}
+
 interface Props {
     paymentSummary: PaymentSummary[];
     balanceReport: BalanceReport[];
@@ -64,8 +73,12 @@ interface Props {
         to?: string;
         school_year?: string;
         status?: string;
+        department_id?: string;
+        classification?: string;
     };
     schoolYears: string[];
+    departments: Department[];
+    classifications: string[];
     summaryStats: {
         total_collectibles: number;
         total_collected: number;
@@ -80,6 +93,8 @@ export default function AccountingReports({
     balanceReport = [],
     filters = {},
     schoolYears = [],
+    departments = [],
+    classifications = [],
     summaryStats = {
         total_collectibles: 0,
         total_collected: 0,
@@ -92,6 +107,8 @@ export default function AccountingReports({
     const [to, setTo] = useState(filters.to || '');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
     const [status, setStatus] = useState(filters.status || 'all');
+    const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
+    const [classification, setClassification] = useState(filters.classification || 'all');
 
     const handleFetchReport = () => {
         router.get(
@@ -101,6 +118,8 @@ export default function AccountingReports({
                 to: to || undefined,
                 school_year: schoolYear !== 'all' ? schoolYear : undefined,
                 status: status !== 'all' ? status : undefined,
+                department_id: departmentId !== 'all' ? departmentId : undefined,
+                classification: classification !== 'all' ? classification : undefined,
             },
             {
                 preserveState: true,
@@ -316,6 +335,40 @@ export default function AccountingReports({
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="classification">Classification</Label>
+                                <Select value={classification} onValueChange={setClassification}>
+                                    <SelectTrigger id="classification">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Classifications</SelectItem>
+                                        {classifications.map((cls) => (
+                                            <SelectItem key={cls} value={cls}>
+                                                {cls}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="department">Department</Label>
+                                <Select value={departmentId} onValueChange={setDepartmentId}>
+                                    <SelectTrigger id="department">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Departments</SelectItem>
+                                        {departments.map((dept) => (
+                                            <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                {dept.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
                         <div className="mt-4 flex gap-2">
@@ -327,6 +380,8 @@ export default function AccountingReports({
                                     setTo('');
                                     setSchoolYear('all');
                                     setStatus('all');
+                                    setDepartmentId('all');
+                                    setClassification('all');
                                     router.get(reportsRoute.url());
                                 }}
                             >
