@@ -422,7 +422,7 @@ class StudentPaymentController extends Controller
                 'program' => $student->program,
                 'year_level' => $student->year_level,
                 'section' => $student->section,
-                'profile_photo_path' => $student->profile_photo_path,
+                'student_photo_url' => $student->student_photo_url,
             ],
             'fees' => $fees,
             'payments' => $payments,
