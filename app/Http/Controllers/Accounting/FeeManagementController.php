@@ -85,7 +85,7 @@ class FeeManagementController extends Controller
                     'id' => $program->id,
                     'name' => $program->name,
                     'department_id' => $program->department_id,
-                    'classification' => $program->department->classification,
+                    'classification' => $program->department ? $program->department->classification : null,
                 ];
             });
             
@@ -99,7 +99,7 @@ class FeeManagementController extends Controller
                     'name' => $yearLevel->name,
                     'department_id' => $yearLevel->department_id,
                     'level_number' => $yearLevel->level_number,
-                    'classification' => $yearLevel->department->classification,
+                    'classification' => $yearLevel->department ? $yearLevel->department->classification : null,
                 ];
             });
             
@@ -113,7 +113,7 @@ class FeeManagementController extends Controller
                     'name' => $section->name,
                     'year_level_id' => $section->year_level_id,
                     'department_id' => $section->department_id,
-                    'classification' => $section->department->classification,
+                    'classification' => $section->department ? $section->department->classification : null,
                 ];
             });
 
