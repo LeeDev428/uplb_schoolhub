@@ -17,102 +17,186 @@ use Inertia\Response;
 class StudentPaymentController extends Controller
 {
     /**
-     * Display a listing of payments.
+     * Display Payment Processing dashboard.
+     * Shows list of students with payment details and tabs for each student.
      */
     public function index(Request $request): Response
     {
-        $query = StudentPayment::with(['student', 'recordedBy']);
+        $selectedStudentId = $request->input('student_id');
+
+        // Get students from student-accounts (those with registrar clearance or complete enrollment)
+        $query = Student::with(['department', 'enrollmentClearance'])
+            ->whereHas('enrollmentClearance', function ($q) {
+                $q->where('registrar_clearance', true)
+                  ->orWhere('requirements_complete', true);
+            });
 
         // Search
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('or_number', 'like', "%{$search}%")
-                  ->orWhereHas('student', function ($q2) use ($search) {
-                      $q2->where('first_name', 'like', "%{$search}%")
-                         ->orWhere('last_name', 'like', "%{$search}%")
-                         ->orWhere('lrn', 'like', "%{$search}%");
-                  });
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('lrn', 'like', "%{$search}%");
             });
         }
 
-        // Filter by date range
-        if ($from = $request->input('from')) {
-            $query->whereDate('payment_date', '>=', $from);
-        }
-        if ($to = $request->input('to')) {
-            $query->whereDate('payment_date', '<=', $to);
+        // Filter by enrollment status
+        if ($status = $request->input('enrollment_status')) {
+            $query->where('enrollment_status', $status);
         }
 
-        // Filter by payment type
-        if ($paymentFor = $request->input('payment_for')) {
-            $query->where('payment_for', $paymentFor);
-        }
+        $students = $query->latest()->paginate(20)->withQueryString();
 
-        // Filter by department
-        if ($departmentId = $request->input('department_id')) {
-            $query->whereHas('student', function ($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
-            });
-        }
+        // Transform students for list
+        $students->through(function ($student) {
+            $currentFee = StudentFee::where('student_id', $student->id)
+                ->where('school_year', $student->school_year ?? date('Y') . '-' . (date('Y') + 1))
+                ->first();
 
-        // Filter by classification
-        if ($classification = $request->input('classification')) {
-            $query->whereHas('student.department', function ($q) use ($classification) {
-                $q->where('classification', $classification);
-            });
-        }
+            $previousFee = StudentFee::where('student_id', $student->id)
+                ->where('school_year', '!=', $student->school_year ?? date('Y') . '-' . (date('Y') + 1))
+                ->orderBy('created_at', 'desc')
+                ->first();
 
-        $payments = $query->latest('payment_date')
-            ->latest('created_at')
-            ->paginate(20)
-            ->withQueryString();
+            return [
+                'id' => $student->id,
+                'full_name' => $student->full_name,
+                'lrn' => $student->lrn,
+                'program' => $student->program,
+                'year_level' => $student->year_level,
+                'section' => $student->section,
+                'department' => $student->department?->name,
+                'enrollment_status' => $student->enrollment_status,
+                'enrollment_progress' => $student->enrollmentClearance,
+                'current_balance' => $currentFee?->balance ?? 0,
+                'previous_balance' => $previousFee?->balance ?? 0,
+                'total_balance' => ($currentFee?->balance ?? 0) + ($previousFee?->balance ?? 0),
+            ];
+        });
 
-        // Calculate total for filtered results
-        $total = $query->sum('amount');
+        $selectedStudent = null;
+        $paymentData = null;
 
-        // Get all students with their fees
-        $students = Student::orderBy('last_name')->orderBy('first_name')
-            ->get()
-            ->map(function ($student) {
-                return [
-                    'id' => $student->id,
-                    'first_name' => $student->first_name,
-                    'last_name' => $student->last_name,
-                    'lrn' => $student->lrn,
-                    'full_name' => $student->full_name,
+        // If a student is selected, load their full payment details
+        if ($selectedStudentId) {
+            $selectedStudent = Student::with(['department', 'enrollmentClearance'])->find($selectedStudentId);
+            
+            if ($selectedStudent) {
+                // Get all student fees (current and previous years)
+                $studentFees = StudentFee::where('student_id', $selectedStudentId)
+                    ->with('payments')
+                    ->orderBy('school_year', 'desc')
+                    ->get();
+
+                // Get promissory notes
+                $promissoryNotes = PromissoryNote::where('student_id', $selectedStudentId)
+                    ->with(['approvedBy'])
+                    ->orderBy('date_submitted', 'desc')
+                    ->get();
+
+                // Get payment transactions
+                $transactions = StudentPayment::where('student_id', $selectedStudentId)
+                    ->with(['recordedBy', 'studentFee'])
+                    ->orderBy('payment_date', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+                // Calculate current and previous balances
+                $currentYear = $selectedStudent->school_year ?? date('Y') . '-' . (date('Y') + 1);
+                $currentFee = $studentFees->firstWhere('school_year', $currentYear);
+                $previousFees = $studentFees->where('school_year', '!=', $currentYear);
+
+                $paymentData = [
+                    'student' => [
+                        'id' => $selectedStudent->id,
+                        'full_name' => $selectedStudent->full_name,
+                        'lrn' => $selectedStudent->lrn,
+                        'program' => $selectedStudent->program,
+                        'year_level' => $selectedStudent->year_level,
+                        'section' => $selectedStudent->section,
+                        'department' => $selectedStudent->department?->name,
+                        'enrollment_status' => $selectedStudent->enrollment_status,
+                        'student_photo_url' => $selectedStudent->student_photo_url,
+                    ],
+                    'current_fee' => $currentFee ? [
+                        'id' => $currentFee->id,
+                        'school_year' => $currentFee->school_year,
+                        'registration_fee' => $currentFee->registration_fee,
+                        'tuition_fee' => $currentFee->tuition_fee,
+                        'misc_fee' => $currentFee->misc_fee,
+                        'books_fee' => $currentFee->books_fee,
+                        'other_fees' => $currentFee->other_fees,
+                        'total_amount' => $currentFee->total_amount,
+                        'grant_discount' => $currentFee->grant_discount,
+                        'total_paid' => $currentFee->total_paid,
+                        'balance' => $currentFee->balance,
+                        'is_overdue' => $currentFee->is_overdue,
+                        'due_date' => $currentFee->due_date,
+                    ] : null,
+                    'previous_balance' => $previousFees->sum('balance'),
+                    'total_balance' => ($currentFee?->balance ?? 0) + $previousFees->sum('balance'),
+                    'school_year_fees' => $studentFees->map(function ($fee) {
+                        return [
+                            'id' => $fee->id,
+                            'school_year' => $fee->school_year,
+                            'registration_fee' => $fee->registration_fee,
+                            'tuition_fee' => $fee->tuition_fee,
+                            'misc_fee' => $fee->misc_fee,
+                            'books_fee' => $fee->books_fee,
+                            'other_fees' => $fee->other_fees,
+                            'total_amount' => $fee->total_amount,
+                            'grant_discount' => $fee->grant_discount,
+                            'total_paid' => $fee->total_paid,
+                            'balance' => $fee->balance,
+                            'payments' => $fee->payments->map(function ($payment) {
+                                return [
+                                    'id' => $payment->id,
+                                    'payment_date' => $payment->payment_date,
+                                    'or_number' => $payment->or_number,
+                                    'amount' => $payment->amount,
+                                    'payment_for' => $payment->payment_for,
+                                    'notes' => $payment->notes,
+                                ];
+                            }),
+                        ];
+                    }),
+                    'promissory_notes' => $promissoryNotes->map(function ($note) {
+                        return [
+                            'id' => $note->id,
+                            'date_submitted' => $note->date_submitted,
+                            'due_date' => $note->due_date,
+                            'amount' => $note->amount,
+                            'reason' => $note->reason,
+                            'notes' => $note->notes,
+                            'status' => $note->status,
+                            'approved_by' => $note->approvedBy?->name,
+                            'approved_at' => $note->approved_at,
+                            'document_url' => $note->document_url,
+                        ];
+                    }),
+                    'transactions' => $transactions->map(function ($transaction) {
+                        return [
+                            'id' => $transaction->id,
+                            'date_time' => $transaction->payment_date . ' ' . $transaction->created_at->format('H:i A'),
+                            'payment_date' => $transaction->payment_date,
+                            'or_number' => $transaction->or_number,
+                            'mode' => $transaction->payment_mode ?? 'CASH',
+                            'reference' => $transaction->reference_number ?? 'N/A',
+                            'amount' => $transaction->amount,
+                            'school_year' => $transaction->studentFee?->school_year,
+                            'applied_to' => $transaction->payment_for,
+                            'cashier' => $transaction->recordedBy?->name,
+                            'notes' => $transaction->notes,
+                        ];
+                    }),
                 ];
-            });
-
-        // Get all fees grouped by student (only those with amount and balance)
-        $studentFees = StudentFee::with('student')
-            ->where('total_amount', '>', 0)
-            ->where('balance', '>', 0)
-            ->get()
-            ->groupBy('student_id')
-            ->map(function ($fees) {
-                return $fees->map(function ($fee) {
-                    return [
-                        'id' => $fee->id,
-                        'school_year' => $fee->school_year,
-                        'total_amount' => $fee->total_amount,
-                        'total_paid' => $fee->total_paid,
-                        'balance' => $fee->balance,
-                    ];
-                });
-            });
-
-        // Get departments and classifications
-        $departments = Department::orderBy('name')->get(['id', 'name', 'code', 'classification']);
-        $classifications = Department::distinct()->pluck('classification')->filter()->sort()->values();
+            }
+        }
 
         return Inertia::render('accounting/payments/index', [
-            'payments' => $payments,
-            'filters' => $request->only(['search', 'from', 'to', 'payment_for', 'department_id', 'classification']),
-            'total' => $total,
             'students' => $students,
-            'studentFees' => $studentFees,
-            'departments' => $departments,
-            'classifications' => $classifications,
+            'selectedStudent' => $paymentData,
+            'filters' => $request->only(['search', 'enrollment_status', 'student_id']),
         ]);
     }
 
