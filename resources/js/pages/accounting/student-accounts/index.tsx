@@ -217,10 +217,6 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         description="View and manage student fee accounts, balances, and payment status"
                     />
                     <div className="flex gap-2">
-                        <Button variant="default" className="bg-blue-600 hover:bg-blue-700">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Student
-                        </Button>
                         <Button variant="outline">
                             <Upload className="h-4 w-4 mr-2" />
                             Import
