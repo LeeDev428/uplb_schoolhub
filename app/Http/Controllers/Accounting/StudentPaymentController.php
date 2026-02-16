@@ -300,43 +300,71 @@ class StudentPaymentController extends Controller
         $fees = StudentFee::where('student_id', $student->id)
             ->orderBy('school_year', 'desc')
             ->get()
-            ->map(function ($fee) {
-                $items = [];
-                if ($fee->registration_fee > 0) {
-                    $items[] = [
-                        'name' => 'Registration Fee',
-                        'category' => 'Registration',
-                        'amount' => (float) $fee->registration_fee,
+            ->map(function ($fee) use ($student) {
+                // Get all fee items that apply to this student for this school year
+                $feeItemsQuery = \App\Models\FeeItem::with('category')
+                    ->where('school_year', $fee->school_year)
+                    ->where('is_active', true);
+
+                // Filter items based on assignment scope
+                $feeItemsQuery->where(function ($query) use ($student) {
+                    // Include items with 'all' scope
+                    $query->where('assignment_scope', 'all')
+                        // Or items with 'specific' scope that match this student
+                        ->orWhere(function ($q) use ($student) {
+                            $q->where('assignment_scope', 'specific');
+                            
+                            // Match classification if set
+                            if ($student->department) {
+                                $q->where(function ($sq) use ($student) {
+                                    $sq->whereNull('classification')
+                                        ->orWhere('classification', $student->department->classification);
+                                });
+                            }
+                            
+                            // Match department if set
+                            $q->where(function ($sq) use ($student) {
+                                $sq->whereNull('department_id')
+                                    ->orWhere('department_id', $student->department_id);
+                            });
+                            
+                            // Match program if set
+                            $q->where(function ($sq) use ($student) {
+                                $sq->whereNull('program_id')
+                                    ->orWhere('program_id', $student->program_id);
+                            });
+                            
+                            // Match year level if set
+                            $q->where(function ($sq) use ($student) {
+                                $sq->whereNull('year_level_id')
+                                    ->orWhere('year_level_id', $student->year_level_id);
+                            });
+                            
+                            // Match section if set
+                            $q->where(function ($sq) use ($student) {
+                                $sq->whereNull('section_id')
+                                    ->orWhere('section_id', $student->section_id);
+                            });
+                        });
+                });
+
+                $feeItems = $feeItemsQuery->get();
+
+                // Group items by category
+                $itemsByCategory = $feeItems->groupBy('fee_category_id')->map(function ($items, $categoryId) {
+                    $category = $items->first()->category;
+                    return [
+                        'category_id' => $categoryId,
+                        'category_name' => $category->name ?? 'Other',
+                        'items' => $items->map(function ($item) {
+                            return [
+                                'id' => $item->id,
+                                'name' => $item->name,
+                                'amount' => (float) $item->selling_price,
+                            ];
+                        })->values()->toArray(),
                     ];
-                }
-                if ($fee->tuition_fee > 0) {
-                    $items[] = [
-                        'name' => 'Tuition Fee',
-                        'category' => 'Tuition',
-                        'amount' => (float) $fee->tuition_fee,
-                    ];
-                }
-                if ($fee->misc_fee > 0) {
-                    $items[] = [
-                        'name' => 'Miscellaneous Fee',
-                        'category' => 'Miscellaneous',
-                        'amount' => (float) $fee->misc_fee,
-                    ];
-                }
-                if ($fee->books_fee > 0) {
-                    $items[] = [
-                        'name' => 'Books Fee',
-                        'category' => 'Books',
-                        'amount' => (float) $fee->books_fee,
-                    ];
-                }
-                if ($fee->other_fees > 0) {
-                    $items[] = [
-                        'name' => 'Other Fees',
-                        'category' => 'Other',
-                        'amount' => (float) $fee->other_fees,
-                    ];
-                }
+                })->values()->toArray();
                 
                 return [
                     'id' => $fee->id,
@@ -348,7 +376,7 @@ class StudentPaymentController extends Controller
                     'status' => $fee->balance <= 0 ? 'paid' : ($fee->is_overdue ? 'overdue' : 'pending'),
                     'is_overdue' => $fee->is_overdue,
                     'due_date' => $fee->due_date,
-                    'items' => $items,
+                    'categories' => $itemsByCategory,
                 ];
             });
 
