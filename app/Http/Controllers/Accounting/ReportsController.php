@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
@@ -45,15 +46,29 @@ class ReportsController extends Controller
             ->get();
 
         // Student Balance Report
-        $balanceQuery = StudentFee::with('student');
+        $balanceQuery = StudentFee::with('student.department');
 
         if ($schoolYear) {
             $balanceQuery->where('school_year', $schoolYear);
         }
 
+        // Filter by department
+        if ($departmentId = $request->input('department_id')) {
+            $balanceQuery->whereHas('student', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        // Filter by classification
+        if ($classification = $request->input('classification')) {
+            $balanceQuery->whereHas('student.department', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
+
         // Filter by payment status
         if ($status === 'paid') {
-            $balanceQuery->where('balance', '<=', 0);
+            $balanceQuery->where('balance', '<=', 0)->where('total_amount', '>', 0);
         } elseif ($status === 'partial') {
             $balanceQuery->where('total_paid', '>', 0)->where('balance', '>', 0);
         } elseif ($status === 'unpaid') {
@@ -64,13 +79,6 @@ class ReportsController extends Controller
             ->orderBy('balance', 'desc')
             ->get()
             ->map(function ($fee) {
-                $paymentStatus = 'unpaid';
-                if ($fee->balance <= 0) {
-                    $paymentStatus = 'paid';
-                } elseif ($fee->total_paid > 0) {
-                    $paymentStatus = 'partial';
-                }
-
                 return [
                     'student' => [
                         'id' => $fee->student->id,
@@ -83,7 +91,7 @@ class ReportsController extends Controller
                     'total_amount' => $fee->total_amount,
                     'total_paid' => $fee->total_paid,
                     'balance' => $fee->balance,
-                    'payment_status' => $paymentStatus,
+                    'payment_status' => $fee->getPaymentStatus(),
                 ];
             });
 
@@ -99,12 +107,18 @@ class ReportsController extends Controller
         // Get all school years
         $schoolYears = StudentFee::distinct()->pluck('school_year')->sort()->values();
 
+        // Get departments and classifications
+        $departments = Department::orderBy('name')->get(['id', 'name', 'code', 'classification']);
+        $classifications = Department::distinct()->pluck('classification')->filter()->sort()->values();
+
         return Inertia::render('accounting/reports', [
             'paymentSummary' => $paymentSummary,
             'balanceReport' => $balanceReport,
-            'filters' => $request->only(['from', 'to', 'school_year', 'status']),
+            'filters' => $request->only(['from', 'to', 'school_year', 'status', 'department_id', 'classification']),
             'schoolYears' => $schoolYears,
             'summaryStats' => $summaryStats,
+            'departments' => $departments,
+            'classifications' => $classifications,
         ]);
     }
 
