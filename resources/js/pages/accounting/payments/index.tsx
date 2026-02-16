@@ -109,7 +109,7 @@ export default function AccountingPayments({ payments, filters, total, students 
         payment_date: new Date().toISOString().split('T')[0],
         or_number: '',
         amount: '',
-        payment_for: '',
+        payment_for: 'general',
         notes: '',
     });
 
@@ -163,7 +163,7 @@ export default function AccountingPayments({ payments, filters, total, students 
             payment_date: payment.payment_date,
             or_number: payment.or_number,
             amount: payment.amount,
-            payment_for: payment.payment_for || '',
+            payment_for: payment.payment_for || 'general',
             notes: payment.notes || '',
         });
         setIsEditModalOpen(true);
