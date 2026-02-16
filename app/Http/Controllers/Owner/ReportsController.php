@@ -99,9 +99,9 @@ class ReportsController extends Controller
                     'Name' => $student->name,
                     'Email' => $student->email ?? 'N/A',
                     'Department' => $student->department->name ?? 'N/A',
-                    'Program' => $student->program->name ?? 'N/A',
-                    'Year Level' => $student->yearLevel->name ?? 'N/A',
-                    'Section' => $student->section->name ?? 'N/A',
+                    'Program' => $student->program ?? 'N/A',
+                    'Year Level' => $student->year_level ?? 'N/A',
+                    'Section' => $student->section ?? 'N/A',
                     'Status' => ucfirst($student->status ?? 'enrolled'),
                 ];
             });
