@@ -125,6 +125,8 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || 'all');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
+    const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
+    const [classification, setClassification] = useState('all');
     const [isOverdueDialogOpen, setIsOverdueDialogOpen] = useState(false);
 
     const overdueForm = useForm({
@@ -139,6 +141,8 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
             search: search || undefined,
             status: status !== 'all' ? status : undefined,
             school_year: schoolYear !== 'all' ? schoolYear : undefined,
+            department_id: departmentId !== 'all' ? departmentId : undefined,
+            classification: classification !== 'all' ? classification : undefined,
         }, {
             preserveState: true,
             preserveScroll: true,
@@ -149,6 +153,8 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
         setSearch('');
         setStatus('all');
         setSchoolYear('all');
+        setDepartmentId('all');
+        setClassification('all');
         router.get('/accounting/student-accounts');
     };
 
@@ -204,6 +210,16 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
     const schoolYearOptions = schoolYears.map(year => ({
         value: year,
         label: year,
+    }));
+
+    const departmentOptions = departments.map(dept => ({
+        value: dept.id.toString(),
+        label: dept.name,
+    }));
+
+    const classificationOptions = classifications.map(cls => ({
+        value: cls,
+        label: cls,
     }));
 
     return (
@@ -301,6 +317,24 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         options={schoolYearOptions}
                         onChange={(value) => {
                             setSchoolYear(value);
+                            setTimeout(handleFilter, 0);
+                        }}
+                    />
+                    <FilterDropdown
+                        label="Department"
+                        value={departmentId}
+                        options={departmentOptions}
+                        onChange={(value) => {
+                            setDepartmentId(value);
+                            setTimeout(handleFilter, 0);
+                        }}
+                    />
+                    <FilterDropdown
+                        label="Classification"
+                        value={classification}
+                        options={classificationOptions}
+                        onChange={(value) => {
+                            setClassification(value);
                             setTimeout(handleFilter, 0);
                         }}
                     />
