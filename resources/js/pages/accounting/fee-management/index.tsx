@@ -248,18 +248,28 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
     const handleItemSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingItem) {
+            console.log('Updating fee item:', editingItem.id, itemForm.data);
             itemForm.put(`/accounting/fee-management/items/${editingItem.id}`, {
                 onSuccess: () => {
+                    console.log('Fee item updated successfully');
                     setIsItemModalOpen(false);
                     itemForm.reset();
                     setEditingItem(null);
                 },
+                onError: (errors) => {
+                    console.error('Error updating fee item:', errors);
+                },
             });
         } else {
+            console.log('Creating new fee item:', itemForm.data);
             itemForm.post('/accounting/fee-management/items', {
                 onSuccess: () => {
+                    console.log('Fee item created successfully');
                     setIsItemModalOpen(false);
                     itemForm.reset();
+                },
+                onError: (errors) => {
+                    console.error('Error creating fee item:', errors);
                 },
             });
         }
