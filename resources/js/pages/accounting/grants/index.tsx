@@ -115,6 +115,7 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
     const [grantFilter, setGrantFilter] = useState(filters.grant_id || 'all');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
+    const [studentSearch, setStudentSearch] = useState('');
 
     const grantForm = useForm({
         name: '',
@@ -207,6 +208,7 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
         assignForm.post('/accounting/grants/recipients', {
             onSuccess: () => {
                 setIsAssignModalOpen(false);
+                setStudentSearch('');
                 assignForm.reset();
             },
         });
@@ -420,7 +422,13 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
 
                     <TabsContent value="recipients" className="space-y-4">
                         <div className="flex justify-end">
-                            <Dialog open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen}>
+                            <Dialog open={isAssignModalOpen} onOpenChange={(open) => {
+                                setIsAssignModalOpen(open);
+                                if (!open) {
+                                    setStudentSearch('');
+                                    assignForm.reset();
+                                }
+                            }}>
                                 <DialogTrigger asChild>
                                     <Button>
                                         <UserPlus className="mr-2 h-4 w-4" />
@@ -438,6 +446,12 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
                                         <div className="grid gap-4 py-4">
                                             <div className="grid gap-2">
                                                 <Label htmlFor="student_id">Student *</Label>
+                                                <Input
+                                                    placeholder="Search students by name or LRN..."
+                                                    value={studentSearch}
+                                                    onChange={(e) => setStudentSearch(e.target.value)}
+                                                    className="mb-2"
+                                                />
                                                 <Select
                                                     value={assignForm.data.student_id}
                                                     onValueChange={(value) => assignForm.setData('student_id', value)}
@@ -446,11 +460,35 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
                                                         <SelectValue placeholder="Select student" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {students.map((student) => (
-                                                            <SelectItem key={student.id} value={student.id.toString()}>
-                                                                {student.full_name} - {student.lrn}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {students
+                                                            .filter(student => 
+                                                                studentSearch === '' ||
+                                                                student.full_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                                                                student.lrn.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                                                                (student.program && student.program.toLowerCase().includes(studentSearch.toLowerCase())) ||
+                                                                (student.year_level && student.year_level.toLowerCase().includes(studentSearch.toLowerCase()))
+                                                            )
+                                                            .map((student) => (
+                                                                <SelectItem key={student.id} value={student.id.toString()}>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-medium">{student.full_name}</span>
+                                                                        <span className="text-xs text-muted-foreground">
+                                                                            {student.lrn} {student.program && student.year_level ? `• ${student.program} - ${student.year_level}` : ''}
+                                                                        </span>
+                                                                    </div>
+                                                                </SelectItem>
+                                                            ))}
+                                                        {students.filter(student => 
+                                                            studentSearch === '' ||
+                                                            student.full_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                                                            student.lrn.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                                                            (student.program && student.program.toLowerCase().includes(studentSearch.toLowerCase())) ||
+                                                            (student.year_level && student.year_level.toLowerCase().includes(studentSearch.toLowerCase()))
+                                                        ).length === 0 && (
+                                                            <div className="p-2 text-sm text-muted-foreground text-center">
+                                                                No students found
+                                                            </div>
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {assignForm.errors.student_id && <p className="text-sm text-red-500">{assignForm.errors.student_id}</p>}
