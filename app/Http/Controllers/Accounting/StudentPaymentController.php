@@ -407,7 +407,7 @@ class StudentPaymentController extends Controller
                 return [
                     'id' => $recipient->id,
                     'name' => $recipient->grant->name,
-                    'amount' => (float) $recipient->amount,
+                    'discount_amount' => (float) $recipient->discount_amount,
                     'school_year' => $recipient->school_year,
                     'status' => $recipient->status,
                 ];
@@ -422,6 +422,7 @@ class StudentPaymentController extends Controller
                 'program' => $student->program,
                 'year_level' => $student->year_level,
                 'section' => $student->section,
+                'profile_photo_path' => $student->profile_photo_path,
             ],
             'fees' => $fees,
             'payments' => $payments,
