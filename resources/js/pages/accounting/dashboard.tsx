@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
-import { ImportButton } from '@/components/import-button';
+import { ExportButton } from '@/components/export-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BadgeDollarSign, TrendingUp, Users, Wallet } from 'lucide-react';
 
@@ -59,11 +59,9 @@ export default function AccountingDashboard({ stats, recentPayments, pendingPaym
                         title="Accounting Dashboard"
                         description="Monitor student payments and fee collections"
                     />
-                    <ImportButton
-                        importUrl="/accounting/dashboard/import"
-                        templateUrl="/accounting/dashboard/template"
-                        title="Import Payment Data"
-                        description="Upload an Excel or CSV file to import payment records."
+                    <ExportButton
+                        exportUrl="/accounting/dashboard/export"
+                        buttonText="Export Data"
                     />
                 </div>
 
