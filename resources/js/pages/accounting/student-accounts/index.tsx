@@ -40,6 +40,7 @@ import {
 import { FilterBar } from '@/components/filters/filter-bar';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { ImportButton } from '@/components/import-button';
 import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
@@ -233,10 +234,12 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         description="View and manage student fee accounts, balances, and payment status"
                     />
                     <div className="flex gap-2">
-                        <Button variant="outline">
-                            <Upload className="h-4 w-4 mr-2" />
-                            Import
-                        </Button>
+                        <ImportButton
+                            importUrl="/accounting/student-accounts/import"
+                            templateUrl="/accounting/student-accounts/template"
+                            title="Import Student Accounts"
+                            description="Upload an Excel or CSV file to import student fee accounts."
+                        />
                     </div>
                 </div>
 
