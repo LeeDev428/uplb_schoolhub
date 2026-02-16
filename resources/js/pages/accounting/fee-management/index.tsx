@@ -89,6 +89,7 @@ interface Program {
     id: number;
     name: string;
     department_id: number;
+    classification: string;
 }
 
 interface YearLevel {
@@ -96,6 +97,7 @@ interface YearLevel {
     name: string;
     department_id: number;
     level_number: number;
+    classification: string;
 }
 
 interface Section {
@@ -103,6 +105,7 @@ interface Section {
     name: string;
     year_level_id: number;
     department_id: number;
+    classification: string;
 }
 
 interface Props {
