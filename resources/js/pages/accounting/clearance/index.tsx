@@ -84,6 +84,8 @@ interface Props {
     };
     programs: string[];
     yearLevels: string[];
+    departments: { id: number; name: string; code: string; classification: string; }[];
+    classifications: string[];
     stats: {
         total: number;
         pending: number;
@@ -94,14 +96,18 @@ interface Props {
         status?: string;
         program?: string;
         year_level?: string;
+        department_id?: string;
+        classification?: string;
     };
 }
 
-export default function ClearanceIndex({ students, programs, yearLevels, stats, filters }: Props) {
+export default function ClearanceIndex({ students, programs, yearLevels, departments = [], classifications = [], stats, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || 'all');
     const [program, setProgram] = useState(filters.program || 'all');
     const [yearLevel, setYearLevel] = useState(filters.year_level || 'all');
+    const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
     const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; student: Student | null; action: 'clear' | 'unclear' }>({
         open: false,
@@ -135,6 +141,8 @@ export default function ClearanceIndex({ students, programs, yearLevels, stats, 
             status: status !== 'all' ? status : undefined,
             program: program !== 'all' ? program : undefined,
             year_level: yearLevel !== 'all' ? yearLevel : undefined,
+            department_id: departmentId !== 'all' ? departmentId : undefined,
+            classification: classification !== 'all' ? classification : undefined,
         }, {
             preserveState: true,
             preserveScroll: true,
@@ -147,6 +155,8 @@ export default function ClearanceIndex({ students, programs, yearLevels, stats, 
             status: status !== 'all' ? status : undefined,
             program: program !== 'all' ? program : undefined,
             year_level: yearLevel !== 'all' ? yearLevel : undefined,
+            department_id: departmentId !== 'all' ? departmentId : undefined,
+            classification: classification !== 'all' ? classification : undefined,
         };
         
         if (value === 'all') {
@@ -305,6 +315,28 @@ export default function ClearanceIndex({ students, programs, yearLevels, stats, 
                                     <SelectItem value="all">All Year Levels</SelectItem>
                                     {yearLevels.map((y) => (
                                         <SelectItem key={y} value={y}>{y}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={classification} onValueChange={(v) => { setClassification(v); handleFilterChange('classification', v); }}>
+                                <SelectTrigger className="w-[150px]">
+                                    <SelectValue placeholder="Classification" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Classifications</SelectItem>
+                                    {classifications.map((c) => (
+                                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={departmentId} onValueChange={(v) => { setDepartmentId(v); handleFilterChange('department_id', v); }}>
+                                <SelectTrigger className="w-[150px]">
+                                    <SelectValue placeholder="Department" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Departments</SelectItem>
+                                    {departments.map((d) => (
+                                        <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
