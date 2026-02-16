@@ -426,14 +426,20 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="text-xs text-muted-foreground">Payment Progress</span>
                                         <span className="text-xs font-medium">
-                                            {summary.total_fees > 0 
-                                                ? `${Math.round((summary.total_paid / summary.total_fees) * 100)}% Paid`
-                                                : '0% Paid'
-                                            }
+                                            {(() => {
+                                                const netAmount = summary.total_fees - summary.total_discount;
+                                                if (netAmount <= 0) return '100% Paid';
+                                                const percent = Math.round((summary.total_paid / netAmount) * 100);
+                                                return `${Math.min(percent, 100)}% Paid`;
+                                            })()}
                                         </span>
                                     </div>
                                     <Progress 
-                                        value={summary.total_fees > 0 ? (summary.total_paid / summary.total_fees) * 100 : 0} 
+                                        value={(() => {
+                                            const netAmount = summary.total_fees - summary.total_discount;
+                                            if (netAmount <= 0) return 100;
+                                            return Math.min((summary.total_paid / netAmount) * 100, 100);
+                                        })()}
                                         className="h-2"
                                     />
                                 </div>
