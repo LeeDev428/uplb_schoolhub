@@ -119,6 +119,7 @@ interface Props {
         status?: string;
         school_year?: string;
         department_id?: string;
+        classification?: string;
     };
 }
 
@@ -127,7 +128,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
     const [status, setStatus] = useState(filters.status || 'all');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
     const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
-    const [classification, setClassification] = useState('all');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [isOverdueDialogOpen, setIsOverdueDialogOpen] = useState(false);
 
     const overdueForm = useForm({
