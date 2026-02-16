@@ -273,12 +273,11 @@ export default function AccountingPayments({ payments, filters, total, students 
                                                     setData('student_fee_id', '');
                                                     setSelectedStudentId(value);
                                                 }}
-                                                modal={false}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select student" />
                                                 </SelectTrigger>
-                                                <SelectContent>
+                                                <SelectContent position="popper" className="max-h-[300px]">
                                                     {filteredStudents.length === 0 ? (
                                                         <div className="px-2 py-1 text-sm text-muted-foreground">
                                                             No students found
@@ -303,12 +302,11 @@ export default function AccountingPayments({ payments, filters, total, students 
                                                 <Select
                                                     value={data.student_fee_id}
                                                     onValueChange={(value) => setData('student_fee_id', value)}
-                                                    modal={false}
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select fee record" />
                                                     </SelectTrigger>
-                                                    <SelectContent>
+                                                    <SelectContent position="popper" className="max-h-[300px]">
                                                         {getAvailableFees(data.student_id).length === 0 ? (
                                                             <div className="px-2 py-1 text-sm text-muted-foreground">
                                                                 No fee records with balance found
