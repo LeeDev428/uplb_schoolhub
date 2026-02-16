@@ -81,8 +81,9 @@ class StudentPaymentController extends Controller
                 ];
             });
 
-        // Get all fees grouped by student
+        // Get all fees grouped by student (only those with amount and balance)
         $studentFees = StudentFee::with('student')
+            ->where('total_amount', '>', 0)
             ->where('balance', '>', 0)
             ->get()
             ->groupBy('student_id')
