@@ -38,6 +38,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign } from 'lucide-react';
 
 interface FeeItem {
@@ -64,6 +72,33 @@ interface FeeCategory {
     total_profit: string;
 }
 
+interface Department {
+    id: number;
+    name: string;
+    code: string;
+    classification: string;
+}
+
+interface Program {
+    id: number;
+    name: string;
+    department_id: number;
+}
+
+interface YearLevel {
+    id: number;
+    name: string;
+    department_id: number;
+    level_number: number;
+}
+
+interface Section {
+    id: number;
+    name: string;
+    year_level_id: number;
+    department_id: number;
+}
+
 interface Props {
     categories: FeeCategory[];
     totals: {
@@ -71,9 +106,13 @@ interface Props {
         selling: string;
         profit: string;
     };
+    departments: Department[];
+    programs: Program[];
+    yearLevels: YearLevel[];
+    sections: Section[];
 }
 
-export default function FeeManagementIndex({ categories, totals }: Props) {
+export default function FeeManagementIndex({ categories, totals, departments, programs, yearLevels, sections }: Props) {
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<FeeCategory | null>(null);
@@ -94,6 +133,12 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
         description: '',
         cost_price: '',
         selling_price: '',
+        classification: '' as string,
+        department_id: null as number | null,
+        program_id: null as number | null,
+        year_level_id: null as number | null,
+        section_id: null as number | null,
+        assignment_scope: 'all' as 'all' | 'specific',
         is_active: true,
     });
 
@@ -140,6 +185,12 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                 cost_price: item.cost_price,
                 selling_price: item.selling_price,
                 is_active: item.is_active,
+                classification: item.classification || '',
+                department_id: item.department_id || null,
+                program_id: item.program_id || null,
+                year_level_id: item.year_level_id || null,
+                section_id: item.section_id || null,
+                assignment_scope: item.assignment_scope || 'all',
             });
         } else {
             setEditingItem(null);
@@ -150,6 +201,12 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                 cost_price: '',
                 selling_price: '',
                 is_active: true,
+                classification: '',
+                department_id: null,
+                program_id: null,
+                year_level_id: null,
+                section_id: null,
+                assignment_scope: 'all',
             });
         }
         setIsItemModalOpen(true);
@@ -506,6 +563,207 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                                     placeholder="Optional description..."
                                 />
                             </div>
+                            
+                            {/* Assignment Scope */}
+                            <div className="grid gap-2">
+                                <Label>Assignment Scope</Label>
+                                <RadioGroup
+                                    value={itemForm.data.assignment_scope}
+                                    onValueChange={(value: 'all' | 'specific') => {
+                                        itemForm.setData('assignment_scope', value);
+                                        // Clear assignment fields when switching to 'all'
+                                        if (value === 'all') {
+                                            itemForm.setData({
+                                                ...itemForm.data,
+                                                assignment_scope: value,
+                                                classification: '',
+                                                department_id: null,
+                                                program_id: null,
+                                                year_level_id: null,
+                                                section_id: null,
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="all" id="scope_all" />
+                                        <Label htmlFor="scope_all" className="font-normal cursor-pointer">
+                                            Apply to all students
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="specific" id="scope_specific" />
+                                        <Label htmlFor="scope_specific" className="font-normal cursor-pointer">
+                                            Apply to specific student groups
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                                <p className="text-xs text-muted-foreground">
+                                    This fee will be automatically applied to matching students
+                                </p>
+                            </div>
+
+                            {/* Specific Assignment Fields */}
+                            {itemForm.data.assignment_scope === 'specific' && (
+                                <div className="grid gap-4 p-4 border rounded-lg bg-muted/50">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="classification">Classification</Label>
+                                        <Select
+                                            value={itemForm.data.classification}
+                                            onValueChange={(value) => {
+                                                itemForm.setData({
+                                                    ...itemForm.data,
+                                                    classification: value,
+                                                    department_id: null,
+                                                    program_id: null,
+                                                    year_level_id: null,
+                                                    section_id: null,
+                                                });
+                                            }}
+                                        >
+                                            <SelectTrigger id="classification">
+                                                <SelectValue placeholder="Select classification" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Elementary">Elementary</SelectItem>
+                                                <SelectItem value="Secondary">Secondary</SelectItem>
+                                                <SelectItem value="SHS">Senior High School</SelectItem>
+                                                <SelectItem value="College">College</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {itemForm.data.classification && (
+                                        <>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="department">Department (Optional)</Label>
+                                                <Select
+                                                    value={itemForm.data.department_id?.toString() || ''}
+                                                    onValueChange={(value) => {
+                                                        itemForm.setData({
+                                                            ...itemForm.data,
+                                                            department_id: value ? parseInt(value) : null,
+                                                            program_id: null,
+                                                            year_level_id: null,
+                                                            section_id: null,
+                                                        });
+                                                    }}
+                                                >
+                                                    <SelectTrigger id="department">
+                                                        <SelectValue placeholder="All departments" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="">All departments</SelectItem>
+                                                        {departments
+                                                            .filter(dept => dept.classification === itemForm.data.classification)
+                                                            .map(dept => (
+                                                                <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                                    {dept.name}
+                                                                </SelectItem>
+                                                            ))
+                                                        }
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="program">Program (Optional)</Label>
+                                                <Select
+                                                    value={itemForm.data.program_id?.toString() || ''}
+                                                    onValueChange={(value) => {
+                                                        itemForm.setData({
+                                                            ...itemForm.data,
+                                                            program_id: value ? parseInt(value) : null,
+                                                            year_level_id: null,
+                                                            section_id: null,
+                                                        });
+                                                    }}
+                                                >
+                                                    <SelectTrigger id="program">
+                                                        <SelectValue placeholder="All programs" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="">All programs</SelectItem>
+                                                        {programs
+                                                            .filter(prog => 
+                                                                prog.classification === itemForm.data.classification &&
+                                                                (!itemForm.data.department_id || prog.department_id === itemForm.data.department_id)
+                                                            )
+                                                            .map(prog => (
+                                                                <SelectItem key={prog.id} value={prog.id.toString()}>
+                                                                    {prog.name}
+                                                                </SelectItem>
+                                                            ))
+                                                        }
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="year_level">Year Level (Optional)</Label>
+                                                <Select
+                                                    value={itemForm.data.year_level_id?.toString() || ''}
+                                                    onValueChange={(value) => {
+                                                        itemForm.setData({
+                                                            ...itemForm.data,
+                                                            year_level_id: value ? parseInt(value) : null,
+                                                            section_id: null,
+                                                        });
+                                                    }}
+                                                >
+                                                    <SelectTrigger id="year_level">
+                                                        <SelectValue placeholder="All year levels" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="">All year levels</SelectItem>
+                                                        {yearLevels
+                                                            .filter(yl => 
+                                                                yl.classification === itemForm.data.classification &&
+                                                                (!itemForm.data.department_id || yl.department_id === itemForm.data.department_id)
+                                                            )
+                                                            .map(yl => (
+                                                                <SelectItem key={yl.id} value={yl.id.toString()}>
+                                                                    {yl.name}
+                                                                </SelectItem>
+                                                            ))
+                                                        }
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="section">Section (Optional)</Label>
+                                                <Select
+                                                    value={itemForm.data.section_id?.toString() || ''}
+                                                    onValueChange={(value) => {
+                                                        itemForm.setData('section_id', value ? parseInt(value) : null);
+                                                    }}
+                                                >
+                                                    <SelectTrigger id="section">
+                                                        <SelectValue placeholder="All sections" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="">All sections</SelectItem>
+                                                        {sections
+                                                            .filter(sec => 
+                                                                sec.classification === itemForm.data.classification &&
+                                                                (!itemForm.data.year_level_id || sec.year_level_id === itemForm.data.year_level_id) &&
+                                                                (!itemForm.data.department_id || sec.department_id === itemForm.data.department_id)
+                                                            )
+                                                            .map(sec => (
+                                                                <SelectItem key={sec.id} value={sec.id.toString()}>
+                                                                    {sec.name}
+                                                                </SelectItem>
+                                                            ))
+                                                        }
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="cost_price">Cost Price *</Label>
