@@ -254,4 +254,26 @@ class FeeManagementController extends Controller
 
         return redirect()->back()->with('success', 'Fee item deleted successfully.');
     }
+
+    /**
+     * Recalculate and reapply all active fee items to matching students.
+     */
+    public function recalculateFees(): RedirectResponse
+    {
+        // Clear all student fees first to recalculate from scratch
+        \App\Models\StudentFee::query()->delete();
+
+        // Get all active fee items
+        $activeItems = FeeItem::where('is_active', true)->get();
+        $totalAffected = 0;
+
+        foreach ($activeItems as $item) {
+            if ($item->assignment_scope === 'specific' && $item->school_year) {
+                $count = $item->applyToStudents();
+                $totalAffected += $count;
+            }
+        }
+
+        return redirect()->back()->with('success', "Fees recalculated successfully. {$totalAffected} student fee records updated.");
+    }
 }
