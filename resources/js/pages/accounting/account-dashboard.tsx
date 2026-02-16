@@ -157,11 +157,10 @@ export default function AccountDashboard({
                         description={student ? `Account Dashboard: ${student.full_name}` : 'Select a student to view their account'}
                     />
                     <div className="flex gap-2">
-                        <ImportButton
-                            importUrl="/accounting/account-dashboard/import"
-                            templateUrl="/accounting/account-dashboard/template"
-                            title="Import Transactions"
-                            description="Upload an Excel or CSV file to import transaction data."
+                        <ExportButton
+                            exportUrl="/accounting/account-dashboard/export"
+                            filters={{ student_id: student?.id, month: selectedMonth, year: selectedYear }}
+                            buttonText="Export Data"
                         />
                         <Button variant="outline" onClick={() => window.location.reload()}>
                             <RefreshCw className="h-4 w-4 mr-2" />
