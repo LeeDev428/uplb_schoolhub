@@ -273,6 +273,7 @@ export default function AccountingPayments({ payments, filters, total, students 
                                                     setData('student_fee_id', '');
                                                     setSelectedStudentId(value);
                                                 }}
+                                                modal={false}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select student" />
@@ -302,6 +303,7 @@ export default function AccountingPayments({ payments, filters, total, students 
                                                 <Select
                                                     value={data.student_fee_id}
                                                     onValueChange={(value) => setData('student_fee_id', value)}
+                                                    modal={false}
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select fee record" />
