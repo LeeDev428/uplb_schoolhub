@@ -199,14 +199,7 @@ class FeeManagementController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $feeItem = FeeItem::create($validated);
-
-        // Apply to students automatically
-        $affectedCount = $feeItem->applyToStudents();
-        
-        if ($affectedCount > 0) {
-            return redirect()->back()->with('success', "Fee item created and applied to {$affectedCount} students.");
-        }
+        FeeItem::create($validated);
 
         return redirect()->back()->with('success', 'Fee item created successfully.');
     }
@@ -238,13 +231,6 @@ class FeeManagementController extends Controller
 
         $item->update($validated);
 
-        // Reapply to students automatically
-        $affectedCount = $item->applyToStudents();
-        
-        if ($affectedCount > 0) {
-            return redirect()->back()->with('success', "Fee item updated and reapplied to {$affectedCount} students.");
-        }
-
         return redirect()->back()->with('success', 'Fee item updated successfully.');
     }
 
@@ -258,25 +244,4 @@ class FeeManagementController extends Controller
         return redirect()->back()->with('success', 'Fee item deleted successfully.');
     }
 
-    /**
-     * Recalculate and reapply all active fee items to matching students.
-     */
-    public function recalculateFees(): RedirectResponse
-    {
-        // Clear all student fees first to recalculate from scratch
-        \App\Models\StudentFee::query()->delete();
-
-        // Get all active fee items
-        $activeItems = FeeItem::where('is_active', true)->get();
-        $totalAffected = 0;
-
-        foreach ($activeItems as $item) {
-            if ($item->assignment_scope === 'specific' && $item->school_year) {
-                $count = $item->applyToStudents();
-                $totalAffected += $count;
-            }
-        }
-
-        return redirect()->back()->with('success', "Fees recalculated successfully. {$totalAffected} student fee records updated.");
-    }
 }
