@@ -56,6 +56,7 @@ interface FeeItem {
     cost_price: string;
     selling_price: string;
     profit: string;
+    school_year?: string;
     is_active: boolean;
     classification?: string;
     department_id?: number | null;
@@ -373,6 +374,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                 </form>
                             </DialogContent>
                         </Dialog>
+                        </div>
                     }
                 />
 
