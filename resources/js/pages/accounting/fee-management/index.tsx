@@ -54,6 +54,7 @@ interface FeeItem {
 interface FeeCategory {
     id: number;
     name: string;
+    code: string;
     description?: string;
     sort_order: number;
     is_active: boolean;
@@ -81,6 +82,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
 
     const categoryForm = useForm({
         name: '',
+        code: '',
         description: '',
         sort_order: 0,
         is_active: true,
@@ -114,6 +116,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
             setEditingCategory(category);
             categoryForm.setData({
                 name: category.name,
+                code: category.code || '',
                 description: category.description || '',
                 sort_order: category.sort_order,
                 is_active: category.is_active,
@@ -235,6 +238,16 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                                                 placeholder="e.g., Tuition Fees"
                                             />
                                             {categoryForm.errors.name && <p className="text-sm text-red-500">{categoryForm.errors.name}</p>}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="category_code">Code *</Label>
+                                            <Input
+                                                id="category_code"
+                                                value={categoryForm.data.code}
+                                                onChange={(e) => categoryForm.setData('code', e.target.value)}
+                                                placeholder="e.g., TF"
+                                            />
+                                            {categoryForm.errors.code && <p className="text-sm text-red-500">{categoryForm.errors.code}</p>}
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor="category_description">Description</Label>
