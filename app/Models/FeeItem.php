@@ -140,40 +140,47 @@ class FeeItem extends Model
      */
     public function applyToStudents(): int
     {
-        if ($this->assignment_scope !== 'specific' || !$this->school_year) {
+        if (!$this->school_year) {
             return 0;
         }
 
         // Build query for matching students
-        $studentsQuery = Student::query();
+        $studentsQuery = \App\Models\Student::query();
 
-        if ($this->classification) {
-            $studentsQuery->whereHas('department', function ($q) {
-                $q->where('classification', $this->classification);
-            });
-        }
-
-        if ($this->department_id) {
-            $studentsQuery->where('department_id', $this->department_id);
-        }
-
-        if ($this->program_id) {
-            // Match students with this program or text program field
-            $program = Program::find($this->program_id);
-            if ($program) {
-                $studentsQuery->where(function ($q) use ($program) {
-                    $q->where('program', $program->name)
-                      ->orWhere('program_id', $program->id);
+        // For 'specific' scope, apply filters
+        if ($this->assignment_scope === 'specific') {
+            if ($this->classification) {
+                $studentsQuery->whereHas('department', function ($q) {
+                    $q->where('classification', $this->classification);
                 });
             }
-        }
 
-        if ($this->year_level_id) {
-            $studentsQuery->where('year_level_id', $this->year_level_id);
-        }
+            if ($this->department_id) {
+                $studentsQuery->where('department_id', $this->department_id);
+            }
 
-        if ($this->section_id) {
-            $studentsQuery->where('section_id', $this->section_id);
+            if ($this->program_id) {
+                // Match students with this program or text program field
+                $program = \App\Models\Program::find($this->program_id);
+                if ($program) {
+                    $studentsQuery->where(function ($q) use ($program) {
+                        $q->where('program', $program->name)
+                          ->orWhere('program_id', $program->id);
+                    });
+                }
+            }
+
+            if ($this->year_level_id) {
+                $studentsQuery->where('year_level_id', $this->year_level_id);
+            }
+
+            if ($this->section_id) {
+                $studentsQuery->where('section_id', $this->section_id);
+            }
+        }
+        // For 'all' scope, get all active students
+        else {
+            $studentsQuery->where('is_active', true);
         }
 
         $students = $studentsQuery->get();
@@ -182,7 +189,7 @@ class FeeItem extends Model
 
         foreach ($students as $student) {
             // Find or create StudentFee for this student and school year
-            $studentFee = StudentFee::firstOrCreate(
+            $studentFee = \App\Models\StudentFee::firstOrCreate(
                 [
                     'student_id' => $student->id,
                     'school_year' => $this->school_year,
@@ -219,7 +226,7 @@ class FeeItem extends Model
                 $studentFee->books_fee +
                 $studentFee->other_fees;
             
-            $studentFee->balance = $studentFee->total_amount - $studentFee->total_paid;
+            $studentFee->balance = $studentFee->total_amount - $studentFee->total_paid - ($studentFee->grant_discount ?? 0);
             $studentFee->save();
 
             $affectedCount++;
