@@ -157,7 +157,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
         payment_date: new Date().toISOString().split('T')[0],
         or_number: '',
         amount: '',
-        payment_for: '',
+        payment_for: 'general',
         notes: '',
     });
 
