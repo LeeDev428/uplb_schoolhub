@@ -56,6 +56,13 @@ class StudentAccountController extends Controller
             });
         }
 
+        // Filter by classification
+        if ($classification = $request->input('classification')) {
+            $query->whereHas('student.department', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
+
         $accounts = $query->latest()->paginate(20)->withQueryString();
 
         // Transform for frontend
