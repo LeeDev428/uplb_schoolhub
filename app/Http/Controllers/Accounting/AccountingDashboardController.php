@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\Department;
 use App\Models\DocumentRequest;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -321,6 +321,34 @@ class AccountingDashboardController extends Controller
                 'month' => (int) $selectedMonth,
                 'year' => (int) $selectedYear,
             ],
+        ]);
+    }
+
+    /**
+     * Export dashboard data.
+     */
+    public function export(Request $request)
+    {
+        $type = $request->input('type', 'excel');
+        
+        // Placeholder for export functionality
+        return response()->json([
+            'message' => 'Export functionality - implement with Laravel Excel package',
+            'type' => $type,
+        ]);
+    }
+
+    /**
+     * Export account dashboard data.
+     */
+    public function exportAccountDashboard(Request $request)
+    {
+        $type = $request->input('type', 'excel');
+        
+        // Placeholder for export functionality
+        return response()->json([
+            'message' => 'Export functionality - implement with Laravel Excel package',
+            'type' => $type,
         ]);
     }
 }
