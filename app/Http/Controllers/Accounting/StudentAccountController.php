@@ -112,7 +112,11 @@ class StudentAccountController extends Controller
                 'total_collected' => StudentFee::forSchoolYear($currentSchoolYear)->sum('total_paid'),
                 'total_balance' => StudentFee::forSchoolYear($currentSchoolYear)->sum('balance'),
                 'overdue_count' => StudentFee::forSchoolYear($currentSchoolYear)->overdue()->count(),
-                'fully_paid' => StudentFee::forSchoolYear($currentSchoolYear)->where('balance', '<=', 0)->count(),
+                // Only count students with actual fees (total_amount > 0) who have paid them off (balance <= 0)
+                'fully_paid' => StudentFee::forSchoolYear($currentSchoolYear)
+                    ->where('total_amount', '>', 0)
+                    ->where('balance', '<=', 0)
+                    ->count(),
             ];
         } else {
             $stats = [
