@@ -79,6 +79,7 @@ export function UpdateHistory({ logs }: Props) {
                                     <TableHead className="font-semibold w-[180px]">Date</TableHead>
                                     <TableHead className="font-semibold w-[160px]">Type</TableHead>
                                     <TableHead className="font-semibold">Action</TableHead>
+                                    <TableHead className="font-semibold">Notes</TableHead>
                                     <TableHead className="font-semibold w-[150px]">Updated By</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -107,10 +108,14 @@ export function UpdateHistory({ logs }: Props) {
                                                     {log.details}
                                                 </p>
                                             )}
-                                            {log.notes && (
-                                                <p className="text-sm italic text-muted-foreground mt-0.5 border-l-2 border-blue-400 pl-2">
+                                        </TableCell>
+                                        <TableCell>
+                                            {log.notes ? (
+                                                <p className="text-sm italic text-muted-foreground border-l-2 border-blue-400 pl-2">
                                                     {log.notes}
                                                 </p>
+                                            ) : (
+                                                <span className="text-muted-foreground/50">-</span>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-sm">
