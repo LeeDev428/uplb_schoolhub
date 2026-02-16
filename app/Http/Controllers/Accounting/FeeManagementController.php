@@ -185,7 +185,7 @@ class FeeManagementController extends Controller
             'description' => 'nullable|string',
             'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'school_year' => 'nullable|string',
+            'school_year' => 'required|string',
             'program' => 'nullable|string',
             'year_level' => 'nullable|string',
             'classification' => 'nullable|string',
@@ -200,9 +200,10 @@ class FeeManagementController extends Controller
 
         $feeItem = FeeItem::create($validated);
 
-        // Apply to students if specific assignment
-        if ($feeItem->assignment_scope === 'specific') {
-            $affectedCount = $feeItem->applyToStudents();
+        // Apply to students automatically
+        $affectedCount = $feeItem->applyToStudents();
+        
+        if ($affectedCount > 0) {
             return redirect()->back()->with('success', "Fee item created and applied to {$affectedCount} students.");
         }
 
@@ -221,7 +222,7 @@ class FeeManagementController extends Controller
             'description' => 'nullable|string',
             'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'school_year' => 'nullable|string',
+            'school_year' => 'required|string',
             'program' => 'nullable|string',
             'year_level' => 'nullable|string',
             'classification' => 'nullable|string',
@@ -236,9 +237,10 @@ class FeeManagementController extends Controller
 
         $item->update($validated);
 
-        // Reapply to students if specific assignment
-        if ($item->assignment_scope === 'specific') {
-            $affectedCount = $item->applyToStudents();
+        // Reapply to students automatically
+        $affectedCount = $item->applyToStudents();
+        
+        if ($affectedCount > 0) {
             return redirect()->back()->with('success', "Fee item updated and reapplied to {$affectedCount} students.");
         }
 
