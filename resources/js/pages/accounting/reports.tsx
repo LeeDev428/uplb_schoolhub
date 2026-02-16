@@ -30,6 +30,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ImportButton } from '@/components/import-button';
 import { FileDown, FileText, Calendar, TrendingUp, Users } from 'lucide-react';
 
 interface Student {
@@ -171,6 +172,12 @@ export default function AccountingReports({
                     description="Generate comprehensive reports on payments and fees"
                     action={
                         <div className="flex gap-2">
+                            <ImportButton
+                                importUrl="/accounting/reports/import"
+                                templateUrl="/accounting/reports/template"
+                                title="Import Report Data"
+                                description="Upload an Excel or CSV file to import report data."
+                            />
                             <Button variant="outline" onClick={handlePrint}>
                                 <FileText className="mr-2 h-4 w-4" />
                                 Print
