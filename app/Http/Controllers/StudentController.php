@@ -368,6 +368,27 @@ class StudentController extends Controller
         // Update clearance
         $clearance->update($updateData);
 
+        // Create StudentFee record when registrar clearance is approved
+        if ($clearanceType === 'registrar_clearance' && $status) {
+            \App\Models\StudentFee::firstOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'school_year' => $student->school_year,
+                ],
+                [
+                    'registration_fee' => 0,
+                    'tuition_fee' => 0,
+                    'misc_fee' => 0,
+                    'books_fee' => 0,
+                    'other_fees' => 0,
+                    'total_amount' => 0,
+                    'total_paid' => 0,
+                    'balance' => 0,
+                    'grant_discount' => 0,
+                ]
+            );
+        }
+
         // Update enrollment status if all clearances are complete
         if ($clearance->isFullyCleared()) {
             $clearance->update(['enrollment_status' => 'completed']);
