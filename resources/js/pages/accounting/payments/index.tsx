@@ -588,47 +588,6 @@ export default function AccountingPayments({ payments, filters, total, students 
                                 )}
                             </CardContent>
                         </Card>
-                    </TabsContent>
-
-                    {/* Tab 2: School Year Details */}
-                    <TabsContent value="school-year">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>School Year Summary</CardTitle>
-                                <CardDescription>Payment statistics by school year</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-center py-8 text-muted-foreground">School year details will be displayed here</p>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    {/* Tab 3: Promissory Note */}
-                    <TabsContent value="promissory">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Promissory Notes</CardTitle>
-                                <CardDescription>Student promissory note requests</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-center py-8 text-muted-foreground">Promissory notes will be displayed here</p>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    {/* Tab 4: Transaction Details */}
-                    <TabsContent value="transactions">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Transaction History</CardTitle>
-                                <CardDescription>Detailed transaction logs</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-center py-8 text-muted-foreground">Transaction details will be displayed here</p>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
 
                 {/* Edit Modal */}
                 <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
