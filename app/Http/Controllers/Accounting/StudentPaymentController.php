@@ -226,7 +226,10 @@ class StudentPaymentController extends Controller
             'payment_date' => 'required|date',
             'or_number' => 'nullable|string|max:255',
             'amount' => 'required|numeric|min:0.01',
-            'payment_for' => 'nullable|in:registration,tuition,misc,books,other',
+            'payment_mode' => 'nullable|in:CASH,GCASH,BANK',
+            'reference_number' => 'nullable|string|max:255',
+            'bank_name' => 'nullable|string|max:255',
+            'payment_for' => 'nullable|in:general,registration,tuition,misc,books,other',
             'notes' => 'nullable|string',
         ]);
 
