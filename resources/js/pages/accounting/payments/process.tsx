@@ -64,12 +64,16 @@ interface Student {
     student_photo_url: string | null;
 }
 
-interface FeeItem {
+interface FeeItemDetail {
     id: number;
     name: string;
-    category: string;
     amount: number;
-    is_optional: boolean;
+}
+
+interface FeeCategory {
+    category_id: number;
+    category_name: string;
+    items: FeeItemDetail[];
 }
 
 interface Fee {
@@ -82,7 +86,7 @@ interface Fee {
     status: 'paid' | 'overdue' | 'pending';
     is_overdue: boolean;
     due_date: string | null;
-    items: FeeItem[];
+    categories: FeeCategory[];
 }
 
 interface Payment {
@@ -492,7 +496,10 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-3">
                                                         <GraduationCap className="h-5 w-5 text-primary" />
-                                                        <h4 className="font-semibold">{fee.school_year}</h4>
+                                                        <div>
+                                                            <h4 className="font-semibold">School Year</h4>
+                                                            <p className="text-sm text-muted-foreground">{fee.school_year}</p>
+                                                        </div>
                                                         {getStatusBadge(fee.status)}
                                                     </div>
                                                     <div className="text-right">
@@ -500,36 +507,38 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                         <p className="font-semibold text-red-600">{formatCurrency(fee.balance)}</p>
                                                     </div>
                                                 </div>
-                                                <Table>
-                                                    <TableHeader>
-                                                        <TableRow>
-                                                            <TableHead>Item</TableHead>
-                                                            <TableHead>Category</TableHead>
-                                                            <TableHead className="text-right">Amount</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {fee.items.map((item) => (
-                                                            <TableRow key={item.id}>
-                                                                <TableCell>
-                                                                    {item.name}
-                                                                    {item.is_optional && (
-                                                                        <Badge variant="outline" className="ml-2 text-xs">Optional</Badge>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>{item.category}</TableCell>
-                                                                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                                                            </TableRow>
+
+                                                {/* Display by Category */}
+                                                {fee.categories && fee.categories.length > 0 ? (
+                                                    <div className="space-y-4">
+                                                        {fee.categories.map((category) => (
+                                                            <div key={category.category_id} className="border rounded-md p-3 bg-muted/30">
+                                                                <h5 className="font-semibold mb-2 flex items-center gap-2">
+                                                                    <span className="text-primary">{category.category_name}</span>
+                                                                </h5>
+                                                                <Table>
+                                                                    <TableHeader>
+                                                                        <TableRow>
+                                                                            <TableHead>Fee Item</TableHead>
+                                                                            <TableHead className="text-right">Amount</TableHead>
+                                                                        </TableRow>
+                                                                    </TableHeader>
+                                                                    <TableBody>
+                                                                        {category.items.map((item) => (
+                                                                            <TableRow key={item.id}>
+                                                                                <TableCell>{item.name}</TableCell>
+                                                                                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                                                                            </TableRow>
+                                                                        ))}
+                                                                    </TableBody>
+                                                                </Table>
+                                                            </div>
                                                         ))}
-                                                        {fee.items.length === 0 && (
-                                                            <TableRow>
-                                                                <TableCell colSpan={3} className="text-center text-muted-foreground">
-                                                                    No itemized breakdown available
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        )}
-                                                    </TableBody>
-                                                </Table>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-center py-8 text-muted-foreground">No fee items assigned</p>
+                                                )}
+
                                                 <div className="flex justify-end gap-6 mt-4 pt-4 border-t text-sm">
                                                     <div>
                                                         <span className="text-muted-foreground">Total: </span>
@@ -547,7 +556,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
+                                        ))}}
                                     </div>
                                 )}
                             </CardContent>
