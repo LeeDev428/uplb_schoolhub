@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Student;
+use App\Models\StudentActionLog;
 use App\Models\Department;
 use App\Models\Program;
 use App\Models\YearLevel;
