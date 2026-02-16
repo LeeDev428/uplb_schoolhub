@@ -157,6 +157,9 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
         payment_date: new Date().toISOString().split('T')[0],
         or_number: '',
         amount: '',
+        payment_mode: 'CASH',
+        reference_number: '',
+        bank_name: '',
         payment_for: 'general',
         notes: '',
     });
@@ -306,23 +309,62 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                             />
                                         </div>
                                         <div className="grid gap-2">
-                                            <Label>Payment For</Label>
+                                            <Label>Payment Mode</Label>
                                             <Select
-                                                value={paymentForm.data.payment_for}
-                                                onValueChange={(val) => paymentForm.setData('payment_for', val)}
+                                                value={paymentForm.data.payment_mode}
+                                                onValueChange={(val) => paymentForm.setData('payment_mode', val)}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select type" />
+                                                    <SelectValue placeholder="Select mode" />
                                                 </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="registration">Registration</SelectItem>
-                                                    <SelectItem value="tuition">Tuition</SelectItem>
-                                                    <SelectItem value="misc">Miscellaneous</SelectItem>
-                                                    <SelectItem value="books">Books</SelectItem>
-                                                    <SelectItem value="other">Other</SelectItem>
+                                                <SelectContent position="popper">
+                                                    <SelectItem value="CASH">Cash</SelectItem>
+                                                    <SelectItem value="GCASH">GCash</SelectItem>
+                                                    <SelectItem value="BANK">Bank Transfer</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                    </div>
+                                    {(paymentForm.data.payment_mode === 'GCASH' || paymentForm.data.payment_mode === 'BANK') && (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label>Reference Number</Label>
+                                                <Input
+                                                    value={paymentForm.data.reference_number}
+                                                    onChange={(e) => paymentForm.setData('reference_number', e.target.value)}
+                                                    placeholder="Transaction/Reference #"
+                                                />
+                                            </div>
+                                            {paymentForm.data.payment_mode === 'BANK' && (
+                                                <div className="grid gap-2">
+                                                    <Label>Bank Name</Label>
+                                                    <Input
+                                                        value={paymentForm.data.bank_name}
+                                                        onChange={(e) => paymentForm.setData('bank_name', e.target.value)}
+                                                        placeholder="Name of bank"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    <div className="grid gap-2">
+                                        <Label>Payment For</Label>
+                                        <Select
+                                            value={paymentForm.data.payment_for}
+                                            onValueChange={(val) => paymentForm.setData('payment_for', val)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select type" />
+                                            </SelectTrigger>
+                                            <SelectContent position="popper">
+                                                <SelectItem value="general">General Payment</SelectItem>
+                                                <SelectItem value="registration">Registration</SelectItem>
+                                                <SelectItem value="tuition">Tuition</SelectItem>
+                                                <SelectItem value="misc">Miscellaneous</SelectItem>
+                                                <SelectItem value="books">Books</SelectItem>
+                                                <SelectItem value="other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label>Notes (Optional)</Label>
