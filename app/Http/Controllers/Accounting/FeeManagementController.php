@@ -75,9 +75,47 @@ class FeeManagementController extends Controller
 
         // Get all departments, programs, year levels, sections for assignment dropdowns
         $departments = Department::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'classification']);
-        $programs = Program::where('is_active', true)->with('department:id,name')->orderBy('name')->get(['id', 'name', 'department_id']);
-        $yearLevels = YearLevel::where('is_active', true)->orderBy('level_number')->get(['id', 'name', 'department_id', 'level_number']);
-        $sections = Section::where('is_active', true)->with(['yearLevel:id,name', 'department:id,name'])->orderBy('name')->get(['id', 'name', 'year_level_id', 'department_id']);
+        
+        $programs = Program::where('is_active', true)
+            ->with('department:id,classification')
+            ->orderBy('name')
+            ->get(['id', 'name', 'department_id'])
+            ->map(function ($program) {
+                return [
+                    'id' => $program->id,
+                    'name' => $program->name,
+                    'department_id' => $program->department_id,
+                    'classification' => $program->department->classification,
+                ];
+            });
+            
+        $yearLevels = YearLevel::where('is_active', true)
+            ->with('department:id,classification')
+            ->orderBy('level_number')
+            ->get(['id', 'name', 'department_id', 'level_number'])
+            ->map(function ($yearLevel) {
+                return [
+                    'id' => $yearLevel->id,
+                    'name' => $yearLevel->name,
+                    'department_id' => $yearLevel->department_id,
+                    'level_number' => $yearLevel->level_number,
+                    'classification' => $yearLevel->department->classification,
+                ];
+            });
+            
+        $sections = Section::where('is_active', true)
+            ->with('department:id,classification')
+            ->orderBy('name')
+            ->get(['id', 'name', 'year_level_id', 'department_id'])
+            ->map(function ($section) {
+                return [
+                    'id' => $section->id,
+                    'name' => $section->name,
+                    'year_level_id' => $section->year_level_id,
+                    'department_id' => $section->department_id,
+                    'classification' => $section->department->classification,
+                ];
+            });
 
         return Inertia::render('accounting/fee-management/index', [
             'categories' => $categories,
