@@ -57,6 +57,12 @@ interface FeeItem {
     selling_price: string;
     profit: string;
     is_active: boolean;
+    classification?: string;
+    department_id?: number | null;
+    program_id?: number | null;
+    year_level_id?: number | null;
+    section_id?: number | null;
+    assignment_scope?: 'all' | 'specific';
 }
 
 interface FeeCategory {
