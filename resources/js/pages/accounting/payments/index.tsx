@@ -1,8 +1,7 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
-import { index as paymentsIndex, store as storePayment, update as updatePayment, destroy as destroyPayment } from '@/routes/accounting/payments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -20,742 +19,285 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { Search, Plus, Edit, Trash2, DollarSign, FileText } from 'lucide-react';
-import { useForm } from '@inertiajs/react';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Search, ArrowRight, DollarSign, Users, AlertCircle } from 'lucide-react';
 
 interface Student {
     id: number;
-    first_name: string;
-    last_name: string;
-    lrn: string;
     full_name: string;
+    lrn: string;
+    program: string | null;
+    year_level: string | null;
+    section: string | null;
+    department: string | null;
+    enrollment_status: string;
+    current_balance: number;
+    previous_balance: number;
+    total_balance: number;
+    status: string;
 }
 
-interface StudentFee {
-    id: number;
-    school_year: string;
-    total_amount: string;
-    total_paid: string;
-    balance: string;
-}
-
-interface User {
-    id: number;
-    name: string;
-}
-
-interface StudentPayment {
-    id: number;
-    student_id: number;
-    student_fee_id: number;
-    payment_date: string;
-    or_number: string;
-    amount: string;
-    payment_for: string;
-    notes?: string;
-    created_at: string;
-    student: Student;
-    recorded_by: User;
-}
-
-interface PaginatedPayments {
-    data: StudentPayment[];
+interface PaginatedStudents {
+    data: Student[];
     current_page: number;
     last_page: number;
     per_page: number;
     total: number;
-}
-
-interface Department {
-    id: number;
-    name: string;
-    code: string;
-    classification: string;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
 }
 
 interface Props {
-    payments: PaginatedPayments;
+    students: PaginatedStudents;
     filters: {
         search?: string;
-        from?: string;
-        to?: string;
-        payment_for?: string;
-        department_id?: string;
-        classification?: string;
+        enrollment_status?: string;
     };
-    total: number;
-    students: Student[];
-    studentFees: Record<number, StudentFee[]>;
-    departments: Department[];
-    classifications: string[];
 }
 
-export default function AccountingPayments({ payments, filters, total, students = [], studentFees = {}, departments = [], classifications = [] }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [from, setFrom] = useState(filters.from || '');
-    const [to, setTo] = useState(filters.to || '');
-    const [paymentFor, setPaymentFor] = useState(filters.payment_for || 'all');
-    const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
-    const [classification, setClassification] = useState(filters.classification || 'all');
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [studentSearch, setStudentSearch] = useState('');
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedPayment, setSelectedPayment] = useState<StudentPayment | null>(null);
-    const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+function formatCurrency(amount: number): string {
+    return `₱${amount.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`;
+}
 
-    const { data, setData, post, put, processing, errors, reset } = useForm({
-        student_id: '',
-        student_fee_id: '',
-        payment_date: new Date().toISOString().split('T')[0],
-        or_number: '',
-        amount: '',
-        payment_for: 'general',
-        notes: '',
-    });
+function getStatusBadge(status: string) {
+    const configs: Record<string, { label: string; className: string }> = {
+        approved: { label: 'Cleared', className: 'bg-green-100 text-green-700' },
+        fully_paid: { label: 'Fully Paid', className: 'bg-blue-100 text-blue-700' },
+        overdue: { label: 'Overdue', className: 'bg-red-100 text-red-700' },
+        pending: { label: 'Pending', className: 'bg-yellow-100 text-yellow-700' },
+    };
+    const config = configs[status] || configs.pending;
+    return <Badge className={config.className}>{config.label}</Badge>;
+}
+
+export default function PaymentProcessingIndex({ students, filters }: Props) {
+    const [search, setSearch] = useState(filters.search || '');
+    const [enrollmentStatus, setEnrollmentStatus] = useState(filters.enrollment_status || 'all');
 
     const handleSearch = () => {
-        router.get(paymentsIndex.url(), {
-            search,
-            from: from || undefined,
-            to: to || undefined,
-            payment_for: paymentFor !== 'all' ? paymentFor : undefined,
-            department_id: departmentId !== 'all' ? departmentId : undefined,
-            classification: classification !== 'all' ? classification : undefined,
+        router.get('/accounting/payments', {
+            search: search || undefined,
+            enrollment_status: enrollmentStatus !== 'all' ? enrollmentStatus : undefined,
         }, {
             preserveState: true,
             preserveScroll: true,
         });
     };
 
-    const handleCreatePayment = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(storePayment.url(), {
-            onSuccess: () => {
-                setIsCreateModalOpen(false);
-                setSelectedStudentId('');
-                reset();
-            },
-        });
-    };
-
-    const handleEditPayment = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (selectedPayment) {
-            put(updatePayment.url({ payment: selectedPayment.id }), {
-                onSuccess: () => {
-                    setIsEditModalOpen(false);
-                    setSelectedPayment(null);
-                    reset();
-                },
-            });
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
         }
     };
 
-    const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to delete this payment record? This will update the student\'s balance.')) {
-            router.delete(destroyPayment.url({ payment: id }));
-        }
+    // Calculate stats
+    const stats = {
+        total: students.data.length,
+        withBalance: students.data.filter(s => s.total_balance > 0).length,
+        overdue: students.data.filter(s => s.status === 'overdue').length,
+        cleared: students.data.filter(s => s.status === 'approved' || s.status === 'fully_paid').length,
     };
-
-    const openEditModal = (payment: StudentPayment) => {
-        setSelectedPayment(payment);
-        setData({
-            student_id: payment.student_id.toString(),
-            student_fee_id: payment.student_fee_id.toString(),
-            payment_date: payment.payment_date,
-            or_number: payment.or_number,
-            amount: payment.amount,
-            payment_for: payment.payment_for || 'general',
-            notes: payment.notes || '',
-        });
-        setIsEditModalOpen(true);
-    };
-
-    const formatCurrency = (amount: string | number) => {
-        return `₱${parseFloat(amount.toString()).toLocaleString('en-PH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })}`;
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-PH', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        });
-    };
-
-    const getPaymentForLabel = (value: string) => {
-        const labels: Record<string, string> = {
-            registration: 'Registration Fee',
-            tuition: 'Tuition Fee',
-            misc: 'Miscellaneous Fee',
-            books: 'Books Fee',
-            other: 'Other Fees',
-        };
-        return labels[value] || 'General Payment';
-    };
-
-    const getAvailableFees = (studentId: string) => {
-        return studentFees[parseInt(studentId)] || [];
-    };
-
-    const getSelectedFeeInfo = () => {
-        if (data.student_fee_id) {
-            const fees = getAvailableFees(data.student_id);
-            const selectedFee = fees.find(f => f.id.toString() === data.student_fee_id);
-            return selectedFee;
-        }
-        return null;
-    };
-
-    const filteredStudents = students.filter((student) =>
-        student.full_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-        student.lrn.toLowerCase().includes(studentSearch.toLowerCase())
-    );
-
-    const feeInfo = getSelectedFeeInfo();
 
     return (
         <AccountingLayout>
-            <Head title="Payment Records" />
+            <Head title="Payment Processing" />
 
             <div className="space-y-6 p-6">
+                {/* Header */}
                 <PageHeader
-                    title="Payment Records"
-                    description="Record and track student payments with OR numbers"
-                    action={
-                        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                            <DialogTrigger asChild>
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Record Payment
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                                <form onSubmit={handleCreatePayment}>
-                                    <DialogHeader>
-                                        <DialogTitle>Record Payment</DialogTitle>
-                                        <DialogDescription>
-                                            Record a new payment transaction for a student
-                                        </DialogDescription>
-                                    </DialogHeader>
-
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="student_id">Student *</Label>
-                                            <Input
-                                                placeholder="Search student by name or LRN..."
-                                                value={studentSearch}
-                                                onChange={(e) => setStudentSearch(e.target.value)}
-                                                className="mb-2"
-                                            />
-                                            <Select
-                                                value={data.student_id}
-                                                onValueChange={(value) => {
-                                                    setData('student_id', value);
-                                                    setData('student_fee_id', '');
-                                                    setSelectedStudentId(value);
-                                                }}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select student" />
-                                                </SelectTrigger>
-                                                <SelectContent position="popper" className="max-h-[300px]">
-                                                    {filteredStudents.length === 0 ? (
-                                                        <div className="px-2 py-1 text-sm text-muted-foreground">
-                                                            No students found
-                                                        </div>
-                                                    ) : (
-                                                        filteredStudents.map((student) => (
-                                                            <SelectItem key={student.id} value={student.id.toString()}>
-                                                                {student.full_name} - {student.lrn}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            {errors.student_id && (
-                                                <p className="text-sm text-red-500">{errors.student_id}</p>
-                                            )}
-                                        </div>
-
-                                        {data.student_id && (
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="student_fee_id">Fee Record *</Label>
-                                                <Select
-                                                    value={data.student_fee_id}
-                                                    onValueChange={(value) => setData('student_fee_id', value)}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select fee record" />
-                                                    </SelectTrigger>
-                                                    <SelectContent position="popper" className="max-h-[300px]">
-                                                        {getAvailableFees(data.student_id).length === 0 ? (
-                                                            <div className="px-2 py-1 text-sm text-muted-foreground">
-                                                                No fee records with balance found
-                                                            </div>
-                                                        ) : (
-                                                            getAvailableFees(data.student_id).map((fee) => (
-                                                                <SelectItem key={fee.id} value={fee.id.toString()}>
-                                                                    {fee.school_year} - Balance: {formatCurrency(fee.balance)}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                {errors.student_fee_id && (
-                                                    <p className="text-sm text-red-500">{errors.student_fee_id}</p>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {feeInfo && (
-                                            <div className="rounded-lg border bg-muted p-4">
-                                                <h4 className="font-semibold mb-2">Fee Information</h4>
-                                                <div className="grid grid-cols-3 gap-2 text-sm">
-                                                    <div>
-                                                        <span className="text-muted-foreground">Total Amount:</span>
-                                                        <p className="font-medium">{formatCurrency(feeInfo.total_amount)}</p>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Total Paid:</span>
-                                                        <p className="font-medium text-green-600">{formatCurrency(feeInfo.total_paid)}</p>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Balance:</span>
-                                                        <p className="font-medium text-red-600">{formatCurrency(feeInfo.balance)}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="payment_date">Payment Date *</Label>
-                                                <Input
-                                                    id="payment_date"
-                                                    type="date"
-                                                    value={data.payment_date}
-                                                    onChange={(e) => setData('payment_date', e.target.value)}
-                                                />
-                                                {errors.payment_date && (
-                                                    <p className="text-sm text-red-500">{errors.payment_date}</p>
-                                                )}
-                                            </div>
-
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="or_number">OR Number</Label>
-                                                <Input
-                                                    id="or_number"
-                                                    placeholder="e.g., 18667"
-                                                    value={data.or_number}
-                                                    onChange={(e) => setData('or_number', e.target.value)}
-                                                />
-                                                {errors.or_number && (
-                                                    <p className="text-sm text-red-500">{errors.or_number}</p>
-                                                )}
-                                            </div>
-
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="amount">Amount *</Label>
-                                                <Input
-                                                    id="amount"
-                                                    type="number"
-                                                    step="0.01"
-                                                    min="0.01"
-                                                    placeholder="0.00"
-                                                    value={data.amount}
-                                                    onChange={(e) => setData('amount', e.target.value)}
-                                                />
-                                                {errors.amount && (
-                                                    <p className="text-sm text-red-500">{errors.amount}</p>
-                                                )}
-                                            </div>
-
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="payment_for">Payment For</Label>
-                                                <Select
-                                                    value={data.payment_for}
-                                                    onValueChange={(value) => setData('payment_for', value)}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select payment type" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="general">General Payment</SelectItem>
-                                                        <SelectItem value="registration">Registration Fee</SelectItem>
-                                                        <SelectItem value="tuition">Tuition Fee</SelectItem>
-                                                        <SelectItem value="misc">Miscellaneous Fee</SelectItem>
-                                                        <SelectItem value="books">Books Fee</SelectItem>
-                                                        <SelectItem value="other">Other Fees</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="notes">Notes</Label>
-                                            <Textarea
-                                                id="notes"
-                                                placeholder="Additional notes or remarks..."
-                                                value={data.notes}
-                                                onChange={(e) => setData('notes', e.target.value)}
-                                                rows={3}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <DialogFooter>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => {
-                                                setIsCreateModalOpen(false);
-                                                setSelectedStudentId('');
-                                            }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                        <Button type="submit" disabled={processing}>
-                                            Record Payment
-                                        </Button>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
-                    }
+                    title="Payment Processing"
+                    description="Process student payments and manage fee accounts. Click a student to view details and process payments."
                 />
 
-                {/* Summary Card */}
-                <div className="rounded-lg border bg-card p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10">
-                            <DollarSign className="h-6 w-6 text-green-500" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Total Collected (Filtered)</p>
-                            <p className="text-2xl font-bold">{formatCurrency(total)}</p>
-                        </div>
-                    </div>
+                {/* Stats Cards */}
+                <div className="grid gap-4 md:grid-cols-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{students.total}</div>
+                            <p className="text-xs text-muted-foreground">Ready for processing</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">With Balance</CardTitle>
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats.withBalance}</div>
+                            <p className="text-xs text-muted-foreground">Students with outstanding fees</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+                            <AlertCircle className="h-4 w-4 text-red-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
+                            <p className="text-xs text-muted-foreground">Need immediate attention</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Cleared</CardTitle>
+                            <Users className="h-4 w-4 text-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-green-600">{stats.cleared}</div>
+                            <p className="text-xs text-muted-foreground">Fully paid or cleared</p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col gap-4 rounded-lg border bg-card p-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="search">Search</Label>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    id="search"
-                                    placeholder="OR number, student name, LRN..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                    className="pl-9"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="from">Date From</Label>
-                            <Input
-                                id="from"
-                                type="date"
-                                value={from}
-                                onChange={(e) => setFrom(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="to">Date To</Label>
-                            <Input
-                                id="to"
-                                type="date"
-                                value={to}
-                                onChange={(e) => setTo(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="paymentFor">Payment Type</Label>
-                            <Select value={paymentFor} onValueChange={setPaymentFor}>
-                                <SelectTrigger id="paymentFor">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Types</SelectItem>
-                                    <SelectItem value="registration">Registration</SelectItem>
-                                    <SelectItem value="tuition">Tuition</SelectItem>
-                                    <SelectItem value="misc">Miscellaneous</SelectItem>
-                                    <SelectItem value="books">Books</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="classification">Classification</Label>
-                            <Select value={classification} onValueChange={setClassification}>
-                                <SelectTrigger id="classification">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Classifications</SelectItem>
-                                    {classifications.map((cls) => (
-                                        <SelectItem key={cls} value={cls}>
-                                            {cls}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="department">Department</Label>
-                            <Select value={departmentId} onValueChange={setDepartmentId}>
-                                <SelectTrigger id="department">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Departments</SelectItem>
-                                    {departments.map((dept) => (
-                                        <SelectItem key={dept.id} value={dept.id.toString()}>
-                                            {dept.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <Button onClick={handleSearch} className="flex-1 sm:flex-initial">
-                            <Search className="mr-2 h-4 w-4" />
-                            Apply Filters
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setSearch('');
-                                setFrom('');
-                                setTo('');
-                                setPaymentFor('all');
-                                setDepartmentId('all');
-                                setClassification('all');
-                                router.get(paymentsIndex.url());
-                            }}
-                        >
-                            Clear
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Payment Records */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Payment Records</CardTitle>
-                        <CardDescription>All student payment transactions</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>OR Number</TableHead>
-                                            <TableHead>Student</TableHead>
-                                            <TableHead>LRN</TableHead>
-                                            <TableHead className="text-right">Amount</TableHead>
-                                            <TableHead>Payment For</TableHead>
-                                            <TableHead>Recorded By</TableHead>
-                                            <TableHead className="text-center">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {payments.data.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell colSpan={8} className="h-24 text-center">
-                                                    <div className="flex flex-col items-center justify-center gap-2">
-                                                        <FileText className="h-8 w-8 text-muted-foreground" />
-                                                        <p className="text-muted-foreground">No payment records found</p>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            payments.data.map((payment) => (
-                                                <TableRow key={payment.id}>
-                                                    <TableCell>{formatDate(payment.payment_date)}</TableCell>
-                                                    <TableCell className="font-medium">
-                                                        {payment.or_number || '-'}
-                                                    </TableCell>
-                                                    <TableCell>{payment.student.full_name}</TableCell>
-                                                    <TableCell>{payment.student.lrn}</TableCell>
-                                                    <TableCell className="text-right font-semibold text-green-600">
-                                                        {formatCurrency(payment.amount)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="outline">
-                                                            {getPaymentForLabel(payment.payment_for)}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-sm text-muted-foreground">
-                                                        {payment.recorded_by.name}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex justify-center gap-2">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => openEditModal(payment)}
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleDelete(payment.id)}
-                                                            >
-                                                                <Trash2 className="h-4 w-4 text-red-500" />
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        )}
-                                    </TableBody>
-                                </Table>
-
-                                {/* Pagination */}
-                                {payments.last_page > 1 && (
-                                    <div className="flex items-center justify-between border-t px-4 py-4 mt-4">
-                                        <div className="text-sm text-muted-foreground">
-                                            Showing {payments.data.length} of {payments.total} records
-                                        </div>
-                                        <div className="flex gap-2">
-                                            {Array.from({ length: payments.last_page }, (_, i) => i + 1).map((page) => (
-                                                <Button
-                                                    key={page}
-                                                    variant={page === payments.current_page ? 'default' : 'outline'}
-                                                    size="sm"
-                                                    onClick={() => router.get(paymentsIndex.url({ query: { page } }))}
-                                                >
-                                                    {page}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                {/* Edit Modal */}
-                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                    <DialogContent className="max-w-2xl">
-                        <form onSubmit={handleEditPayment}>
-                            <DialogHeader>
-                                <DialogTitle>Edit Payment</DialogTitle>
-                                <DialogDescription>
-                                    Update payment record for {selectedPayment?.student.full_name}
-                                </DialogDescription>
-                            </DialogHeader>
-
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="edit_payment_date">Payment Date *</Label>
-                                        <Input
-                                            id="edit_payment_date"
-                                            type="date"
-                                            value={data.payment_date}
-                                            onChange={(e) => setData('payment_date', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="edit_or_number">OR Number</Label>
-                                        <Input
-                                            id="edit_or_number"
-                                            value={data.or_number}
-                                            onChange={(e) => setData('or_number', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="edit_amount">Amount *</Label>
-                                        <Input
-                                            id="edit_amount"
-                                            type="number"
-                                            step="0.01"
-                                            min="0.01"
-                                            value={data.amount}
-                                            onChange={(e) => setData('amount', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="edit_payment_for">Payment For</Label>
-                                        <Select
-                                            value={data.payment_for}
-                                            onValueChange={(value) => setData('payment_for', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="">General Payment</SelectItem>
-                                                <SelectItem value="registration">Registration Fee</SelectItem>
-                                                <SelectItem value="tuition">Tuition Fee</SelectItem>
-                                                <SelectItem value="misc">Miscellaneous Fee</SelectItem>
-                                                <SelectItem value="books">Books Fee</SelectItem>
-                                                <SelectItem value="other">Other Fees</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="edit_notes">Notes</Label>
-                                    <Textarea
-                                        id="edit_notes"
-                                        value={data.notes}
-                                        onChange={(e) => setData('notes', e.target.value)}
-                                        rows={3}
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-end">
+                            <div className="flex-1">
+                                <label className="text-sm font-medium mb-2 block">Search Student</label>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search by name, LRN, or email..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        className="pl-10"
                                     />
                                 </div>
                             </div>
-
-                            <DialogFooter>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsEditModalOpen(false)}
+                            <div className="w-full md:w-48">
+                                <label className="text-sm font-medium mb-2 block">Status</label>
+                                <Select
+                                    value={enrollmentStatus}
+                                    onValueChange={setEnrollmentStatus}
                                 >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={processing}>
-                                    Update Payment
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All Statuses" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper">
+                                        <SelectItem value="all">All Statuses</SelectItem>
+                                        <SelectItem value="approved">Cleared</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <Button onClick={handleSearch}>
+                                <Search className="h-4 w-4 mr-2" />
+                                Search
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Students Table */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Student List</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                            Click on a student to view payment details and process payments
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Student</TableHead>
+                                        <TableHead>LRN</TableHead>
+                                        <TableHead>Program</TableHead>
+                                        <TableHead>Year & Section</TableHead>
+                                        <TableHead className="text-right">Current Balance</TableHead>
+                                        <TableHead className="text-right">Previous Balance</TableHead>
+                                        <TableHead className="text-right">Total Balance</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {students.data.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                                No students found. Try adjusting your search filters.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        students.data.map((student) => (
+                                            <TableRow 
+                                                key={student.id}
+                                                className="cursor-pointer hover:bg-accent transition-colors"
+                                                onClick={() => router.visit(`/accounting/payments/process/${student.id}`)}
+                                            >
+                                                <TableCell className="font-medium">
+                                                    {student.full_name}
+                                                    {student.department && (
+                                                        <div className="text-xs text-muted-foreground">{student.department}</div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>{student.lrn}</TableCell>
+                                                <TableCell>{student.program || '-'}</TableCell>
+                                                <TableCell>
+                                                    {student.year_level} {student.section && `- ${student.section}`}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <span className={student.current_balance > 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}>
+                                                        {formatCurrency(student.current_balance)}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <span className={student.previous_balance > 0 ? 'text-orange-600 font-medium' : 'text-muted-foreground'}>
+                                                        {formatCurrency(student.previous_balance)}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <span className={student.total_balance > 0 ? 'font-bold' : 'text-muted-foreground'}>
+                                                        {formatCurrency(student.total_balance)}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {getStatusBadge(student.status)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Button variant="ghost" size="sm">
+                                                        <ArrowRight className="h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        {/* Pagination */}
+                        {students.last_page > 1 && (
+                            <div className="flex items-center justify-between mt-4">
+                                <div className="text-sm text-muted-foreground">
+                                    Showing {students.data.length} of {students.total} students
+                                </div>
+                                <div className="flex gap-2">
+                                    {students.links.map((link, index) => (
+                                        <Button
+                                            key={index}
+                                            variant={link.active ? 'default' : 'outline'}
+                                            size="sm"
+                                            disabled={!link.url}
+                                            onClick={() => link.url && router.visit(link.url)}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
         </AccountingLayout>
     );
