@@ -133,4 +133,99 @@ class FeeItem extends Model
               ->orWhereNull('year_level');
         });
     }
+
+    /**
+     * Apply this fee to all matching students.
+     * Creates/updates StudentFee records based on assignment criteria.
+     */
+    public function applyToStudents(): int
+    {
+        if ($this->assignment_scope !== 'specific' || !$this->school_year) {
+            return 0;
+        }
+
+        // Build query for matching students
+        $studentsQuery = Student::query();
+
+        if ($this->classification) {
+            $studentsQuery->whereHas('department', function ($q) {
+                $q->where('classification', $this->classification);
+            });
+        }
+
+        if ($this->department_id) {
+            $studentsQuery->where('department_id', $this->department_id);
+        }
+
+        if ($this->program_id) {
+            // Match students with this program or text program field
+            $program = Program::find($this->program_id);
+            if ($program) {
+                $studentsQuery->where(function ($q) use ($program) {
+                    $q->where('program', $program->name)
+                      ->orWhere('program_id', $program->id);
+                });
+            }
+        }
+
+        if ($this->year_level_id) {
+            $studentsQuery->where('year_level_id', $this->year_level_id);
+        }
+
+        if ($this->section_id) {
+            $studentsQuery->where('section_id', $this->section_id);
+        }
+
+        $students = $studentsQuery->get();
+        $categoryName = $this->category->name ?? 'Other';
+        $affectedCount = 0;
+
+        foreach ($students as $student) {
+            // Find or create StudentFee for this student and school year
+            $studentFee = StudentFee::firstOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'school_year' => $this->school_year,
+                ],
+                [
+                    'registration_fee' => 0,
+                    'tuition_fee' => 0,
+                    'misc_fee' => 0,
+                    'books_fee' => 0,
+                    'other_fees' => 0,
+                    'total_amount' => 0,
+                    'total_paid' => 0,
+                    'balance' => 0,
+                ]
+            );
+
+            // Map fee category to student fee field
+            $feeField = match(strtolower($categoryName)) {
+                'registration fee', 'registration' => 'registration_fee',
+                'tuition fee', 'tuition' => 'tuition_fee',
+                'miscellaneous fee', 'miscellaneous', 'misc' => 'misc_fee',
+                'books fee', 'books' => 'books_fee',
+                default => 'other_fees',
+            };
+
+            // Add this fee item's selling price to the appropriate field
+            $studentFee->$feeField = ((float) $studentFee->$feeField) + ((float) $this->selling_price);
+            
+            // Recalculate total and balance
+            $studentFee->total_amount = 
+                $studentFee->registration_fee +
+                $studentFee->tuition_fee +
+                $studentFee->misc_fee +
+                $studentFee->books_fee +
+                $studentFee->other_fees;
+            
+            $studentFee->balance = $studentFee->total_amount - $studentFee->total_paid;
+            $studentFee->save();
+
+            $affectedCount++;
+        }
+
+        return $affectedCount;
+    }
 }
+
