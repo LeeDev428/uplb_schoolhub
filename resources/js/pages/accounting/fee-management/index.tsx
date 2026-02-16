@@ -177,7 +177,11 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
                 },
             });
         } else {
-            itemForm.post(`/accounting/fee-management/categories/${selectedCategoryId}/items`, {
+            // Add fee_category_id to the form data before submitting
+            itemForm.transform((data) => ({
+                ...data,
+                fee_category_id: selectedCategoryId,
+            })).post('/accounting/fee-management/items', {
                 onSuccess: () => {
                     setIsItemModalOpen(false);
                     itemForm.reset();
