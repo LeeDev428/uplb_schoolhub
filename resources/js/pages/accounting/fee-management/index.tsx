@@ -647,11 +647,11 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                             <div className="grid gap-2">
                                                 <Label htmlFor="department">Department (Optional)</Label>
                                                 <Select
-                                                    value={itemForm.data.department_id?.toString() || ''}
+                                                    value={itemForm.data.department_id?.toString() || 'ALL_DEPARTMENTS'}
                                                     onValueChange={(value) => {
                                                         itemForm.setData({
                                                             ...itemForm.data,
-                                                            department_id: value ? parseInt(value) : null,
+                                                            department_id: value !== 'ALL_DEPARTMENTS' ? parseInt(value) : null,
                                                             program_id: null,
                                                             year_level_id: null,
                                                             section_id: null,
@@ -662,7 +662,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                         <SelectValue placeholder="All departments" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">All departments</SelectItem>
+                                                        <SelectItem value="ALL_DEPARTMENTS">All departments</SelectItem>
                                                         {departments
                                                             .filter(dept => dept.classification === itemForm.data.classification)
                                                             .map(dept => (
@@ -678,11 +678,11 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                             <div className="grid gap-2">
                                                 <Label htmlFor="program">Program (Optional)</Label>
                                                 <Select
-                                                    value={itemForm.data.program_id?.toString() || ''}
+                                                    value={itemForm.data.program_id?.toString() || 'ALL_PROGRAMS'}
                                                     onValueChange={(value) => {
                                                         itemForm.setData({
                                                             ...itemForm.data,
-                                                            program_id: value ? parseInt(value) : null,
+                                                            program_id: value !== 'ALL_PROGRAMS' ? parseInt(value) : null,
                                                             year_level_id: null,
                                                             section_id: null,
                                                         });
@@ -692,7 +692,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                         <SelectValue placeholder="All programs" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">All programs</SelectItem>
+                                                        <SelectItem value="ALL_PROGRAMS">All programs</SelectItem>
                                                         {programs
                                                             .filter(prog => 
                                                                 prog.classification === itemForm.data.classification &&
@@ -711,11 +711,11 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                             <div className="grid gap-2">
                                                 <Label htmlFor="year_level">Year Level (Optional)</Label>
                                                 <Select
-                                                    value={itemForm.data.year_level_id?.toString() || ''}
+                                                    value={itemForm.data.year_level_id?.toString() || 'ALL_YEAR_LEVELS'}
                                                     onValueChange={(value) => {
                                                         itemForm.setData({
                                                             ...itemForm.data,
-                                                            year_level_id: value ? parseInt(value) : null,
+                                                            year_level_id: value !== 'ALL_YEAR_LEVELS' ? parseInt(value) : null,
                                                             section_id: null,
                                                         });
                                                     }}
@@ -724,7 +724,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                         <SelectValue placeholder="All year levels" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">All year levels</SelectItem>
+                                                        <SelectItem value="ALL_YEAR_LEVELS">All year levels</SelectItem>
                                                         {yearLevels
                                                             .filter(yl => 
                                                                 yl.classification === itemForm.data.classification &&
@@ -743,16 +743,16 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                             <div className="grid gap-2">
                                                 <Label htmlFor="section">Section (Optional)</Label>
                                                 <Select
-                                                    value={itemForm.data.section_id?.toString() || ''}
+                                                    value={itemForm.data.section_id?.toString() || 'ALL_SECTIONS'}
                                                     onValueChange={(value) => {
-                                                        itemForm.setData('section_id', value ? parseInt(value) : null);
+                                                        itemForm.setData('section_id', value !== 'ALL_SECTIONS' ? parseInt(value) : null);
                                                     }}
                                                 >
                                                     <SelectTrigger id="section">
                                                         <SelectValue placeholder="All sections" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">All sections</SelectItem>
+                                                        <SelectItem value="ALL_SECTIONS">All sections</SelectItem>
                                                         {sections
                                                             .filter(sec => 
                                                                 sec.classification === itemForm.data.classification &&
