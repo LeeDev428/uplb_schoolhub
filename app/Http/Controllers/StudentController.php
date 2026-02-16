@@ -390,26 +390,4 @@ class StudentController extends Controller
 
         return back()->with('success', 'Student dropped successfully');
     }
-
-    /**
-     * Add a note to the student's action log.
-     */
-    public function addNote(Request $request, Student $student)
-    {
-        $validated = $request->validate([
-            'notes' => 'required|string|max:1000',
-        ]);
-
-        StudentActionLog::log(
-            studentId: $student->id,
-            action: 'Note added',
-            actionType: 'note',
-            details: null,
-            notes: $validated['notes'],
-            changes: null,
-            performedBy: auth()->id()
-        );
-
-        return back()->with('success', 'Note added successfully');
-    }
 }
