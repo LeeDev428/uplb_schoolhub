@@ -246,10 +246,10 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                     </div>
                     <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button>
+                            {/* <Button>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Record Payment
-                            </Button>
+                            </Button> */}
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[500px]">
                             <form onSubmit={handlePaymentSubmit}>
