@@ -159,7 +159,7 @@ class StudentAccountController extends Controller
             'departments' => $departments,
             'classifications' => $classifications,
             'yearLevels' => $yearLevels,
-            'filters' => $request->only(['search', 'status', 'school_year', 'department_id']),
+            'filters' => $request->only(['search', 'status', 'school_year', 'department_id', 'classification']),
         ]);
     }
 
