@@ -33,7 +33,7 @@ import {
     Clock,
 } from 'lucide-react';
 import { SearchBar } from '@/components/filters/search-bar';
-import { ImportButton } from '@/components/import-button';
+import { ExportButton } from '@/components/export-button';
 
 interface Student {
     id: number;
