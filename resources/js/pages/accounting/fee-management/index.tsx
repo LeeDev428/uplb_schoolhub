@@ -544,15 +544,15 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                     itemForm.reset();
                 }
             }}>
-                <DialogContent className="max-w-md">
-                    <form onSubmit={handleItemSubmit}>
-                        <DialogHeader>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+                    <form onSubmit={handleItemSubmit} className="flex flex-col h-full">
+                        <DialogHeader className="flex-shrink-0">
                             <DialogTitle>{editingItem ? 'Edit Fee Item' : 'Add Fee Item'}</DialogTitle>
                             <DialogDescription>
                                 {editingItem ? 'Update fee item details' : 'Create a new fee item'}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
+                        <div className="grid gap-4 py-4 overflow-y-auto flex-1 pr-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="item_name">Name *</Label>
                                 <Input
@@ -816,7 +816,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                 <Label htmlFor="item_is_active">Active</Label>
                             </div>
                         </div>
-                        <DialogFooter>
+                        <DialogFooter className="flex-shrink-0">
                             <Button type="submit" disabled={itemForm.processing}>
                                 {editingItem ? 'Update' : 'Create'}
                             </Button>
