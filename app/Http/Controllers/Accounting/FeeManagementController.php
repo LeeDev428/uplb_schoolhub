@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\FeeCategory;
 use App\Models\FeeItem;
+use App\Models\Program;
+use App\Models\Section;
+use App\Models\YearLevel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,6 +46,16 @@ class FeeManagementController extends Controller
                         'school_year' => $item->school_year,
                         'program' => $item->program,
                         'year_level' => $item->year_level,
+                        'classification' => $item->classification,
+                        'department_id' => $item->department_id,
+                        'program_id' => $item->program_id,
+                        'year_level_id' => $item->year_level_id,
+                        'section_id' => $item->section_id,
+                        'assignment_scope' => $item->assignment_scope,
+                        'department' => $item->department,
+                        'program_relation' => $item->program,
+                        'year_level_relation' => $item->yearLevel,
+                        'section' => $item->section,
                         'is_required' => $item->is_required,
                         'is_active' => $item->is_active,
                     ];
@@ -59,9 +73,19 @@ class FeeManagementController extends Controller
             'profit' => $categories->sum('total_profit'),
         ];
 
+        // Get all departments, programs, year levels, sections for assignment dropdowns
+        $departments = Department::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code', 'classification']);
+        $programs = Program::where('is_active', true)->with('department:id,name')->orderBy('name')->get(['id', 'name', 'department_id']);
+        $yearLevels = YearLevel::where('is_active', true)->orderBy('level_number')->get(['id', 'name', 'department_id', 'level_number']);
+        $sections = Section::where('is_active', true)->with(['yearLevel:id,name', 'department:id,name'])->orderBy('name')->get(['id', 'name', 'year_level_id', 'department_id']);
+
         return Inertia::render('accounting/fee-management/index', [
             'categories' => $categories,
             'totals' => $totals,
+            'departments' => $departments,
+            'programs' => $programs,
+            'yearLevels' => $yearLevels,
+            'sections' => $sections,
         ]);
     }
 
@@ -126,11 +150,23 @@ class FeeManagementController extends Controller
             'school_year' => 'nullable|string',
             'program' => 'nullable|string',
             'year_level' => 'nullable|string',
+            'classification' => 'nullable|string',
+            'department_id' => 'nullable|exists:departments,id',
+            'program_id' => 'nullable|exists:programs,id',
+            'year_level_id' => 'nullable|exists:year_levels,id',
+            'section_id' => 'nullable|exists:sections,id',
+            'assignment_scope' => 'required|in:all,specific',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
-        FeeItem::create($validated);
+        $feeItem = FeeItem::create($validated);
+
+        // Apply to students if specific assignment
+        if ($feeItem->assignment_scope === 'specific') {
+            $affectedCount = $feeItem->applyToStudents();
+            return redirect()->back()->with('success', "Fee item created and applied to {$affectedCount} students.");
+        }
 
         return redirect()->back()->with('success', 'Fee item created successfully.');
     }
@@ -150,11 +186,23 @@ class FeeManagementController extends Controller
             'school_year' => 'nullable|string',
             'program' => 'nullable|string',
             'year_level' => 'nullable|string',
+            'classification' => 'nullable|string',
+            'department_id' => 'nullable|exists:departments,id',
+            'program_id' => 'nullable|exists:programs,id',
+            'year_level_id' => 'nullable|exists:year_levels,id',
+            'section_id' => 'nullable|exists:sections,id',
+            'assignment_scope' => 'required|in:all,specific',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
         ]);
 
         $item->update($validated);
+
+        // Reapply to students if specific assignment
+        if ($item->assignment_scope === 'specific') {
+            $affectedCount = $item->applyToStudents();
+            return redirect()->back()->with('success', "Fee item updated and reapplied to {$affectedCount} students.");
+        }
 
         return redirect()->back()->with('success', 'Fee item updated successfully.');
     }
