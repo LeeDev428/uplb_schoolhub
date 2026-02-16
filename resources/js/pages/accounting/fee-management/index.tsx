@@ -142,6 +142,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         description: '',
         cost_price: '',
         selling_price: '',
+        school_year: '2024-2025',
         classification: '' as string,
         department_id: null as number | null,
         program_id: null as number | null,
@@ -193,6 +194,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 description: item.description || '',
                 cost_price: item.cost_price,
                 selling_price: item.selling_price,
+                school_year: item.school_year || '2024-2025',
                 is_active: item.is_active,
                 classification: item.classification || '',
                 department_id: item.department_id || null,
@@ -209,6 +211,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 description: '',
                 cost_price: '',
                 selling_price: '',
+                school_year: '2024-2025',
                 is_active: true,
                 classification: '',
                 department_id: null,
@@ -544,15 +547,15 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                     itemForm.reset();
                 }
             }}>
-                <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-                    <form onSubmit={handleItemSubmit} className="flex flex-col h-full">
-                        <DialogHeader className="flex-shrink-0">
-                            <DialogTitle>{editingItem ? 'Edit Fee Item' : 'Add Fee Item'}</DialogTitle>
-                            <DialogDescription>
-                                {editingItem ? 'Update fee item details' : 'Create a new fee item'}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4 overflow-y-auto flex-1 pr-2">
+                <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>{editingItem ? 'Edit Fee Item' : 'Add Fee Item'}</DialogTitle>
+                        <DialogDescription>
+                            {editingItem ? 'Update fee item details' : 'Create a new fee item'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleItemSubmit} className="flex flex-col overflow-hidden">
+                        <div className="overflow-y-auto px-1 space-y-4 max-h-[calc(90vh-180px)]">
                             <div className="grid gap-2">
                                 <Label htmlFor="item_name">Name *</Label>
                                 <Input
@@ -571,6 +574,20 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                     onChange={(e) => itemForm.setData('description', e.target.value)}
                                     placeholder="Optional description..."
                                 />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                                <Label htmlFor="school_year">School Year *</Label>
+                                <Input
+                                    id="school_year"
+                                    value={itemForm.data.school_year}
+                                    onChange={(e) => itemForm.setData('school_year', e.target.value)}
+                                    placeholder="e.g., 2024-2025"
+                                />
+                                {itemForm.errors.school_year && <p className="text-sm text-red-500">{itemForm.errors.school_year}</p>}
+                                <p className="text-xs text-muted-foreground">
+                                    Format: YYYY-YYYY (e.g., 2024-2025)
+                                </p>
                             </div>
                             
                             {/* Assignment Scope */}
@@ -816,7 +833,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                 <Label htmlFor="item_is_active">Active</Label>
                             </div>
                         </div>
-                        <DialogFooter className="flex-shrink-0">
+                        <DialogFooter className="mt-4">
                             <Button type="submit" disabled={itemForm.processing}>
                                 {editingItem ? 'Update' : 'Create'}
                             </Button>
