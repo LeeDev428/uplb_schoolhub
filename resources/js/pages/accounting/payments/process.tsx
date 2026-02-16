@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import {
     Table,
     TableBody,
@@ -59,6 +61,7 @@ interface Student {
     program: string | null;
     year_level: string | null;
     section: string | null;
+    profile_photo_path: string | null;
 }
 
 interface FeeItem {
@@ -110,7 +113,7 @@ interface PromissoryNote {
 interface Grant {
     id: number;
     name: string;
-    amount: number;
+    discount_amount: number;
     school_year: string;
     status: string;
 }
@@ -393,9 +396,15 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-6">
-                            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                                <User className="h-8 w-8 text-primary" />
-                            </div>
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage 
+                                    src={student.profile_photo_path ? `/storage/${student.profile_photo_path}` : undefined} 
+                                    alt={student.full_name} 
+                                />
+                                <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
+                                    {student.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
                             <div className="flex-1">
                                 <h3 className="text-xl font-semibold">{student.full_name}</h3>
                                 <p className="text-muted-foreground">LRN: {student.lrn}</p>
@@ -403,6 +412,22 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                     {student.program && <span>{student.program}</span>}
                                     {student.year_level && <span>• {student.year_level}</span>}
                                     {student.section && <span>• {student.section}</span>}
+                                </div>
+                                {/* Progress Bar */}
+                                <div className="mt-3">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs text-muted-foreground">Payment Progress</span>
+                                        <span className="text-xs font-medium">
+                                            {summary.total_fees > 0 
+                                                ? `${Math.round((summary.total_paid / summary.total_fees) * 100)}% Paid`
+                                                : '0% Paid'
+                                            }
+                                        </span>
+                                    </div>
+                                    <Progress 
+                                        value={summary.total_fees > 0 ? (summary.total_paid / summary.total_fees) * 100 : 0} 
+                                        className="h-2"
+                                    />
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 gap-4 text-center">
@@ -552,7 +577,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                     <TableCell>{grant.school_year}</TableCell>
                                                     <TableCell>{getStatusBadge(grant.status)}</TableCell>
                                                     <TableCell className="text-right text-green-600">
-                                                        -{formatCurrency(grant.amount)}
+                                                        -{formatCurrency(grant.discount_amount)}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
