@@ -167,6 +167,18 @@ class GrantController extends Controller
             $discountAmount = $grant->calculateDiscount((float) $studentFee->total_amount);
         }
 
+        // Check if grant already assigned for this student and school year
+        $existingRecipient = GrantRecipient::where('student_id', $validated['student_id'])
+            ->where('grant_id', $validated['grant_id'])
+            ->where('school_year', $validated['school_year'])
+            ->first();
+
+        if ($existingRecipient) {
+            return redirect()->back()->withErrors([
+                'error' => 'This grant is already assigned to the student for the selected school year.'
+            ]);
+        }
+
         GrantRecipient::create([
             ...$validated,
             'discount_amount' => $discountAmount,
