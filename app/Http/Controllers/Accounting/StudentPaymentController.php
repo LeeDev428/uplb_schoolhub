@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\EnrollmentClearance;
+use App\Models\PromissoryNote;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
