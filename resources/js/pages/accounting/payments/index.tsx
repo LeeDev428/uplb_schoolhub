@@ -31,6 +31,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { Search, Plus, Edit, Trash2, DollarSign, FileText } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 import { Textarea } from '@/components/ui/textarea';
@@ -79,6 +81,13 @@ interface PaginatedPayments {
     total: number;
 }
 
+interface Department {
+    id: number;
+    name: string;
+    code: string;
+    classification: string;
+}
+
 interface Props {
     payments: PaginatedPayments;
     filters: {
@@ -86,17 +95,23 @@ interface Props {
         from?: string;
         to?: string;
         payment_for?: string;
+        department_id?: string;
+        classification?: string;
     };
     total: number;
     students: Student[];
     studentFees: Record<number, StudentFee[]>;
+    departments: Department[];
+    classifications: string[];
 }
 
-export default function AccountingPayments({ payments, filters, total, students = [], studentFees = {} }: Props) {
+export default function AccountingPayments({ payments, filters, total, students = [], studentFees = {}, departments = [], classifications = [] }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [from, setFrom] = useState(filters.from || '');
     const [to, setTo] = useState(filters.to || '');
     const [paymentFor, setPaymentFor] = useState(filters.payment_for || 'all');
+    const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
+    const [classification, setClassification] = useState(filters.classification || 'all');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<StudentPayment | null>(null);
@@ -118,6 +133,8 @@ export default function AccountingPayments({ payments, filters, total, students 
             from: from || undefined,
             to: to || undefined,
             payment_for: paymentFor !== 'all' ? paymentFor : undefined,
+            department_id: departmentId !== 'all' ? departmentId : undefined,
+            classification: classification !== 'all' ? classification : undefined,
         }, {
             preserveState: true,
             preserveScroll: true,
@@ -469,6 +486,40 @@ export default function AccountingPayments({ payments, filters, total, students 
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="classification">Classification</Label>
+                            <Select value={classification} onValueChange={setClassification}>
+                                <SelectTrigger id="classification">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Classifications</SelectItem>
+                                    {classifications.map((cls) => (
+                                        <SelectItem key={cls} value={cls}>
+                                            {cls}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="department">Department</Label>
+                            <Select value={departmentId} onValueChange={setDepartmentId}>
+                                <SelectTrigger id="department">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Departments</SelectItem>
+                                    {departments.map((dept) => (
+                                        <SelectItem key={dept.id} value={dept.id.toString()}>
+                                            {dept.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div className="flex gap-2">
@@ -483,6 +534,8 @@ export default function AccountingPayments({ payments, filters, total, students 
                                 setFrom('');
                                 setTo('');
                                 setPaymentFor('all');
+                                setDepartmentId('all');
+                                setClassification('all');
                                 router.get(paymentsIndex.url());
                             }}
                         >
