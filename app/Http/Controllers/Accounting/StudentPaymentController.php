@@ -114,6 +114,21 @@ class StudentPaymentController extends Controller
     }
 
     /**
+     * Export payments data.
+     */
+    public function export(Request $request)
+    {
+        $type = $request->input('type', 'excel');
+        
+        // For now, return a simple response
+        // Later implement with Laravel Excel or similar
+        return response()->json([
+            'message' => 'Export functionality - implement with Laravel Excel package',
+            'type' => $type,
+        ]);
+    }
+
+    /**
      * Store a newly created payment.
      */
     public function store(Request $request): RedirectResponse
