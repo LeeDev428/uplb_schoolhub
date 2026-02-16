@@ -113,6 +113,7 @@ export default function AccountingPayments({ payments, filters, total, students 
     const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
     const [classification, setClassification] = useState(filters.classification || 'all');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [studentSearch, setStudentSearch] = useState('');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<StudentPayment | null>(null);
     const [selectedStudentId, setSelectedStudentId] = useState<string>('');
@@ -224,6 +225,11 @@ export default function AccountingPayments({ payments, filters, total, students 
         return null;
     };
 
+    const filteredStudents = students.filter((student) =>
+        student.full_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+        student.lrn.toLowerCase().includes(studentSearch.toLowerCase())
+    );
+
     const feeInfo = getSelectedFeeInfo();
 
     return (
@@ -254,6 +260,12 @@ export default function AccountingPayments({ payments, filters, total, students 
                                     <div className="grid gap-4 py-4">
                                         <div className="grid gap-2">
                                             <Label htmlFor="student_id">Student *</Label>
+                                            <Input
+                                                placeholder="Search student by name or LRN..."
+                                                value={studentSearch}
+                                                onChange={(e) => setStudentSearch(e.target.value)}
+                                                className="mb-2"
+                                            />
                                             <Select
                                                 value={data.student_id}
                                                 onValueChange={(value) => {
@@ -266,11 +278,17 @@ export default function AccountingPayments({ payments, filters, total, students 
                                                     <SelectValue placeholder="Select student" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {students.map((student) => (
-                                                        <SelectItem key={student.id} value={student.id.toString()}>
-                                                            {student.full_name} - {student.lrn}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {filteredStudents.length === 0 ? (
+                                                        <div className="px-2 py-1 text-sm text-muted-foreground">
+                                                            No students found
+                                                        </div>
+                                                    ) : (
+                                                        filteredStudents.map((student) => (
+                                                            <SelectItem key={student.id} value={student.id.toString()}>
+                                                                {student.full_name} - {student.lrn}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {errors.student_id && (
@@ -289,11 +307,17 @@ export default function AccountingPayments({ payments, filters, total, students 
                                                         <SelectValue placeholder="Select fee record" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {getAvailableFees(data.student_id).map((fee) => (
-                                                            <SelectItem key={fee.id} value={fee.id.toString()}>
-                                                                {fee.school_year} - Balance: {formatCurrency(fee.balance)}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {getAvailableFees(data.student_id).length === 0 ? (
+                                                            <div className="px-2 py-1 text-sm text-muted-foreground">
+                                                                No fee records with balance found
+                                                            </div>
+                                                        ) : (
+                                                            getAvailableFees(data.student_id).map((fee) => (
+                                                                <SelectItem key={fee.id} value={fee.id.toString()}>
+                                                                    {fee.school_year} - Balance: {formatCurrency(fee.balance)}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {errors.student_fee_id && (
