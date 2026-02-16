@@ -293,12 +293,8 @@ class StudentPaymentController extends Controller
      */
     public function process(Student $student): Response
     {
-        // Load student with all related data
-        $student->load([
-            'program', 
-            'yearLevel', 
-            'section',
-        ]);
+        // Student already has program, year_level, section as string attributes
+        // No need to load relationships here
 
         // Get all fees for this student with detailed breakdown
         $fees = StudentFee::where('student_id', $student->id)
@@ -395,9 +391,9 @@ class StudentPaymentController extends Controller
                 'full_name' => $student->full_name,
                 'lrn' => $student->lrn,
                 'email' => $student->email,
-                'program' => $student->program?->name,
-                'year_level' => $student->yearLevel?->name,
-                'section' => $student->section?->name,
+                'program' => $student->program,
+                'year_level' => $student->year_level,
+                'section' => $student->section,
             ],
             'fees' => $fees,
             'payments' => $payments,
