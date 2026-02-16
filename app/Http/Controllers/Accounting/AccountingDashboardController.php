@@ -10,6 +10,7 @@ use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,7 +42,7 @@ class AccountingDashboardController extends Controller
             // Get average time of payment
             $avgTime = StudentPayment::whereBetween('payment_date', [$monthStart, $monthEnd])
                 ->whereNotNull('created_at')
-                ->avg(\DB::raw('HOUR(created_at)'));
+                ->avg(DB::raw('HOUR(created_at)'));
             
             $timeFormatted = $avgTime ? sprintf('%02d:%02d %s', 
                 $avgTime > 12 ? $avgTime - 12 : ($avgTime == 0 ? 12 : $avgTime),
