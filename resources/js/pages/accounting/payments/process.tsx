@@ -269,7 +269,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select fee" />
                                             </SelectTrigger>
-                                            <SelectContent>
+                                            <SelectContent position="popper">
                                                 {fees.filter(f => f.balance > 0).map((fee) => (
                                                     <SelectItem key={fee.id} value={fee.id.toString()}>
                                                         {fee.school_year} - Balance: {formatCurrency(fee.balance)}
