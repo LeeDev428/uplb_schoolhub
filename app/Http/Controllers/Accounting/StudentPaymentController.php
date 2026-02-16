@@ -290,95 +290,24 @@ class StudentPaymentController extends Controller
 
     /**
      * Show payment processing page for a specific student.
+     * Fees are calculated DYNAMICALLY from fee_items table.
      */
     public function process(Student $student): Response
     {
-        // Student already has program, year_level, section as string attributes
-        // No need to load relationships here
+        // Load student with department for classification matching
+        $student->load('department');
 
-        // Get all fees for this student with detailed breakdown
-        $fees = StudentFee::where('student_id', $student->id)
-            ->orderBy('school_year', 'desc')
-            ->get()
-            ->map(function ($fee) use ($student) {
-                // Get all fee items that apply to this student for this school year
-                $feeItemsQuery = \App\Models\FeeItem::with('category')
-                    ->where('school_year', $fee->school_year)
-                    ->where('is_active', true);
+        // Get unique school years from fee_items that apply to this student
+        $schoolYears = $this->getApplicableSchoolYears($student);
 
-                // Filter items based on assignment scope
-                $feeItemsQuery->where(function ($query) use ($student) {
-                    // Include items with 'all' scope
-                    $query->where('assignment_scope', 'all')
-                        // Or items with 'specific' scope that match this student
-                        ->orWhere(function ($q) use ($student) {
-                            $q->where('assignment_scope', 'specific');
-                            
-                            // Match classification if set
-                            if ($student->department) {
-                                $q->where(function ($sq) use ($student) {
-                                    $sq->whereNull('classification')
-                                        ->orWhere('classification', $student->department->classification);
-                                });
-                            }
-                            
-                            // Match department if set
-                            $q->where(function ($sq) use ($student) {
-                                $sq->whereNull('department_id')
-                                    ->orWhere('department_id', $student->department_id);
-                            });
-                            
-                            // Match program if set
-                            $q->where(function ($sq) use ($student) {
-                                $sq->whereNull('program_id')
-                                    ->orWhere('program_id', $student->program_id);
-                            });
-                            
-                            // Match year level if set
-                            $q->where(function ($sq) use ($student) {
-                                $sq->whereNull('year_level_id')
-                                    ->orWhere('year_level_id', $student->year_level_id);
-                            });
-                            
-                            // Match section if set
-                            $q->where(function ($sq) use ($student) {
-                                $sq->whereNull('section_id')
-                                    ->orWhere('section_id', $student->section_id);
-                            });
-                        });
-                });
-
-                $feeItems = $feeItemsQuery->get();
-
-                // Group items by category
-                $itemsByCategory = $feeItems->groupBy('fee_category_id')->map(function ($items, $categoryId) {
-                    $category = $items->first()->category;
-                    return [
-                        'category_id' => $categoryId,
-                        'category_name' => $category->name ?? 'Other',
-                        'items' => $items->map(function ($item) {
-                            return [
-                                'id' => $item->id,
-                                'name' => $item->name,
-                                'amount' => (float) $item->selling_price,
-                            ];
-                        })->values()->toArray(),
-                    ];
-                })->values()->toArray();
-                
-                return [
-                    'id' => $fee->id,
-                    'school_year' => $fee->school_year,
-                    'total_amount' => (float) $fee->total_amount,
-                    'grant_discount' => (float) ($fee->grant_discount ?? 0),
-                    'total_paid' => (float) $fee->total_paid,
-                    'balance' => (float) $fee->balance,
-                    'status' => $fee->balance <= 0 ? 'paid' : ($fee->is_overdue ? 'overdue' : 'pending'),
-                    'is_overdue' => $fee->is_overdue,
-                    'due_date' => $fee->due_date,
-                    'categories' => $itemsByCategory,
-                ];
-            });
+        // Build fees array dynamically from fee_items
+        $fees = collect();
+        foreach ($schoolYears as $schoolYear) {
+            $feeData = $this->calculateFeesForSchoolYear($student, $schoolYear);
+            if ($feeData) {
+                $fees->push($feeData);
+            }
+        }
 
         // Get all payments
         $payments = StudentPayment::where('student_id', $student->id)
@@ -419,12 +348,16 @@ class StudentPaymentController extends Controller
                 ];
             });
 
-        // Calculate summary stats
+        // Calculate summary stats dynamically
+        $totalFees = $fees->sum('total_amount');
+        $totalDiscount = $fees->sum('grant_discount');
+        $totalPaid = $payments->sum('amount');
+        
         $summary = [
-            'total_fees' => $fees->sum('total_amount'),
-            'total_discount' => $fees->sum('grant_discount'),
-            'total_paid' => $payments->sum('amount'),
-            'total_balance' => $fees->sum('balance'),
+            'total_fees' => $totalFees,
+            'total_discount' => $totalDiscount,
+            'total_paid' => $totalPaid,
+            'total_balance' => max(0, $totalFees - $totalDiscount - $totalPaid),
         ];
 
         // Get grants/scholarships for this student
@@ -452,11 +385,160 @@ class StudentPaymentController extends Controller
                 'section' => $student->section,
                 'student_photo_url' => $student->student_photo_url,
             ],
-            'fees' => $fees,
+            'fees' => $fees->values(),
             'payments' => $payments,
             'promissoryNotes' => $promissoryNotes,
             'grants' => $grants,
             'summary' => $summary,
         ]);
+    }
+
+    /**
+     * Get all school years that have applicable fee items for this student.
+     */
+    private function getApplicableSchoolYears(Student $student): array
+    {
+        return \App\Models\FeeItem::where('is_active', true)
+            ->whereNotNull('school_year')
+            ->where(function ($query) use ($student) {
+                // Include items with 'all' scope
+                $query->where('assignment_scope', 'all')
+                    // Or items with 'specific' scope that match this student
+                    ->orWhere(function ($q) use ($student) {
+                        $q->where('assignment_scope', 'specific');
+                        $this->applyStudentFilters($q, $student);
+                    });
+            })
+            ->distinct()
+            ->pluck('school_year')
+            ->sort()
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Calculate fees dynamically for a specific school year.
+     */
+    private function calculateFeesForSchoolYear(Student $student, string $schoolYear): ?array
+    {
+        // Get applicable fee items
+        $feeItems = \App\Models\FeeItem::with('category')
+            ->where('school_year', $schoolYear)
+            ->where('is_active', true)
+            ->where(function ($query) use ($student) {
+                $query->where('assignment_scope', 'all')
+                    ->orWhere(function ($q) use ($student) {
+                        $q->where('assignment_scope', 'specific');
+                        $this->applyStudentFilters($q, $student);
+                    });
+            })
+            ->get();
+
+        if ($feeItems->isEmpty()) {
+            return null;
+        }
+
+        // Calculate total from fee items
+        $totalAmount = $feeItems->sum('selling_price');
+
+        // Get grant discount for this school year
+        $grantDiscount = \App\Models\GrantRecipient::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->where('status', 'active')
+            ->sum('discount_amount');
+
+        // Get total paid for this school year
+        // First, try to get from student_fees if it exists
+        $studentFee = StudentFee::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->first();
+
+        $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
+        $isOverdue = $studentFee ? $studentFee->is_overdue : false;
+        $dueDate = $studentFee?->due_date;
+        $studentFeeId = $studentFee?->id;
+
+        // If no student_fee record exists, create one for tracking payments
+        if (!$studentFee) {
+            $studentFee = StudentFee::create([
+                'student_id' => $student->id,
+                'school_year' => $schoolYear,
+                'total_amount' => $totalAmount,
+                'grant_discount' => $grantDiscount,
+                'total_paid' => 0,
+                'balance' => $totalAmount - $grantDiscount,
+            ]);
+            $studentFeeId = $studentFee->id;
+        }
+
+        // Calculate balance
+        $balance = max(0, $totalAmount - $grantDiscount - $totalPaid);
+
+        // Group items by category
+        $itemsByCategory = $feeItems->groupBy('fee_category_id')->map(function ($items, $categoryId) {
+            $category = $items->first()->category;
+            return [
+                'category_id' => $categoryId,
+                'category_name' => $category->name ?? 'Other',
+                'items' => $items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'amount' => (float) $item->selling_price,
+                    ];
+                })->values()->toArray(),
+            ];
+        })->values()->toArray();
+
+        return [
+            'id' => $studentFeeId,
+            'school_year' => $schoolYear,
+            'total_amount' => (float) $totalAmount,
+            'grant_discount' => (float) $grantDiscount,
+            'total_paid' => (float) $totalPaid,
+            'balance' => (float) $balance,
+            'status' => $balance <= 0 ? 'paid' : ($isOverdue ? 'overdue' : 'pending'),
+            'is_overdue' => $isOverdue,
+            'due_date' => $dueDate,
+            'categories' => $itemsByCategory,
+        ];
+    }
+
+    /**
+     * Apply student-specific filters to fee item query.
+     */
+    private function applyStudentFilters($query, Student $student): void
+    {
+        // Match classification if set
+        if ($student->department) {
+            $query->where(function ($sq) use ($student) {
+                $sq->whereNull('classification')
+                    ->orWhere('classification', $student->department->classification);
+            });
+        }
+
+        // Match department if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('department_id')
+                ->orWhere('department_id', $student->department_id);
+        });
+
+        // Match program if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('program_id')
+                ->orWhere('program_id', $student->program_id);
+        });
+
+        // Match year level if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('year_level_id')
+                ->orWhere('year_level_id', $student->year_level_id);
+        });
+
+        // Match section if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('section_id')
+                ->orWhere('section_id', $student->section_id);
+        });
     }
 }
