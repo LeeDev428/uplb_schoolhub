@@ -104,7 +104,7 @@ class AccountingDashboardController extends Controller
         // Calculate average collection time
         $avgHour = StudentPayment::whereYear('payment_date', $selectedYear)
             ->whereNotNull('created_at')
-            ->avg(\DB::raw('HOUR(created_at)'));
+            ->avg(DB::raw('HOUR(created_at)'));
         
         $averageCollectionTime = $avgHour ? sprintf('%d:%02d %s',
             $avgHour > 12 ? floor($avgHour - 12) : ($avgHour == 0 ? 12 : floor($avgHour)),
