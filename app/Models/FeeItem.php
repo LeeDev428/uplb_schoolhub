@@ -178,9 +178,9 @@ class FeeItem extends Model
                 $studentsQuery->where('section_id', $this->section_id);
             }
         }
-        // For 'all' scope, get all active students
+        // For 'all' scope, get all students
         else {
-            $studentsQuery->where('is_active', true);
+            // Just get all students
         }
 
         $students = $studentsQuery->get();
