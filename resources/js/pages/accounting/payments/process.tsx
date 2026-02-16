@@ -61,7 +61,7 @@ interface Student {
     program: string | null;
     year_level: string | null;
     section: string | null;
-    profile_photo_path: string | null;
+    student_photo_url: string | null;
 }
 
 interface FeeItem {
@@ -398,7 +398,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                         <div className="flex items-center gap-6">
                             <Avatar className="h-16 w-16">
                                 <AvatarImage 
-                                    src={student.profile_photo_path ? `/storage/${student.profile_photo_path}` : undefined} 
+                                    src={student.student_photo_url || undefined} 
                                     alt={student.full_name} 
                                 />
                                 <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
