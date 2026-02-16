@@ -33,6 +33,7 @@ import {
     Clock,
 } from 'lucide-react';
 import { SearchBar } from '@/components/filters/search-bar';
+import { ImportButton } from '@/components/import-button';
 
 interface Student {
     id: number;
@@ -156,6 +157,12 @@ export default function AccountDashboard({
                         description={student ? `Account Dashboard: ${student.full_name}` : 'Select a student to view their account'}
                     />
                     <div className="flex gap-2">
+                        <ImportButton
+                            importUrl="/accounting/account-dashboard/import"
+                            templateUrl="/accounting/account-dashboard/template"
+                            title="Import Transactions"
+                            description="Upload an Excel or CSV file to import transaction data."
+                        />
                         <Button variant="outline" onClick={() => window.location.reload()}>
                             <RefreshCw className="h-4 w-4 mr-2" />
                             Refresh
