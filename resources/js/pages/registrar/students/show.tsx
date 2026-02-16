@@ -576,10 +576,10 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                     {/* Transaction History Tab */}
                     <TabsContent value="history" className="space-y-6">
                         <div className="flex justify-end mb-4">
-                            <Button onClick={() => setShowAddNoteDialog(true)} variant="outline">
+                            {/* <Button onClick={() => setShowAddNoteDialog(true)} variant="outline">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add Note
-                            </Button>
+                            </Button> */}
                         </div>
                         <UpdateHistory logs={actionLogs} />
                     </TabsContent>
