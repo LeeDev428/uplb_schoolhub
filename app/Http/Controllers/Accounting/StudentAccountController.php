@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Accounting;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\StudentFee;
+use App\Models\StudentPayment;
+use App\Models\FeeItem;
 use App\Models\GrantRecipient;
 use App\Models\Department;
 use App\Models\YearLevel;
@@ -17,82 +19,81 @@ class StudentAccountController extends Controller
 {
     /**
      * Display a listing of student accounts.
+     * Fees are calculated DYNAMICALLY from fee_items table.
      */
     public function index(Request $request): Response
     {
-        $query = StudentFee::with(['student.department', 'payments']);
+        // Get unique school years from fee_items
+        $schoolYears = FeeItem::where('is_active', true)
+            ->whereNotNull('school_year')
+            ->distinct()
+            ->pluck('school_year')
+            ->sort()
+            ->values();
+
+        $selectedSchoolYear = $request->input('school_year', $schoolYears->first());
+
+        // Get students with enrollment clearance
+        $studentsQuery = Student::with(['department'])
+            ->whereHas('enrollmentClearance', function ($q) {
+                $q->where('registrar_clearance', true)
+                  ->orWhere('requirements_complete', true);
+            });
 
         // Search
         if ($search = $request->input('search')) {
-            $query->whereHas('student', function ($q) use ($search) {
+            $studentsQuery->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('lrn', 'like', "%{$search}%");
             });
         }
 
-        // Filter by payment status
-        if ($status = $request->input('status')) {
-            if ($status === 'paid') {
-                $query->where('balance', '<=', 0);
-            } elseif ($status === 'partial') {
-                $query->where('total_paid', '>', 0)->where('balance', '>', 0)->where('is_overdue', false);
-            } elseif ($status === 'unpaid') {
-                $query->where('total_paid', 0)->where('is_overdue', false);
-            } elseif ($status === 'overdue') {
-                $query->where('is_overdue', true);
-            }
-        }
-
-        // Filter by school year
-        if ($schoolYear = $request->input('school_year')) {
-            $query->where('school_year', $schoolYear);
-        }
-
         // Filter by department
         if ($departmentId = $request->input('department_id')) {
-            $query->whereHas('student', function ($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
-            });
+            $studentsQuery->where('department_id', $departmentId);
         }
 
         // Filter by classification
         if ($classification = $request->input('classification')) {
-            $query->whereHas('student.department', function ($q) use ($classification) {
+            $studentsQuery->whereHas('department', function ($q) use ($classification) {
                 $q->where('classification', $classification);
             });
         }
 
-        $accounts = $query->latest()->paginate(20)->withQueryString();
+        $students = $studentsQuery->latest()->paginate(20)->withQueryString();
 
-        // Transform for frontend
-        $accounts->through(function ($fee) {
-            $grants = GrantRecipient::where('student_id', $fee->student_id)
-                ->where('school_year', $fee->school_year)
+        // Calculate fees dynamically for each student
+        $accounts = $students->through(function ($student) use ($selectedSchoolYear) {
+            $feeData = $this->calculateStudentFees($student, $selectedSchoolYear);
+            
+            // Get grants
+            $grants = GrantRecipient::where('student_id', $student->id)
+                ->where('school_year', $selectedSchoolYear)
                 ->where('status', 'active')
                 ->with('grant')
                 ->get();
 
             return [
-                'id' => $fee->id,
+                'id' => $feeData['student_fee_id'] ?? $student->id,
                 'student' => [
-                    'id' => $fee->student->id,
-                    'full_name' => $fee->student->full_name,
-                    'lrn' => $fee->student->lrn,
-                    'program' => $fee->student->program,
-                    'year_level' => $fee->student->year_level,
-                    'section' => $fee->student->section,
-                    'department' => $fee->student->department?->name,
+                    'id' => $student->id,
+                    'full_name' => $student->full_name,
+                    'lrn' => $student->lrn,
+                    'program' => $student->program,
+                    'year_level' => $student->year_level,
+                    'section' => $student->section,
+                    'department' => $student->department?->name,
                 ],
-                'school_year' => $fee->school_year,
-                'total_amount' => $fee->total_amount,
-                'grant_discount' => $fee->grant_discount,
-                'total_paid' => $fee->total_paid,
-                'balance' => $fee->balance,
-                'is_overdue' => $fee->is_overdue,
-                'due_date' => $fee->due_date,
-                'payment_status' => $fee->getPaymentStatus(),
-                'payments_count' => $fee->payments->count(),
+                'school_year' => $selectedSchoolYear,
+                'total_amount' => $feeData['total_amount'],
+                'grant_discount' => $feeData['grant_discount'],
+                'total_paid' => $feeData['total_paid'],
+                'balance' => $feeData['balance'],
+                'is_overdue' => $feeData['is_overdue'],
+                'due_date' => $feeData['due_date'],
+                'payment_status' => $feeData['payment_status'],
+                'payments_count' => $feeData['payments_count'],
                 'grants' => $grants->map(fn($gr) => [
                     'name' => $gr->grant->name,
                     'discount' => $gr->discount_amount,
@@ -100,34 +101,22 @@ class StudentAccountController extends Controller
             ];
         });
 
-        $schoolYears = StudentFee::distinct()->pluck('school_year')->filter()->sort()->values();
-
-        // Stats
-        $currentSchoolYear = $schoolYear ?? $schoolYears->first();
-        
-        if ($currentSchoolYear) {
-            $stats = [
-                'total_students' => StudentFee::forSchoolYear($currentSchoolYear)->count(),
-                'total_receivables' => StudentFee::forSchoolYear($currentSchoolYear)->sum('total_amount'),
-                'total_collected' => StudentFee::forSchoolYear($currentSchoolYear)->sum('total_paid'),
-                'total_balance' => StudentFee::forSchoolYear($currentSchoolYear)->sum('balance'),
-                'overdue_count' => StudentFee::forSchoolYear($currentSchoolYear)->overdue()->count(),
-                // Only count students with actual fees (total_amount > 0) who have paid them off (balance <= 0)
-                'fully_paid' => StudentFee::forSchoolYear($currentSchoolYear)
-                    ->where('total_amount', '>', 0)
-                    ->where('balance', '<=', 0)
-                    ->count(),
-            ];
-        } else {
-            $stats = [
-                'total_students' => 0,
-                'total_receivables' => 0,
-                'total_collected' => 0,
-                'total_balance' => 0,
-                'overdue_count' => 0,
-                'fully_paid' => 0,
-            ];
+        // Filter by payment status (after calculation)
+        if ($status = $request->input('status')) {
+            $accounts->setCollection(
+                $accounts->getCollection()->filter(function ($account) use ($status) {
+                    return $account['payment_status'] === $status;
+                })->values()
+            );
         }
+
+        // Calculate stats dynamically
+        $allStudentIds = Student::whereHas('enrollmentClearance', function ($q) {
+            $q->where('registrar_clearance', true)
+              ->orWhere('requirements_complete', true);
+        })->pluck('id');
+
+        $stats = $this->calculateStats($allStudentIds, $selectedSchoolYear);
 
         // Get all active departments with their classifications
         $departments = Department::where('is_active', true)
@@ -165,6 +154,174 @@ class StudentAccountController extends Controller
             'yearLevels' => $yearLevels,
             'filters' => $request->only(['search', 'status', 'school_year', 'department_id', 'classification']),
         ]);
+    }
+
+    /**
+     * Calculate fees dynamically for a student.
+     */
+    private function calculateStudentFees(Student $student, ?string $schoolYear): array
+    {
+        if (!$schoolYear) {
+            return [
+                'student_fee_id' => null,
+                'total_amount' => 0,
+                'grant_discount' => 0,
+                'total_paid' => 0,
+                'balance' => 0,
+                'is_overdue' => false,
+                'due_date' => null,
+                'payment_status' => 'unpaid',
+                'payments_count' => 0,
+            ];
+        }
+
+        // Calculate total from applicable fee items
+        $totalAmount = FeeItem::where('school_year', $schoolYear)
+            ->where('is_active', true)
+            ->where(function ($query) use ($student) {
+                $query->where('assignment_scope', 'all')
+                    ->orWhere(function ($q) use ($student) {
+                        $q->where('assignment_scope', 'specific');
+                        $this->applyStudentFilters($q, $student);
+                    });
+            })
+            ->sum('selling_price');
+
+        // Get grant discount
+        $grantDiscount = GrantRecipient::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->where('status', 'active')
+            ->sum('discount_amount');
+
+        // Get payment info from student_fees (if exists)
+        $studentFee = StudentFee::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->first();
+
+        $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
+        $isOverdue = $studentFee ? $studentFee->is_overdue : false;
+        $dueDate = $studentFee?->due_date;
+
+        // Get payments count
+        $paymentsCount = StudentPayment::where('student_id', $student->id)
+            ->whereHas('studentFee', function ($q) use ($schoolYear) {
+                $q->where('school_year', $schoolYear);
+            })
+            ->count();
+
+        // Calculate balance
+        $balance = max(0, $totalAmount - $grantDiscount - $totalPaid);
+
+        // Determine payment status
+        $paymentStatus = 'unpaid';
+        if ($isOverdue) {
+            $paymentStatus = 'overdue';
+        } elseif ($totalAmount > 0 && $balance <= 0) {
+            $paymentStatus = 'paid';
+        } elseif ($totalPaid > 0) {
+            $paymentStatus = 'partial';
+        }
+
+        return [
+            'student_fee_id' => $studentFee?->id,
+            'total_amount' => (float) $totalAmount,
+            'grant_discount' => (float) $grantDiscount,
+            'total_paid' => $totalPaid,
+            'balance' => $balance,
+            'is_overdue' => $isOverdue,
+            'due_date' => $dueDate,
+            'payment_status' => $paymentStatus,
+            'payments_count' => $paymentsCount,
+        ];
+    }
+
+    /**
+     * Calculate stats for dashboard.
+     */
+    private function calculateStats($studentIds, ?string $schoolYear): array
+    {
+        if (!$schoolYear || $studentIds->isEmpty()) {
+            return [
+                'total_students' => 0,
+                'total_receivables' => 0,
+                'total_collected' => 0,
+                'total_balance' => 0,
+                'overdue_count' => 0,
+                'fully_paid' => 0,
+            ];
+        }
+
+        $totalReceivables = 0;
+        $totalCollected = 0;
+        $totalBalance = 0;
+        $overdueCount = 0;
+        $fullyPaidCount = 0;
+
+        foreach ($studentIds as $studentId) {
+            $student = Student::with('department')->find($studentId);
+            if (!$student) continue;
+
+            $feeData = $this->calculateStudentFees($student, $schoolYear);
+            
+            $totalReceivables += $feeData['total_amount'];
+            $totalCollected += $feeData['total_paid'];
+            $totalBalance += $feeData['balance'];
+            
+            if ($feeData['is_overdue']) {
+                $overdueCount++;
+            }
+            
+            if ($feeData['total_amount'] > 0 && $feeData['balance'] <= 0) {
+                $fullyPaidCount++;
+            }
+        }
+
+        return [
+            'total_students' => $studentIds->count(),
+            'total_receivables' => $totalReceivables,
+            'total_collected' => $totalCollected,
+            'total_balance' => $totalBalance,
+            'overdue_count' => $overdueCount,
+            'fully_paid' => $fullyPaidCount,
+        ];
+    }
+
+    /**
+     * Apply student-specific filters to fee item query.
+     */
+    private function applyStudentFilters($query, Student $student): void
+    {
+        // Match classification if set
+        if ($student->department) {
+            $query->where(function ($sq) use ($student) {
+                $sq->whereNull('classification')
+                    ->orWhere('classification', $student->department->classification);
+            });
+        }
+
+        // Match department if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('department_id')
+                ->orWhere('department_id', $student->department_id);
+        });
+
+        // Match program if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('program_id')
+                ->orWhere('program_id', $student->program_id);
+        });
+
+        // Match year level if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('year_level_id')
+                ->orWhere('year_level_id', $student->year_level_id);
+        });
+
+        // Match section if set
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('section_id')
+                ->orWhere('section_id', $student->section_id);
+        });
     }
 
     /**
