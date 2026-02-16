@@ -259,10 +259,10 @@ export default function ExamApprovalIndex({
                             )}
                             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                                 <DialogTrigger asChild>
-                                    <Button>
+                                    {/* <Button>
                                         <Plus className="mr-2 h-4 w-4" />
                                         Create Approval
-                                    </Button>
+                                    </Button> */}
                                 </DialogTrigger>
                                 <DialogContent className="max-w-md">
                                     <form onSubmit={handleCreate}>
