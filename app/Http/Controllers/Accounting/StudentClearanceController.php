@@ -117,10 +117,11 @@ class StudentClearanceController extends Controller
             'students' => $students,
             'programs' => $programs,
             'yearLevels' => $yearLevels,
-            'stats' => $stats,
-            'filters' => $request->only(['search', 'status', 'program', 'year_level', 'department_id', 'classification']),
             'departments' => $departments,
             'classifications' => $classifications,
+            'stats' => $stats,
+            'filters' => $request->only(['search', 'status', 'program', 'year_level', 'department_id', 'classification']),
+        ]);
         ]);
     }
 
