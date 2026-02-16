@@ -196,6 +196,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     // Payment Processing
     Route::get('payments/create', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'create'])->name('payments.create');
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
+    Route::get('payments/export', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'export'])->name('payments.export');
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
     
     // Promissory Notes
@@ -258,6 +259,10 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     // Reports
     Route::get('reports', [App\Http\Controllers\Accounting\ReportsController::class, 'index'])->name('reports');
     Route::get('reports/export', [App\Http\Controllers\Accounting\ReportsController::class, 'export'])->name('reports.export');
+    
+    // Dashboard exports
+    Route::get('dashboard/export', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'export'])->name('dashboard.export');
+    Route::get('account-dashboard/export', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'exportAccountDashboard'])->name('account-dashboard.export');
     
 });
 
