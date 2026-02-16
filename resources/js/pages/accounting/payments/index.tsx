@@ -492,35 +492,13 @@ export default function AccountingPayments({ payments, filters, total, students 
                     </div>
                 </div>
 
-                {/* Tabs Section */}
-                <Tabs defaultValue="breakdown" className="space-y-4">
-                    <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="breakdown" className="flex items-center gap-2">
-                            <Receipt className="h-4 w-4" />
-                            Payment Breakdown
-                        </TabsTrigger>
-                        <TabsTrigger value="school-year" className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            School Year Details
-                        </TabsTrigger>
-                        <TabsTrigger value="promissory" className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            Promissory Note
-                        </TabsTrigger>
-                        <TabsTrigger value="transactions" className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4" />
-                            Transaction Details
-                        </TabsTrigger>
-                    </TabsList>
-
-                    {/* Tab 1: Payment Breakdown */}
-                    <TabsContent value="breakdown">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Payment Records</CardTitle>
-                                <CardDescription>All student payment transactions</CardDescription>
-                            </CardHeader>
-                            <CardContent>
+                {/* Payment Records */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Payment Records</CardTitle>
+                        <CardDescription>All student payment transactions</CardDescription>
+                    </CardHeader>
+                    <CardContent>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
