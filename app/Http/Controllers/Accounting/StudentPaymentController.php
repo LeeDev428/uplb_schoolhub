@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
@@ -45,6 +46,20 @@ class StudentPaymentController extends Controller
             $query->where('payment_for', $paymentFor);
         }
 
+        // Filter by department
+        if ($departmentId = $request->input('department_id')) {
+            $query->whereHas('student', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        // Filter by classification
+        if ($classification = $request->input('classification')) {
+            $query->whereHas('student.department', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
+
         $payments = $query->latest('payment_date')
             ->latest('created_at')
             ->paginate(20)
@@ -83,12 +98,18 @@ class StudentPaymentController extends Controller
                 });
             });
 
+        // Get departments and classifications
+        $departments = Department::orderBy('name')->get(['id', 'name', 'code', 'classification']);
+        $classifications = Department::distinct()->pluck('classification')->filter()->sort()->values();
+
         return Inertia::render('accounting/payments/index', [
             'payments' => $payments,
-            'filters' => $request->only(['search', 'from', 'to', 'payment_for']),
+            'filters' => $request->only(['search', 'from', 'to', 'payment_for', 'department_id', 'classification']),
             'total' => $total,
             'students' => $students,
             'studentFees' => $studentFees,
+            'departments' => $departments,
+            'classifications' => $classifications,
         ]);
     }
 
