@@ -34,9 +34,9 @@ class StudentRequirementController extends Controller
         StudentActionLog::log(
             studentId: $studentRequirement->student_id,
             action: 'Requirements updated',
-            actionType: 'requirements',
+            actionType: 'requirements_updated',
             details: "Updated {$studentRequirement->requirement->name}",
-            notes: $newStatus === 'approved' ? 'All documents verified and complete' : null,
+            notes: $validated['notes'] ?? null,
             changes: [
                 'requirement' => $studentRequirement->requirement->name,
                 'status' => ['old' => $oldStatus, 'new' => $newStatus]
