@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\Student;
 use App\Models\EnrollmentClearance;
 use Illuminate\Http\Request;
@@ -56,6 +57,18 @@ class StudentClearanceController extends Controller
             $query->where('year_level', $request->input('year_level'));
         }
 
+        // Department filter
+        if ($departmentId = $request->input('department_id')) {
+            $query->where('department_id', $departmentId);
+        }
+
+        // Classification filter
+        if ($classification = $request->input('classification')) {
+            $query->whereHas('department', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
+
         $students = $query->paginate(20)->withQueryString();
 
         // Calculate balances for each student
@@ -96,12 +109,18 @@ class StudentClearanceController extends Controller
             'cleared' => EnrollmentClearance::where('accounting_clearance', true)->count(),
         ];
 
+        // Get departments and classifications
+        $departments = Department::orderBy('name')->get(['id', 'name', 'code', 'classification']);
+        $classifications = Department::distinct()->pluck('classification')->filter()->sort()->values();
+
         return Inertia::render('accounting/clearance/index', [
             'students' => $students,
             'programs' => $programs,
             'yearLevels' => $yearLevels,
             'stats' => $stats,
-            'filters' => $request->only(['search', 'status', 'program', 'year_level']),
+            'filters' => $request->only(['search', 'status', 'program', 'year_level', 'department_id', 'classification']),
+            'departments' => $departments,
+            'classifications' => $classifications,
         ]);
     }
 
