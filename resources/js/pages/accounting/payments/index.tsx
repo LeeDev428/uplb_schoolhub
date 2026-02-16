@@ -359,7 +359,7 @@ export default function AccountingPayments({ payments, filters, total, students 
                                                         <SelectValue placeholder="Select payment type" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="">General Payment</SelectItem>
+                                                        <SelectItem value="general">General Payment</SelectItem>
                                                         <SelectItem value="registration">Registration Fee</SelectItem>
                                                         <SelectItem value="tuition">Tuition Fee</SelectItem>
                                                         <SelectItem value="misc">Miscellaneous Fee</SelectItem>
