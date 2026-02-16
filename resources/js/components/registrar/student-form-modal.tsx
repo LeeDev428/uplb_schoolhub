@@ -22,7 +22,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Upload, X, User } from 'lucide-react';
+import { Upload, X, User, Info } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Department {
     id: number;
@@ -397,6 +398,17 @@ export function StudentFormModal({
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Academic Information</h3>
                         
+                        {/* Alert for students without department */}
+                        {mode === 'edit' && !selectedDepartmentId && student?.program && (
+                            <Alert>
+                                <Info className="h-4 w-4" />
+                                <AlertDescription>
+                                    This student has program "{student.program}" but no department assigned. 
+                                    Please select a Department below to view and update program options or click the department field below.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                        
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="school_year">School Year *</Label>
@@ -428,7 +440,7 @@ export function StudentFormModal({
                                         setData('section_id', '');
                                     }}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={!selectedDepartmentId && mode === 'edit' && student?.program ? 'border-amber-500 bg-amber-50' : ''}>
                                         <SelectValue placeholder="Select department" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -439,6 +451,9 @@ export function StudentFormModal({
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {!selectedDepartmentId && mode === 'edit' && student?.program && (
+                                    <p className="text-xs text-amber-600">Select a department to enable program selection</p>
+                                )}
                             </div>
                         </div>
 
@@ -499,9 +514,14 @@ export function StudentFormModal({
                                 {filteredPrograms.length > 0 && errors.program && (
                                     <p className="text-xs text-red-500">{errors.program}</p>
                                 )}
-                                {filteredPrograms.length === 0 && (
+                                {filteredPrograms.length === 0 && selectedDepartmentId && (
                                     <p className="text-xs text-muted-foreground">
-                                        Programs only apply to college departments
+                                        No programs available for this department. Programs are typically for College departments.
+                                    </p>
+                                )}
+                                {filteredPrograms.length === 0 && !selectedDepartmentId && (
+                                    <p className="text-xs text-amber-600">
+                                        Select a department above to view available programs
                                     </p>
                                 )}
                             </div>
