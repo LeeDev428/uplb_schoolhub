@@ -89,6 +89,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
     });
 
     const itemForm = useForm({
+        fee_category_id: null as number | null,
         name: '',
         description: '',
         cost_price: '',
@@ -133,6 +134,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
         if (item) {
             setEditingItem(item);
             itemForm.setData({
+                fee_category_id: item.fee_category_id,
                 name: item.name,
                 description: item.description || '',
                 cost_price: item.cost_price,
@@ -141,7 +143,14 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
             });
         } else {
             setEditingItem(null);
-            itemForm.reset();
+            itemForm.setData({
+                fee_category_id: categoryId,
+                name: '',
+                description: '',
+                cost_price: '',
+                selling_price: '',
+                is_active: true,
+            });
         }
         setIsItemModalOpen(true);
     };
@@ -169,14 +178,7 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
     const handleItemSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingItem) {
-            itemForm.put(`/accounting/fee-management/items/${editingItem.id}`, {
-                onSuccess: () => {
-                    setIsItemModalOpen(false);
-                    itemForm.reset();
-                    setEditingItem(null);
-                },
-            });
-        } else {
+            itemForm.post('/accounting/fee-management/items', {
             // Add fee_category_id to the form data before submitting
             const formDataWithCategory = {
                 ...itemForm.data,
