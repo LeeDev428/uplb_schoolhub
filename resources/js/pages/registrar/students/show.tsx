@@ -176,9 +176,7 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
     const [pendingRequirementUpdate, setPendingRequirementUpdate] = useState<{id: number; status: string} | null>(null);
     const [notes, setNotes] = useState('');
     
-    // Add note dialog state
-    const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
-    const [newNote, setNewNote] = useState('');
+
 
     const fullName = `${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''} ${student.last_name}${student.suffix ? ' ' + student.suffix : ''}`;
     const initials = `${student.first_name[0]}${student.last_name[0]}`;
@@ -229,26 +227,7 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
         });
     };
 
-    const handleAddNote = () => {
-        if (!newNote.trim()) {
-            toast.error('Please enter a note');
-            return;
-        }
-        
-        router.post(`/registrar/students/${student.id}/notes`, {
-            notes: newNote,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Note added successfully');
-                setShowAddNoteDialog(false);
-                setNewNote('');
-            },
-            onError: () => {
-                toast.error('Failed to add note');
-            },
-        });
-    };
+
 
     const handleDropStudent = () => {
         if (window.confirm(`Are you sure you want to drop ${fullName}? This action will change their enrollment status to 'dropped'.`)) {
@@ -575,12 +554,6 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
 
                     {/* Transaction History Tab */}
                     <TabsContent value="history" className="space-y-6">
-                        <div className="flex justify-end mb-4">
-                            {/* <Button onClick={() => setShowAddNoteDialog(true)} variant="outline">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Note
-                            </Button> */}
-                        </div>
                         <UpdateHistory logs={actionLogs} />
                     </TabsContent>
                 </Tabs>
@@ -640,37 +613,6 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                 </DialogContent>
             </Dialog>
 
-            {/* Add Note Dialog */}
-            <Dialog open={showAddNoteDialog} onOpenChange={setShowAddNoteDialog}>
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Add Note</DialogTitle>
-                        <DialogDescription>
-                            Add a note to the student's update history.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="newNote">Note *</Label>
-                            <Textarea
-                                id="newNote"
-                                value={newNote}
-                                onChange={(e) => setNewNote(e.target.value)}
-                                placeholder="Enter your note..."
-                                rows={4}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowAddNoteDialog(false)}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleAddNote}>
-                            Save Note
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </RegistrarLayout>
     );
 }
