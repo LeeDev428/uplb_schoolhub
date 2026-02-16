@@ -178,15 +178,15 @@ export default function FeeManagementIndex({ categories, totals }: Props) {
     const handleItemSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingItem) {
+            itemForm.put(`/accounting/fee-management/items/${editingItem.id}`, {
+                onSuccess: () => {
+                    setIsItemModalOpen(false);
+                    itemForm.reset();
+                    setEditingItem(null);
+                },
+            });
+        } else {
             itemForm.post('/accounting/fee-management/items', {
-            // Add fee_category_id to the form data before submitting
-            const formDataWithCategory = {
-                ...itemForm.data,
-                fee_category_id: selectedCategoryId,
-            };
-            
-            itemForm.post('/accounting/fee-management/items', {
-                data: formDataWithCategory,
                 onSuccess: () => {
                     setIsItemModalOpen(false);
                     itemForm.reset();
