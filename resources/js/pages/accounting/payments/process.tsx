@@ -219,6 +219,10 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
             approved: { label: 'Approved', variant: 'default', color: 'bg-green-100 text-green-700' },
             declined: { label: 'Declined', variant: 'destructive', color: 'bg-red-100 text-red-700' },
             fulfilled: { label: 'Fulfilled', variant: 'default', color: 'bg-blue-100 text-blue-700' },
+            active: { label: 'Active', variant: 'default', color: 'bg-green-100 text-green-700' },
+            inactive: { label: 'Inactive', variant: 'secondary', color: 'bg-gray-100 text-gray-700' },
+            graduated: { label: 'Graduated', variant: 'default', color: 'bg-blue-100 text-blue-700' },
+            withdrawn: { label: 'Withdrawn', variant: 'destructive', color: 'bg-red-100 text-red-700' },
         };
         const config = configs[status] || configs.pending;
         return <Badge className={config.color}>{config.label}</Badge>;
