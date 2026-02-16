@@ -174,7 +174,7 @@ export function StudentFormModal({
         // If a program is selected, only show sections for that program or sections without a program
         if (selectedProgramId) {
             filtered = filtered.filter(s => 
-                s.program_id === null || s.program_id.toString() === selectedProgramId
+                !s.program_id || s.program_id.toString() === selectedProgramId
             );
         }
         
