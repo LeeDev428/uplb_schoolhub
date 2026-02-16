@@ -20,6 +20,12 @@ class FeeItem extends Model
         'school_year',
         'program',
         'year_level',
+        'classification',
+        'department_id',
+        'program_id',
+        'year_level_id',
+        'section_id',
+        'assignment_scope',
         'is_required',
         'is_active',
     ];
@@ -37,6 +43,38 @@ class FeeItem extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(FeeCategory::class, 'fee_category_id');
+    }
+
+    /**
+     * Get the department this item is assigned to.
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Get the program this item is assigned to.
+     */
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    /**
+     * Get the year level this item is assigned to.
+     */
+    public function yearLevel(): BelongsTo
+    {
+        return $this->belongsTo(YearLevel::class);
+    }
+
+    /**
+     * Get the section this item is assigned to.
+     */
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class);
     }
 
     /**
