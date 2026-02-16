@@ -37,6 +37,7 @@ class FeeManagementController extends Controller
                 'items' => $category->items->map(function ($item) {
                     return [
                         'id' => $item->id,
+                        'fee_category_id' => $item->fee_category_id,
                         'name' => $item->name,
                         'code' => $item->code,
                         'description' => $item->description,
