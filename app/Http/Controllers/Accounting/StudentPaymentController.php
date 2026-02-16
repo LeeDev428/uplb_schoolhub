@@ -298,29 +298,57 @@ class StudentPaymentController extends Controller
 
         // Get all fees for this student with detailed breakdown
         $fees = StudentFee::where('student_id', $student->id)
-            ->with(['feeItems.feeItem.category'])
             ->orderBy('school_year', 'desc')
             ->get()
             ->map(function ($fee) {
+                $items = [];
+                if ($fee->registration_fee > 0) {
+                    $items[] = [
+                        'name' => 'Registration Fee',
+                        'category' => 'Registration',
+                        'amount' => (float) $fee->registration_fee,
+                    ];
+                }
+                if ($fee->tuition_fee > 0) {
+                    $items[] = [
+                        'name' => 'Tuition Fee',
+                        'category' => 'Tuition',
+                        'amount' => (float) $fee->tuition_fee,
+                    ];
+                }
+                if ($fee->misc_fee > 0) {
+                    $items[] = [
+                        'name' => 'Miscellaneous Fee',
+                        'category' => 'Miscellaneous',
+                        'amount' => (float) $fee->misc_fee,
+                    ];
+                }
+                if ($fee->books_fee > 0) {
+                    $items[] = [
+                        'name' => 'Books Fee',
+                        'category' => 'Books',
+                        'amount' => (float) $fee->books_fee,
+                    ];
+                }
+                if ($fee->other_fees > 0) {
+                    $items[] = [
+                        'name' => 'Other Fees',
+                        'category' => 'Other',
+                        'amount' => (float) $fee->other_fees,
+                    ];
+                }
+                
                 return [
                     'id' => $fee->id,
                     'school_year' => $fee->school_year,
                     'total_amount' => (float) $fee->total_amount,
-                    'grant_discount' => (float) $fee->grant_discount,
+                    'grant_discount' => (float) ($fee->grant_discount ?? 0),
                     'total_paid' => (float) $fee->total_paid,
                     'balance' => (float) $fee->balance,
-                    'status' => $fee->is_fully_paid ? 'paid' : ($fee->is_overdue ? 'overdue' : 'pending'),
+                    'status' => $fee->balance <= 0 ? 'paid' : ($fee->is_overdue ? 'overdue' : 'pending'),
                     'is_overdue' => $fee->is_overdue,
                     'due_date' => $fee->due_date,
-                    'items' => $fee->feeItems->map(function ($item) {
-                        return [
-                            'id' => $item->id,
-                            'name' => $item->feeItem->name ?? 'Fee',
-                            'category' => $item->feeItem->category->name ?? 'Other',
-                            'amount' => (float) $item->amount,
-                            'is_optional' => $item->feeItem->is_optional ?? false,
-                        ];
-                    }),
+                    'items' => $items,
                 ];
             });
 
