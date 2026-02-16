@@ -46,7 +46,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign } from 'lucide-react';
+import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw } from 'lucide-react';
 
 interface FeeItem {
     id: number;
@@ -276,6 +276,12 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         }
     };
 
+    const handleRecalculateFees = () => {
+        if (confirm('This will recalculate all student fees based on active fee items. This may take a moment. Continue?')) {
+            router.post('/accounting/fee-management/recalculate');
+        }
+    };
+
     return (
         <AccountingLayout>
             <Head title="Fee Management" />
@@ -285,7 +291,12 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                     title="Fee Management"
                     description="Manage fee categories and items with cost, selling price, and profit tracking"
                     action={
-                        <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={handleRecalculateFees}>
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Recalculate All Fees
+                            </Button>
+                            <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
                             setIsCategoryModalOpen(open);
                             if (!open) {
                                 setEditingCategory(null);
