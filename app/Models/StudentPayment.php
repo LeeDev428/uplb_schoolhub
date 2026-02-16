@@ -17,6 +17,7 @@ class StudentPayment extends Model
         'or_number',
         'amount',
         'payment_for',
+        'payment_mode',
         'payment_method',
         'reference_number',
         'bank_name',
