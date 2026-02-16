@@ -234,12 +234,12 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         description="View and manage student fee accounts, balances, and payment status"
                     />
                     <div className="flex gap-2">
-                        <ImportButton
+                        {/* <ImportButton
                             importUrl="/accounting/student-accounts/import"
                             templateUrl="/accounting/student-accounts/template"
                             title="Import Student Accounts"
                             description="Upload an Excel or CSV file to import student fee accounts."
-                        />
+                        /> */}
                     </div>
                 </div>
 
