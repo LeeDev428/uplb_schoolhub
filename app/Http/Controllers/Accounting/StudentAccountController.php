@@ -395,36 +395,10 @@ class StudentAccountController extends Controller
 
     /**
      * Get detailed account information.
+     * Redirect to payment processing page which has full details.
      */
-    public function show(StudentFee $fee): Response
+    public function show(StudentFee $fee): RedirectResponse
     {
-        $fee->load(['student', 'payments.recordedBy']);
-
-        $grants = GrantRecipient::where('student_id', $fee->student_id)
-            ->where('school_year', $fee->school_year)
-            ->with('grant')
-            ->get();
-
-        return Inertia::render('accounting/student-accounts/show', [
-            'account' => [
-                'id' => $fee->id,
-                'student' => $fee->student,
-                'school_year' => $fee->school_year,
-                'registration_fee' => $fee->registration_fee,
-                'tuition_fee' => $fee->tuition_fee,
-                'misc_fee' => $fee->misc_fee,
-                'books_fee' => $fee->books_fee,
-                'other_fees' => $fee->other_fees,
-                'total_amount' => $fee->total_amount,
-                'grant_discount' => $fee->grant_discount,
-                'total_paid' => $fee->total_paid,
-                'balance' => $fee->balance,
-                'is_overdue' => $fee->is_overdue,
-                'due_date' => $fee->due_date,
-                'payment_status' => $fee->getPaymentStatus(),
-                'payments' => $fee->payments,
-                'grants' => $grants,
-            ],
-        ]);
+        return redirect()->route('accounting.payments.process', ['student' => $fee->student_id]);
     }
 }
