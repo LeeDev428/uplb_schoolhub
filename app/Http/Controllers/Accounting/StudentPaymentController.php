@@ -47,16 +47,17 @@ class StudentPaymentController extends Controller
 
         $students = $query->latest()->paginate(20)->withQueryString();
 
-        // Transform students for list
+        // Transform students for list with DYNAMIC balance calculation
         $students->through(function ($student) {
-            $currentFee = StudentFee::where('student_id', $student->id)
-                ->where('school_year', $student->school_year ?? date('Y') . '-' . (date('Y') + 1))
-                ->first();
-
-            $previousFee = StudentFee::where('student_id', $student->id)
-                ->where('school_year', '!=', $student->school_year ?? date('Y') . '-' . (date('Y') + 1))
-                ->orderBy('created_at', 'desc')
-                ->first();
+            $currentYear = $student->school_year ?? date('Y') . '-' . (date('Y') + 1);
+            
+            // Calculate current year balance dynamically
+            $currentBalance = $this->calculateStudentBalance($student, $currentYear);
+            
+            // Get all previous years' balances from student_fees table
+            $previousBalance = StudentFee::where('student_id', $student->id)
+                ->where('school_year', '!=', $currentYear)
+                ->sum('balance');
 
             return [
                 'id' => $student->id,
@@ -68,9 +69,9 @@ class StudentPaymentController extends Controller
                 'department' => $student->department?->name,
                 'enrollment_status' => $student->enrollment_status,
                 'enrollment_progress' => $student->enrollmentClearance,
-                'current_balance' => $currentFee?->balance ?? 0,
-                'previous_balance' => $previousFee?->balance ?? 0,
-                'total_balance' => ($currentFee?->balance ?? 0) + ($previousFee?->balance ?? 0),
+                'current_balance' => $currentBalance,
+                'previous_balance' => (float) $previousBalance,
+                'total_balance' => $currentBalance + (float) $previousBalance,
             ];
         });
 
@@ -540,5 +541,39 @@ class StudentPaymentController extends Controller
             $sq->whereNull('section_id')
                 ->orWhere('section_id', $student->section_id);
         });
+    }
+
+    /**
+     * Calculate student balance dynamically for a specific school year.
+     */
+    private function calculateStudentBalance(Student $student, string $schoolYear): float
+    {
+        // Calculate total from applicable fee items
+        $totalAmount = \App\Models\FeeItem::where('school_year', $schoolYear)
+            ->where('is_active', true)
+            ->where(function ($query) use ($student) {
+                $query->where('assignment_scope', 'all')
+                    ->orWhere(function ($q) use ($student) {
+                        $q->where('assignment_scope', 'specific');
+                        $this->applyStudentFilters($q, $student);
+                    });
+            })
+            ->sum('selling_price');
+
+        // Get grant discount
+        $grantDiscount = \App\Models\GrantRecipient::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->where('status', 'active')
+            ->sum('discount_amount');
+
+        // Get total paid from student_fees (if exists)
+        $studentFee = StudentFee::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->first();
+
+        $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
+
+        // Calculate balance
+        return max(0, $totalAmount - $grantDiscount - $totalPaid);
     }
 }
