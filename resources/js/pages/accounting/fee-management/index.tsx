@@ -674,9 +674,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                 <SelectValue placeholder="Select classification" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="Elementary">Elementary</SelectItem>
-                                                <SelectItem value="Secondary">Secondary</SelectItem>
-                                                <SelectItem value="SHS">Senior High School</SelectItem>
+                                                <SelectItem value="K-12">K-12 (Elementary, Secondary, SHS)</SelectItem>
                                                 <SelectItem value="College">College</SelectItem>
                                             </SelectContent>
                                         </Select>
