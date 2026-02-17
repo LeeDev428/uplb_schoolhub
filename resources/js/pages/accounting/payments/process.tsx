@@ -427,10 +427,12 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                         <span className="text-xs text-muted-foreground">Payment Progress</span>
                                         <span className="text-xs font-medium">
                                             {(() => {
+                                                // Simple calculation: what percentage of net amount has been paid
                                                 const netAmount = summary.total_fees - summary.total_discount;
-                                                if (netAmount <= 0) return '100% Paid';
-                                                const percent = Math.round((summary.total_paid / netAmount) * 100);
-                                                return `${Math.min(percent, 100)}% Paid`;
+                                                if (netAmount <= 0 || summary.total_paid >= netAmount) return '100% Paid';
+                                                if (summary.total_paid <= 0) return '0% Paid';
+                                                const percent = Math.floor((summary.total_paid / netAmount) * 100);
+                                                return `${percent}% Paid`;
                                             })()}
                                         </span>
                                     </div>
@@ -438,7 +440,9 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                         value={(() => {
                                             const netAmount = summary.total_fees - summary.total_discount;
                                             if (netAmount <= 0) return 100;
-                                            return Math.min((summary.total_paid / netAmount) * 100, 100);
+                                            if (summary.total_paid <= 0) return 0;
+                                            const percent = (summary.total_paid / netAmount) * 100;
+                                            return Math.min(Math.max(percent, 0), 100);
                                         })()}
                                         className="h-2"
                                     />
