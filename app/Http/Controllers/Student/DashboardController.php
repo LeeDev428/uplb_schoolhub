@@ -25,28 +25,32 @@ class DashboardController extends Controller
         // Get payment info for ALL students
         $paymentInfo = null;
         $studentFee = StudentFee::where('student_id', $student->id)
-            ->with(['payments', 'promissoryNotes' => function ($q) {
-                $q->where('status', 'approved');
-            }])
+            ->with(['payments'])
             ->latest()
             ->first();
+        
+        // Get approved promissory notes separately
+        $approvedPromissoryNotes = \App\Models\PromissoryNote::where('student_id', $student->id)
+            ->where('status', 'approved')
+            ->get();
 
         if ($studentFee) {
             $totalPaid = $studentFee->payments->sum('amount');
             $totalFees = $studentFee->tuition_fee + $studentFee->misc_fee + $studentFee->other_fees;
-            $balance = $totalFees - $totalPaid - $studentFee->discount_amount;
+            $discountAmount = $studentFee->discount_amount ?? $studentFee->grant_discount ?? 0;
+            $balance = $totalFees - $totalPaid - $discountAmount;
             
             // Check for approved promissory notes covering balance
-            $approvedPromissoryAmount = $studentFee->promissoryNotes->sum('amount');
+            $approvedPromissoryAmount = $approvedPromissoryNotes->sum('amount');
             $effectiveBalance = max(0, $balance - $approvedPromissoryAmount);
             
-            // Check if overdue
-            $isOverdue = $balance > 0 && !$studentFee->promissoryNotes->count() && 
+            // Check if overdue - not overdue if there's an approved promissory note
+            $isOverdue = $balance > 0 && !$approvedPromissoryNotes->count() && 
                          $studentFee->due_date && now()->gt($studentFee->due_date);
             
             $paymentInfo = [
                 'total_fees' => $totalFees,
-                'discount_amount' => $studentFee->discount_amount,
+                'discount_amount' => $discountAmount,
                 'total_paid' => $totalPaid,
                 'balance' => max(0, $balance),
                 'effective_balance' => $effectiveBalance,
@@ -54,7 +58,7 @@ class DashboardController extends Controller
                 'is_fully_paid' => $balance <= 0,
                 'is_overdue' => $isOverdue,
                 'due_date' => $studentFee->due_date,
-                'has_promissory' => $studentFee->promissoryNotes->count() > 0,
+                'has_promissory' => $approvedPromissoryNotes->count() > 0,
             ];
         }
 
