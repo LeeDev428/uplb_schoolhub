@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\DocumentFeeItem;
 use App\Models\FeeCategory;
 use App\Models\FeeItem;
 use App\Models\Program;
@@ -21,6 +22,8 @@ class FeeManagementController extends Controller
      */
     public function index(Request $request): Response
     {
+        $tab = $request->input('tab', 'general');
+
         $categories = FeeCategory::with(['items' => function ($query) {
             $query->orderBy('name');
         }])
@@ -118,6 +121,27 @@ class FeeManagementController extends Controller
                 ];
             });
 
+        // Document Fee Items
+        $documentFees = DocumentFeeItem::orderBy('category')
+            ->orderBy('processing_type')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'category' => $item->category,
+                    'name' => $item->name,
+                    'price' => $item->price,
+                    'processing_days' => $item->processing_days,
+                    'processing_type' => $item->processing_type,
+                    'description' => $item->description,
+                    'is_active' => $item->is_active,
+                ];
+            });
+
+        // Get unique document categories for dropdown
+        $documentCategories = DocumentFeeItem::distinct()->pluck('category')->filter()->values();
+
         return Inertia::render('accounting/fee-management/index', [
             'categories' => $categories,
             'totals' => $totals,
@@ -125,6 +149,9 @@ class FeeManagementController extends Controller
             'programs' => $programs,
             'yearLevels' => $yearLevels,
             'sections' => $sections,
+            'documentFees' => $documentFees,
+            'documentCategories' => $documentCategories,
+            'tab' => $tab,
         ]);
     }
 
@@ -242,6 +269,56 @@ class FeeManagementController extends Controller
         $item->delete();
 
         return redirect()->back()->with('success', 'Fee item deleted successfully.');
+    }
+
+    /**
+     * Store a new document fee item.
+     */
+    public function storeDocumentFee(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'category' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'processing_days' => 'required|integer|min:1',
+            'processing_type' => 'required|in:normal,rush',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
+
+        DocumentFeeItem::create($validated);
+
+        return redirect()->back()->with('success', 'Document fee item created successfully.');
+    }
+
+    /**
+     * Update a document fee item.
+     */
+    public function updateDocumentFee(Request $request, DocumentFeeItem $documentFee): RedirectResponse
+    {
+        $validated = $request->validate([
+            'category' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'processing_days' => 'required|integer|min:1',
+            'processing_type' => 'required|in:normal,rush',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
+
+        $documentFee->update($validated);
+
+        return redirect()->back()->with('success', 'Document fee item updated successfully.');
+    }
+
+    /**
+     * Delete a document fee item.
+     */
+    public function destroyDocumentFee(DocumentFeeItem $documentFee): RedirectResponse
+    {
+        $documentFee->delete();
+
+        return redirect()->back()->with('success', 'Document fee item deleted successfully.');
     }
 
 }
