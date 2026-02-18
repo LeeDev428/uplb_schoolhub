@@ -445,7 +445,7 @@ export default function OnlineTransactionsIndex({
                         </DialogDescription>
                     </DialogHeader>
                     {selectedTransaction && (
-                        <div className="space-y-4 py-4">
+                        <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <p className="text-muted-foreground">Reference</p>
