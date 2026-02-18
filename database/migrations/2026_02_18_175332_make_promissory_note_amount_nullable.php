@@ -11,7 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::table('promissory_notes', function (Blueprint $table) {
+            // Make amount nullable - promissory notes can just be extension requests
+            $table->decimal('amount', 12, 2)->nullable()->change();
+            
+            // Make student_fee_id nullable - can be a general extension
+            $table->foreignId('student_fee_id')->nullable()->change();
+        });
     }
 
     /**
@@ -19,6 +25,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('promissory_notes', function (Blueprint $table) {
+            $table->decimal('amount', 12, 2)->nullable(false)->change();
+            $table->foreignId('student_fee_id')->nullable(false)->change();
+        });
     }
 };
