@@ -291,6 +291,12 @@ class StudentPaymentController extends Controller
 
         StudentPayment::create($validated);
 
+        // Update the student fee balance
+        $studentFee = StudentFee::find($validated['student_fee_id']);
+        if ($studentFee) {
+            $studentFee->updateBalance();
+        }
+
         return redirect()->back()->with('success', 'Payment recorded successfully.');
     }
 
@@ -440,6 +446,9 @@ class StudentPaymentController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        // Get current authenticated user for cashier field
+        $currentUser = auth()->user();
+
         return Inertia::render('accounting/payments/process', [
             'student' => [
                 'id' => $student->id,
@@ -457,6 +466,10 @@ class StudentPaymentController extends Controller
             'grants' => $grants,
             'summary' => $summary,
             'cashiers' => $cashiers,
+            'currentUser' => [
+                'id' => $currentUser->id,
+                'name' => $currentUser->name,
+            ],
         ]);
     }
 
