@@ -46,16 +46,16 @@ import { useState } from 'react';
 
 type PromissoryNote = {
     id: number;
-    student_fee_id: number;
+    student_fee_id: number | null;
     submitted_date: string;
     due_date: string;
-    amount: number;
+    amount: number | null;
     reason: string;
     status: 'pending' | 'approved' | 'declined';
     reviewed_by: string | null;
     reviewed_at: string | null;
     review_notes: string | null;
-    school_year: string;
+    school_year: string | null;
 };
 
 type StudentFee = {
@@ -165,23 +165,24 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[500px]">
                                 <DialogHeader>
-                                    <DialogTitle>Request Promissory Note</DialogTitle>
+                                    <DialogTitle>Request Payment Extension</DialogTitle>
                                     <DialogDescription>
-                                        Submit a request to pay a portion of your fees at a later date.
+                                        Submit a request for a payment extension. This allows accounting to give you more time to settle your fees.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleSubmit}>
                                     <div className="grid gap-4 py-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="fee">Select Fee</Label>
+                                            <Label htmlFor="fee">Select Fee (Optional)</Label>
                                             <Select
                                                 value={form.data.student_fee_id}
                                                 onValueChange={handleFeeChange}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select a fee" />
+                                                    <SelectValue placeholder="General request (all fees)" />
                                                 </SelectTrigger>
                                                 <SelectContent>
+                                                    <SelectItem value="">General request (all fees)</SelectItem>
                                                     {studentFees.map((fee) => (
                                                         <SelectItem key={fee.id} value={fee.id.toString()}>
                                                             {fee.school_year} - Balance: {formatCurrency(fee.balance)}
@@ -189,6 +190,9 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                            <p className="text-xs text-muted-foreground">
+                                                Leave blank for a general extension request
+                                            </p>
                                             {form.errors.student_fee_id && (
                                                 <p className="text-sm text-red-500">{form.errors.student_fee_id}</p>
                                             )}
@@ -208,7 +212,7 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                                         )}
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="amount">Amount to Cover</Label>
+                                            <Label htmlFor="amount">Amount to Cover (Optional)</Label>
                                             <Input
                                                 id="amount"
                                                 type="number"
@@ -217,8 +221,11 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                                                 max={selectedFee?.balance}
                                                 value={form.data.amount}
                                                 onChange={(e) => form.setData('amount', e.target.value)}
-                                                placeholder="Enter amount"
+                                                placeholder="Leave blank for full balance"
                                             />
+                                            <p className="text-xs text-muted-foreground">
+                                                Specify an amount or leave blank for full balance extension
+                                            </p>
                                             {form.errors.amount && (
                                                 <p className="text-sm text-red-500">{form.errors.amount}</p>
                                             )}
@@ -356,9 +363,11 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                                         return (
                                             <TableRow key={note.id}>
                                                 <TableCell className="font-medium">
-                                                    {note.school_year}
+                                                    {note.school_year || 'General Request'}
                                                 </TableCell>
-                                                <TableCell>{formatCurrency(note.amount)}</TableCell>
+                                                <TableCell>
+                                                    {note.amount !== null ? formatCurrency(note.amount) : 'Full Balance'}
+                                                </TableCell>
                                                 <TableCell>{note.submitted_date}</TableCell>
                                                 <TableCell>{note.due_date}</TableCell>
                                                 <TableCell>
