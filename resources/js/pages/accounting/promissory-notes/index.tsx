@@ -51,13 +51,13 @@ interface PromissoryNote {
     student_id: number;
     submitted_date: string;
     due_date: string;
-    amount: number;
+    amount: number | null;
     reason: string;
     status: 'pending' | 'approved' | 'declined';
     reviewed_by: string | null;
     reviewed_at: string | null;
     review_notes: string | null;
-    school_year: string;
+    school_year: string | null;
 }
 
 interface PaginatedNotes {
