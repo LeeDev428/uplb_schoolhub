@@ -11,6 +11,7 @@ import {
     FileQuestion,
     FileSignature,
     FileText,
+    CreditCard,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -73,6 +74,11 @@ export function StudentSidebar() {
             title: 'Document Requests',
             href: '/student/document-requests',
             icon: FileText,
+        },
+        {
+            title: 'Payments',
+            href: '/student/payments',
+            icon: CreditCard,
         },
         {
             title: 'Promissory Notes',
