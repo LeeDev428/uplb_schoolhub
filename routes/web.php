@@ -261,6 +261,10 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::put('fee-management/document-fees/{documentFee}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'updateDocumentFee'])->name('fee-management.update-document-fee');
     Route::delete('fee-management/document-fees/{documentFee}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'destroyDocumentFee'])->name('fee-management.destroy-document-fee');
     
+    // Fee Assignments (Bulk assign fees to classification/department/year_level)
+    Route::get('fee-management/assignments', [App\Http\Controllers\Accounting\FeeManagementController::class, 'getAssignments'])->name('fee-management.get-assignments');
+    Route::post('fee-management/assignments', [App\Http\Controllers\Accounting\FeeManagementController::class, 'saveAssignments'])->name('fee-management.save-assignments');
+    
     // Online Transactions
     Route::get('online-transactions', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'index'])->name('online-transactions.index');
     Route::post('online-transactions/{transaction}/verify', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'verify'])->name('online-transactions.verify');
