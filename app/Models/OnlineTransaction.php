@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class OnlineTransaction extends Model
 {
@@ -116,7 +117,7 @@ class OnlineTransaction extends Model
             return null;
         }
         
-        return \Storage::url($this->payment_proof);
+        return Storage::url($this->payment_proof);
     }
 
     /**
