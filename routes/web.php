@@ -308,6 +308,10 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::post('promissory-notes', [App\Http\Controllers\Student\PromissoryNoteController::class, 'store'])->name('promissory-notes.store');
     Route::delete('promissory-notes/{note}/cancel', [App\Http\Controllers\Student\PromissoryNoteController::class, 'cancel'])->name('promissory-notes.cancel');
     
+    // Online Payments (available to all students)
+    Route::get('online-payments', [App\Http\Controllers\Student\OnlinePaymentController::class, 'index'])->name('online-payments.index');
+    Route::post('online-payments', [App\Http\Controllers\Student\OnlinePaymentController::class, 'store'])->name('online-payments.store');
+    
     // Routes that require enrollment
     Route::middleware(['enrolled'])->group(function () {
         Route::get('subjects', [App\Http\Controllers\Student\SubjectController::class, 'index'])->name('subjects');
