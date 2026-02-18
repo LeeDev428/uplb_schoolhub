@@ -221,6 +221,12 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::post('document-requests/{documentRequest}/mark-ready', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'markReady'])->name('document-requests.mark-ready');
     Route::post('document-requests/{documentRequest}/release', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'release'])->name('document-requests.release');
     Route::post('document-requests/{documentRequest}/cancel', [App\Http\Controllers\Accounting\DocumentRequestController::class, 'cancel'])->name('document-requests.cancel');
+
+    // Document Request Approvals (new workflow - student-initiated requests)
+    Route::get('document-approvals', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'index'])->name('document-approvals.index');
+    Route::post('document-approvals/{documentRequest}/approve', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'approve'])->name('document-approvals.approve');
+    Route::post('document-approvals/{documentRequest}/reject', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'reject'])->name('document-approvals.reject');
+    Route::get('document-approvals/{documentRequest}/receipt', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'viewReceipt'])->name('document-approvals.receipt');
     
     // Student Grants Management
     Route::get('grants', [App\Http\Controllers\Accounting\GrantController::class, 'index'])->name('grants.index');
@@ -285,29 +291,33 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     
     Route::get('dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
     Route::get('requirements', [App\Http\Controllers\Student\RequirementController::class, 'index'])->name('requirements');
-    Route::get('subjects', [App\Http\Controllers\Student\SubjectController::class, 'index'])->name('subjects');
-    Route::get('schedules', [App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedules');
     Route::get('profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
     
-    // Document Requests
+    // Document Requests (available to all students)
     Route::get('document-requests', [App\Http\Controllers\Student\DocumentRequestController::class, 'index'])->name('document-requests.index');
     Route::post('document-requests', [App\Http\Controllers\Student\DocumentRequestController::class, 'store'])->name('document-requests.store');
     Route::get('document-requests/history', [App\Http\Controllers\Student\DocumentRequestController::class, 'history'])->name('document-requests.history');
     Route::post('document-requests/{documentRequest}/cancel', [App\Http\Controllers\Student\DocumentRequestController::class, 'cancel'])->name('document-requests.cancel');
     
-    // Quizzes
-    Route::get('quizzes', [App\Http\Controllers\Student\QuizController::class, 'index'])->name('quizzes.index');
-    Route::get('quizzes/{quiz}', [App\Http\Controllers\Student\QuizController::class, 'show'])->name('quizzes.show');
-    Route::post('quizzes/{quiz}/start', [App\Http\Controllers\Student\QuizController::class, 'start'])->name('quizzes.start');
-    Route::get('quizzes/take/{attempt}', [App\Http\Controllers\Student\QuizController::class, 'take'])->name('quizzes.take');
-    Route::post('quizzes/take/{attempt}/save', [App\Http\Controllers\Student\QuizController::class, 'saveResponse'])->name('quizzes.save-response');
-    Route::post('quizzes/take/{attempt}/submit', [App\Http\Controllers\Student\QuizController::class, 'submit'])->name('quizzes.submit');
-    Route::get('quizzes/result/{attempt}', [App\Http\Controllers\Student\QuizController::class, 'result'])->name('quizzes.result');
-    
-    // Promissory Notes
+    // Promissory Notes (available to all students)
     Route::get('promissory-notes', [App\Http\Controllers\Student\PromissoryNoteController::class, 'index'])->name('promissory-notes.index');
     Route::post('promissory-notes', [App\Http\Controllers\Student\PromissoryNoteController::class, 'store'])->name('promissory-notes.store');
     Route::delete('promissory-notes/{note}/cancel', [App\Http\Controllers\Student\PromissoryNoteController::class, 'cancel'])->name('promissory-notes.cancel');
+    
+    // Routes that require enrollment
+    Route::middleware(['enrolled'])->group(function () {
+        Route::get('subjects', [App\Http\Controllers\Student\SubjectController::class, 'index'])->name('subjects');
+        Route::get('schedules', [App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedules');
+        
+        // Quizzes
+        Route::get('quizzes', [App\Http\Controllers\Student\QuizController::class, 'index'])->name('quizzes.index');
+        Route::get('quizzes/{quiz}', [App\Http\Controllers\Student\QuizController::class, 'show'])->name('quizzes.show');
+        Route::post('quizzes/{quiz}/start', [App\Http\Controllers\Student\QuizController::class, 'start'])->name('quizzes.start');
+        Route::get('quizzes/take/{attempt}', [App\Http\Controllers\Student\QuizController::class, 'take'])->name('quizzes.take');
+        Route::post('quizzes/take/{attempt}/save', [App\Http\Controllers\Student\QuizController::class, 'saveResponse'])->name('quizzes.save-response');
+        Route::post('quizzes/take/{attempt}/submit', [App\Http\Controllers\Student\QuizController::class, 'submit'])->name('quizzes.submit');
+        Route::get('quizzes/result/{attempt}', [App\Http\Controllers\Student\QuizController::class, 'result'])->name('quizzes.result');
+    });
 });
 
 // Teacher Portal Routes
