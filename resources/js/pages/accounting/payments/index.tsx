@@ -22,11 +22,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, ArrowRight, DollarSign, Users, AlertCircle } from 'lucide-react';
+import { StudentPhoto } from '@/components/ui/student-photo';
 
 interface Student {
     id: number;
     full_name: string;
+    first_name: string;
+    last_name: string;
     lrn: string;
+    student_photo_url: string | null;
     program: string | null;
     year_level: string | null;
     section: string | null;
@@ -236,10 +240,20 @@ export default function PaymentProcessingIndex({ students, filters }: Props) {
                                                 onClick={() => router.visit(`/accounting/payments/process/${student.id}`)}
                                             >
                                                 <TableCell className="font-medium">
-                                                    {student.full_name}
-                                                    {student.department && (
-                                                        <div className="text-xs text-muted-foreground">{student.department}</div>
-                                                    )}
+                                                    <div className="flex items-center gap-3">
+                                                        <StudentPhoto
+                                                            src={student.student_photo_url}
+                                                            firstName={student.first_name}
+                                                            lastName={student.last_name}
+                                                            size="sm"
+                                                        />
+                                                        <div>
+                                                            {student.full_name}
+                                                            {student.department && (
+                                                                <div className="text-xs text-muted-foreground">{student.department}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>{student.lrn}</TableCell>
                                                 <TableCell>{student.program || '-'}</TableCell>
