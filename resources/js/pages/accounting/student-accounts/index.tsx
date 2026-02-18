@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StudentPhoto } from '@/components/ui/student-photo';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Pagination } from '@/components/ui/pagination';
 import {
     Table,
     TableBody,
@@ -129,7 +131,7 @@ interface Props {
 
 export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], classifications = [], yearLevels = [], filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || 'all');
+    const [activeTab, setActiveTab] = useState(filters.status || 'overdue');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
     const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
     const [classification, setClassification] = useState(filters.classification || 'all');
@@ -145,7 +147,21 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
     const handleFilter = () => {
         router.get('/accounting/student-accounts', {
             search: search || undefined,
-            status: status !== 'all' ? status : undefined,
+            status: activeTab,
+            school_year: schoolYear !== 'all' ? schoolYear : undefined,
+            department_id: departmentId !== 'all' ? departmentId : undefined,
+            classification: classification !== 'all' ? classification : undefined,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        router.get('/accounting/student-accounts', {
+            search: search || undefined,
+            status: value,
             school_year: schoolYear !== 'all' ? schoolYear : undefined,
             department_id: departmentId !== 'all' ? departmentId : undefined,
             classification: classification !== 'all' ? classification : undefined,
@@ -157,7 +173,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
 
     const handleReset = () => {
         setSearch('');
-        setStatus('all');
+        setActiveTab('overdue');
         setSchoolYear('all');
         setDepartmentId('all');
         setClassification('all');
@@ -424,15 +440,6 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         placeholder="Search by name or LRN..."
                     />
                     <FilterDropdown
-                        label="Status"
-                        value={status}
-                        options={statusOptions}
-                        onChange={(value) => {
-                            setStatus(value);
-                            setTimeout(handleFilter, 0);
-                        }}
-                    />
-                    <FilterDropdown
                         label="School Year"
                         value={schoolYear}
                         options={schoolYearOptions}
@@ -464,8 +471,18 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                     </Button>
                 </FilterBar>
 
-                {/* Table */}
-                <div className="rounded-md border">
+                {/* Tabs */}
+                <Tabs value={activeTab} onValueChange={handleTabChange}>
+                    <TabsList>
+                        <TabsTrigger value="overdue">Overdue</TabsTrigger>
+                        <TabsTrigger value="partial">Partial</TabsTrigger>
+                        <TabsTrigger value="paid">Paid</TabsTrigger>
+                        <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value={activeTab} className="mt-6">
+                        {/* Table */}
+                        <div className="rounded-md border">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -581,25 +598,15 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                 </div>
 
                 {/* Pagination */}
-                {accounts.last_page > 1 && (
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">
-                            Showing {accounts.data.length} of {accounts.total} accounts
-                        </p>
-                        <div className="flex gap-2">
-                            {accounts.links.map((link, index) => (
-                                <Button
-                                    key={index}
-                                    variant={link.active ? 'default' : 'outline'}
-                                    size="sm"
-                                    disabled={!link.url}
-                                    onClick={() => link.url && router.get(link.url)}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <Pagination 
+                    data={{
+                        ...accounts,
+                        from: (accounts.current_page - 1) * accounts.per_page + 1,
+                        to: Math.min(accounts.current_page * accounts.per_page, accounts.total),
+                    }} 
+                />
+                    </TabsContent>
+                </Tabs>
             </div>
         </AccountingLayout>
     );
