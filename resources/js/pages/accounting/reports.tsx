@@ -431,8 +431,16 @@ export default function AccountingReports({
                                             ) : (
                                                 balanceReport.map((record, index) => (
                                                     <TableRow key={index}>
-                                                        <TableCell className="font-medium">
-                                                            {record.student.full_name}
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-3">
+                                                                <StudentPhoto
+                                                                    src={record.student.student_photo_url}
+                                                                    firstName={record.student.first_name}
+                                                                    lastName={record.student.last_name}
+                                                                    size="sm"
+                                                                />
+                                                                <span className="font-medium">{record.student.full_name}</span>
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell>{record.student.lrn}</TableCell>
                                                         <TableCell>
