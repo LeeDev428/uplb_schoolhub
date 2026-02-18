@@ -23,7 +23,11 @@ class OnlinePaymentController extends Controller
     public function index(): Response
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->firstOrFail();
+        $student = $user->student;
+        
+        if (!$student) {
+            abort(404, 'Student record not found.');
+        }
 
         // Get fee items based on student's classification/department/year_level
         $feeItems = $this->getStudentFeeItems($student);
@@ -70,7 +74,11 @@ class OnlinePaymentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->firstOrFail();
+        $student = $user->student;
+        
+        if (!$student) {
+            return back()->withErrors(['error' => 'Student record not found.']);
+        }
 
         $validated = $request->validate([
             'amount' => 'required|numeric|min:1',
