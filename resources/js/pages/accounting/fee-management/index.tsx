@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -47,7 +48,7 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw, FileText, Clock } from 'lucide-react';
+import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw, FileText, Clock, CheckSquare, Save } from 'lucide-react';
 
 interface FeeItem {
     id: number;
