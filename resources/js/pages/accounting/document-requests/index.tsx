@@ -269,10 +269,10 @@ export default function DocumentRequestIndex({
                     action={
                         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                             <DialogTrigger asChild>
-                                <Button>
+                                {/* <Button>
                                     <Plus className="mr-2 h-4 w-4" />
                                     New Request
-                                </Button>
+                                </Button> */}
                             </DialogTrigger>
                             <DialogContent className="max-w-md">
                                 <form onSubmit={handleCreate}>
