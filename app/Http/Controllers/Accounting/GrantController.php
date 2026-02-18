@@ -19,7 +19,7 @@ class GrantController extends Controller
      */
     public function index(Request $request): Response
     {
-        $tab = $request->input('tab', 'library');
+        $tab = $request->input('tab', 'recipients');
 
         // Get all grants for library tab
         $grants = Grant::withCount(['recipients', 'activeRecipients'])
