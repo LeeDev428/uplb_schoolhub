@@ -354,11 +354,18 @@ class StudentPaymentController extends Controller
         $totalDiscount = $fees->sum('grant_discount');
         $totalPaid = $payments->sum('amount');
         
+        // Calculate previous balance (from previous school years) and current fees balance
+        $currentSchoolYear = '2024-2025';
+        $previousBalance = $fees->where('school_year', '!=', $currentSchoolYear)->sum('balance');
+        $currentFeesBalance = $fees->where('school_year', $currentSchoolYear)->sum('balance');
+        
         $summary = [
             'total_fees' => $totalFees,
             'total_discount' => $totalDiscount,
             'total_paid' => $totalPaid,
             'total_balance' => max(0, $totalFees - $totalDiscount - $totalPaid),
+            'previous_balance' => $previousBalance,
+            'current_fees_balance' => $currentFeesBalance > 0 ? $currentFeesBalance : max(0, $totalFees - $totalDiscount - $totalPaid),
         ];
 
         // Get grants/scholarships for this student
@@ -374,6 +381,12 @@ class StudentPaymentController extends Controller
                     'status' => $recipient->status,
                 ];
             });
+
+        // Get cashiers (accounting staff)
+        $cashiers = \App\Models\User::where('role', 'accounting')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return Inertia::render('accounting/payments/process', [
             'student' => [
@@ -391,6 +404,7 @@ class StudentPaymentController extends Controller
             'promissoryNotes' => $promissoryNotes,
             'grants' => $grants,
             'summary' => $summary,
+            'cashiers' => $cashiers,
         ]);
     }
 
