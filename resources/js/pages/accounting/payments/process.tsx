@@ -254,7 +254,6 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
             ...paymentForm.data,
             student_fee_id: feeWithBalance.id.toString(),
             amount: amountReceived,
-            cashier_id: selectedCashier,
             print_receipt: printReceipt,
         });
         
@@ -265,9 +264,8 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
             or_number: paymentForm.data.or_number,
             amount: amountReceived,
             payment_mode: 'CASH',
-            payment_for: 'general',
+            payment_for: 'tuition',
             notes: paymentForm.data.notes,
-            cashier_id: selectedCashier,
             print_receipt: printReceipt,
         }, {
             onSuccess: () => {
@@ -456,7 +454,6 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
                                             <SelectContent position="popper">
-                                                <SelectItem value="general">General Payment</SelectItem>
                                                 <SelectItem value="registration">Registration</SelectItem>
                                                 <SelectItem value="tuition">Tuition</SelectItem>
                                                 <SelectItem value="misc">Miscellaneous</SelectItem>
@@ -762,26 +759,14 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                             <CardTitle>Processing Options</CardTitle>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            {cashiers.length > 0 && (
-                                                <div className="grid gap-2">
-                                                    <Label>Cashier</Label>
-                                                    <Select
-                                                        value={selectedCashier}
-                                                        onValueChange={setSelectedCashier}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select cashier" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {cashiers.map((cashier) => (
-                                                                <SelectItem key={cashier.id} value={cashier.id.toString()}>
-                                                                    {cashier.name}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            )}
+                                            <div className="grid gap-2">
+                                                <Label>Cashier</Label>
+                                                <Input 
+                                                    value={currentUser.name} 
+                                                    disabled 
+                                                    className="bg-muted"
+                                                />
+                                            </div>
                                             <div className="flex items-center gap-3 py-2">
                                                 <Checkbox
                                                     id="print_receipt"
