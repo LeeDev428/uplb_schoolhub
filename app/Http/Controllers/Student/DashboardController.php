@@ -35,10 +35,10 @@ class DashboardController extends Controller
             ->get();
 
         if ($studentFee) {
-            $totalPaid = $studentFee->payments->sum('amount');
-            $totalFees = $studentFee->tuition_fee + $studentFee->misc_fee + $studentFee->other_fees;
-            $discountAmount = $studentFee->discount_amount ?? $studentFee->grant_discount ?? 0;
-            $balance = $totalFees - $totalPaid - $discountAmount;
+            $totalPaid = (float) $studentFee->total_paid;
+            $totalFees = (float) $studentFee->total_amount + (float) $studentFee->grant_discount;
+            $discountAmount = (float) $studentFee->grant_discount;
+            $balance = (float) $studentFee->balance;
             
             // Check for approved promissory notes covering balance
             $approvedPromissoryAmount = $approvedPromissoryNotes->sum('amount');
