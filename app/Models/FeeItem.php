@@ -78,6 +78,14 @@ class FeeItem extends Model
     }
 
     /**
+     * Get the assignments for this fee item.
+     */
+    public function assignments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(FeeItemAssignment::class);
+    }
+
+    /**
      * Get the profit for this item.
      */
     public function getProfitAttribute(): float
