@@ -316,8 +316,6 @@ export default function OnlineTransactionsIndex({
                                 <TableHead>Student</TableHead>
                                 <TableHead>Provider</TableHead>
                                 <TableHead className="text-right">Amount</TableHead>
-                                <TableHead className="text-right">Fee</TableHead>
-                                <TableHead className="text-right">Net</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
@@ -326,7 +324,7 @@ export default function OnlineTransactionsIndex({
                         <TableBody>
                             {transactions.data.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                         No online transactions found.
                                     </TableCell>
                                 </TableRow>
@@ -354,8 +352,6 @@ export default function OnlineTransactionsIndex({
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right font-medium">{formatCurrency(transaction.amount)}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">{formatCurrency(transaction.fee)}</TableCell>
-                                        <TableCell className="text-right font-semibold">{formatCurrency(transaction.net_amount)}</TableCell>
                                         <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                                         <TableCell>{formatDateTime(transaction.created_at)}</TableCell>
                                         <TableCell className="text-right">
@@ -474,18 +470,9 @@ export default function OnlineTransactionsIndex({
                             </div>
 
                             <div className="rounded-lg bg-muted p-4 space-y-2">
-                                <div className="flex justify-between">
-                                    <span>Amount</span>
-                                    <span className="font-medium">{formatCurrency(selectedTransaction.amount)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Processing Fee</span>
-                                    <span>- {formatCurrency(selectedTransaction.fee)}</span>
-                                </div>
-                                <hr />
                                 <div className="flex justify-between font-semibold">
-                                    <span>Net Amount</span>
-                                    <span>{formatCurrency(selectedTransaction.net_amount)}</span>
+                                    <span>Amount</span>
+                                    <span className="text-lg">{formatCurrency(selectedTransaction.amount)}</span>
                                 </div>
                             </div>
 
