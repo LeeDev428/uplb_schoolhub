@@ -31,19 +31,7 @@ class EnsureStudentEnrolled
 
         // Check if student is enrolled
         if ($student->enrollment_status !== 'enrolled') {
-            // For Inertia requests, return an Inertia response
-            if ($request->header('X-Inertia')) {
-                return inertia('student/not-enrolled', [
-                    'student' => [
-                        'first_name' => $student->first_name,
-                        'last_name' => $student->last_name,
-                        'enrollment_status' => $student->enrollment_status,
-                    ],
-                    'message' => 'You must be officially enrolled to access this page.',
-                ]);
-            }
-
-            // For regular requests, redirect with error
+            // Redirect to dashboard with error message
             return redirect()->route('student.dashboard')
                 ->with('error', 'You must be officially enrolled to access this page.');
         }
