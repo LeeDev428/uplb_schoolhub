@@ -79,6 +79,9 @@ class StudentAccountController extends Controller
                 'student' => [
                     'id' => $student->id,
                     'full_name' => $student->full_name,
+                    'first_name' => $student->first_name,
+                    'last_name' => $student->last_name,
+                    'student_photo_url' => $student->student_photo_url,
                     'lrn' => $student->lrn,
                     'program' => $student->program,
                     'year_level' => $student->year_level,
