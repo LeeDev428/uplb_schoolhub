@@ -151,6 +151,12 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::post('documents/{document}/reject', [App\Http\Controllers\Registrar\DocumentRequestController::class, 'reject'])->name('documents.reject');
     Route::delete('documents/{document}', [App\Http\Controllers\Registrar\DocumentRequestController::class, 'destroy'])->name('documents.destroy');
 
+    // Document Request Approvals - Approve student requests for documents (transcripts, certificates, etc.)
+    Route::get('document-approvals', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'index'])->name('document-approvals.index');
+    Route::post('document-approvals/{documentRequest}/approve', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'approve'])->name('document-approvals.approve');
+    Route::post('document-approvals/{documentRequest}/reject', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'reject'])->name('document-approvals.reject');
+    Route::get('document-approvals/{documentRequest}/receipt', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'viewReceipt'])->name('document-approvals.receipt');
+
     // Academic Deadlines
     Route::resource('deadlines', \App\Http\Controllers\Registrar\RegistrarDeadlineController::class)->only([
         'index', 'store', 'update', 'destroy'
