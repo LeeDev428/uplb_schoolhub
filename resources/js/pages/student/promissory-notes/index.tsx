@@ -273,7 +273,6 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                                 </form>
                             </DialogContent>
                         </Dialog>
-                    )}
                 </div>
 
                 {/* Stats Cards */}
