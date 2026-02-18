@@ -244,7 +244,7 @@ export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
                     <FilterDropdown
                         label="Status"
                         value={statusFilter}
-                        onValueChange={handleStatusFilter}
+                        onChange={handleStatusFilter}
                         options={[
                             { value: 'all', label: 'All Status' },
                             { value: 'pending', label: 'Pending' },
