@@ -147,6 +147,10 @@ interface Props {
     grants: Grant[];
     summary: Summary;
     cashiers?: Cashier[];
+    currentUser: {
+        id: number;
+        name: string;
+    };
 }
 
 function formatCurrency(amount: number | null): string {
@@ -167,7 +171,7 @@ function formatDate(dateString: string): string {
     });
 }
 
-export default function PaymentProcess({ student, fees, payments, promissoryNotes, grants, summary, cashiers = [] }: Props) {
+export default function PaymentProcess({ student, fees, payments, promissoryNotes, grants, summary, cashiers = [], currentUser }: Props) {
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
     const [isPromissoryDialogOpen, setIsPromissoryDialogOpen] = useState(false);
     const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('all');
