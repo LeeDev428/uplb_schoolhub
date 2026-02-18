@@ -24,6 +24,21 @@ class DocumentRequest extends Model
         'remarks',
         'processed_by',
         'released_by',
+        // New fields
+        'document_fee_item_id',
+        'processing_type',
+        'processing_days',
+        'receipt_file_path',
+        'receipt_number',
+        'registrar_status',
+        'registrar_approved_by',
+        'registrar_approved_at',
+        'registrar_remarks',
+        'accounting_status',
+        'accounting_approved_by',
+        'accounting_approved_at',
+        'accounting_remarks',
+        'expected_completion_date',
     ];
 
     protected $casts = [
@@ -32,6 +47,10 @@ class DocumentRequest extends Model
         'is_paid' => 'boolean',
         'request_date' => 'date',
         'release_date' => 'date',
+        'processing_days' => 'integer',
+        'registrar_approved_at' => 'datetime',
+        'accounting_approved_at' => 'datetime',
+        'expected_completion_date' => 'date',
     ];
 
     /**
