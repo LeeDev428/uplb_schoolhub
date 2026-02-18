@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
     Collapsible,
@@ -71,14 +71,23 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
                     return (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
-                                asChild
+                                asChild={!item.locked}
                                 isActive={item.href ? isCurrentUrl(item.href) : false}
                                 tooltip={{ children: item.title }}
+                                disabled={item.locked}
                             >
-                                <Link href={item.href!} prefetch>
-                                    {item.icon && <item.icon />}
-                                    <span>{item.title}</span>
-                                </Link>
+                                {item.locked ? (
+                                    <div className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+                                        {item.icon && <item.icon />}
+                                        <span>{item.title}</span>
+                                        <Lock className="ml-auto h-4 w-4" />
+                                    </div>
+                                ) : (
+                                    <Link href={item.href!} prefetch>
+                                        {item.icon && <item.icon />}
+                                        <span>{item.title}</span>
+                                    </Link>
+                                )}
                             </SidebarMenuButton>
                             {item.badge != null && Number(item.badge) > 0 && (
                                 <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
