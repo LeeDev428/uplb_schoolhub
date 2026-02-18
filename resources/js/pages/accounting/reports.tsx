@@ -40,6 +40,9 @@ interface Student {
     id: number;
     lrn: string;
     full_name: string;
+    first_name?: string;
+    last_name?: string;
+    student_photo_url?: string | null;
     program?: string;
     year_level?: string;
 }
