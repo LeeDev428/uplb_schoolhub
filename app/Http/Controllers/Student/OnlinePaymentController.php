@@ -94,15 +94,20 @@ class OnlinePaymentController extends Controller
             $receiptPath = $request->file('receipt_image')->store('online-payments/receipts', 'public');
         }
 
+        // Generate unique transaction ID
+        $transactionId = 'OT-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+
         // Create online transaction
         OnlineTransaction::create([
             'student_id' => $student->id,
+            'transaction_id' => $transactionId,
             'amount' => $validated['amount'],
             'payment_method' => $validated['payment_method'],
             'reference_number' => $validated['reference_number'],
-            'receipt_url' => $receiptPath,
-            'notes' => $validated['notes'],
+            'payment_proof' => $receiptPath,
+            'transaction_date' => now(),
             'status' => 'pending',
+            'remarks' => $validated['notes'] ?? null,
         ]);
 
         return redirect()->back()->with('success', 'Payment submitted successfully. Please wait for verification.');
