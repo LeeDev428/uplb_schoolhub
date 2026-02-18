@@ -68,6 +68,7 @@ class OnlineTransactionController extends Controller
                 'provider_reference' => $transaction->reference_number,
                 'provider_status' => null,
                 'payment_details' => null,
+                'payment_proof_url' => $transaction->payment_proof,
                 'verified_at' => $transaction->verified_at,
                 'failed_at' => null,
                 'refunded_at' => null,
