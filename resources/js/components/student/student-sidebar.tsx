@@ -72,12 +72,7 @@ export function StudentSidebar() {
             title: 'Schedules',
             href: '/student/schedules',
             icon: Calendar,
-            locked: !isEnrolledtion,
-        },
-        {
-            title: 'Schedules',
-            href: '/student/schedules',
-            icon: Calendar,
+            locked: !isEnrolled,
         },
         {
             title: 'Document Requests',
