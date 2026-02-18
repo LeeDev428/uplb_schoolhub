@@ -34,7 +34,12 @@ interface PaymentInfo {
     discount_amount: number;
     total_paid: number;
     balance: number;
+    effective_balance: number;
+    promissory_amount: number;
     is_fully_paid: boolean;
+    is_overdue: boolean;
+    due_date: string | null;
+    has_promissory: boolean;
 }
 
 interface IncompleteRequirement {
@@ -360,6 +365,90 @@ export default function Dashboard({ student, stats, enrollmentClearance, payment
                                     </div>
                                     <p className="mt-2 text-sm text-center">Enrolled</p>
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Payment Summary Card - Always visible for all students */}
+                {paymentInfo && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <CreditCard className="h-5 w-5" />
+                                Payment Summary
+                            </CardTitle>
+                            <CardDescription>Your current payment status</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Total Fees</p>
+                                    <p className="text-2xl font-bold">{formatCurrency(paymentInfo.total_fees)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Total Paid</p>
+                                    <p className="text-2xl font-bold text-green-600">{formatCurrency(paymentInfo.total_paid)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">
+                                        {paymentInfo.discount_amount > 0 ? 'Discount Applied' : 'Discount'}
+                                    </p>
+                                    <p className="text-2xl font-bold text-blue-600">
+                                        {paymentInfo.discount_amount > 0 ? `-${formatCurrency(paymentInfo.discount_amount)}` : formatCurrency(0)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Balance</p>
+                                    <p className={`text-2xl font-bold ${paymentInfo.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                        {formatCurrency(paymentInfo.balance)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Status badges */}
+                            <div className="flex flex-wrap gap-2 pt-4 border-t">
+                                {paymentInfo.is_fully_paid ? (
+                                    <Badge className="bg-green-100 text-green-800">
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        Fully Paid
+                                    </Badge>
+                                ) : (
+                                    <Badge className="bg-yellow-100 text-yellow-800">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        Balance Due
+                                    </Badge>
+                                )}
+
+                                {paymentInfo.is_overdue && (
+                                    <Badge className="bg-red-100 text-red-800">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        Overdue
+                                    </Badge>
+                                )}
+
+                                {paymentInfo.has_promissory && (
+                                    <Badge className="bg-blue-100 text-blue-800">
+                                        <FileText className="h-3 w-3 mr-1" />
+                                        Promissory Note Active ({formatCurrency(paymentInfo.promissory_amount)})
+                                    </Badge>
+                                )}
+
+                                {paymentInfo.due_date && (
+                                    <Badge variant="outline">
+                                        Due: {new Date(paymentInfo.due_date).toLocaleDateString()}
+                                    </Badge>
+                                )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-2 pt-2">
+                                <Link href="/student/online-payments">
+                                    <Button variant="outline" size="sm">
+                                        <CreditCard className="h-4 w-4 mr-2" />
+                                        Make Online Payment
+                                    </Button>
+                                </Link>
                             </div>
                         </CardContent>
                     </Card>
