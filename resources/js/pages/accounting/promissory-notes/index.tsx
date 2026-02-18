@@ -41,7 +41,9 @@ import {
     Filter,
     User,
 } from 'lucide-react';
-import { FilterBar, SearchBar, FilterDropdown } from '@/components/filters';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { SearchBar } from '@/components/filters/search-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
 
 interface PromissoryNote {
     id: number;
