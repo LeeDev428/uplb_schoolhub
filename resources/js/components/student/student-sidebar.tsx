@@ -12,6 +12,7 @@ import {
     FileSignature,
     FileText,
     CreditCard,
+    Lock,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -36,7 +37,12 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function StudentSidebar() {
-    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+    const { announcementCount, auth } = usePage<{ 
+        announcementCount: number;
+        auth: { user: { student?: { enrollment_status?: string } } };
+    }>().props;
+    
+    const isEnrolled = auth.user.student?.enrollment_status === 'enrolled';
 
     const mainNavItems: NavItem[] = [
         {
@@ -54,16 +60,19 @@ export function StudentSidebar() {
             title: 'My Requirements',
             href: '/student/requirements',
             icon: FileCheck,
-        },
-        {
-            title: 'Subjects',
-            href: '/student/subjects',
-            icon: BookOpen,
+            locked: !isEnrolled,
         },
         {
             title: 'Quizzes',
             href: '/student/quizzes',
             icon: FileQuestion,
+            locked: !isEnrolled,
+        },
+        {
+            title: 'Schedules',
+            href: '/student/schedules',
+            icon: Calendar,
+            locked: !isEnrolledtion,
         },
         {
             title: 'Schedules',
