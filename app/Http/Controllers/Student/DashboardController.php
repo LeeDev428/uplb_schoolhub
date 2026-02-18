@@ -36,7 +36,7 @@ class DashboardController extends Controller
 
         if ($studentFee) {
             $totalPaid = (float) $studentFee->total_paid;
-            $totalFees = (float) $studentFee->total_amount + (float) $studentFee->grant_discount;
+            $totalFees = (float) $studentFee->total_amount;
             $discountAmount = (float) $studentFee->grant_discount;
             $balance = (float) $studentFee->balance;
             
