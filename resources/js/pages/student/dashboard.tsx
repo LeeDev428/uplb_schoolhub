@@ -1,8 +1,10 @@
-import { Head } from '@inertiajs/react';
-import { CheckCircle, Clock, FileText, GraduationCap } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { AlertTriangle, CheckCircle, Clock, FileText, GraduationCap, CreditCard, XCircle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import StudentLayout from '@/layouts/student/student-layout';
 
 interface Requirement {
@@ -27,6 +29,20 @@ interface EnrollmentClearance {
     enrollment_status: string;
 }
 
+interface PaymentInfo {
+    total_fees: number;
+    discount_amount: number;
+    total_paid: number;
+    balance: number;
+    is_fully_paid: boolean;
+}
+
+interface IncompleteRequirement {
+    id: number;
+    name: string;
+    status: string;
+}
+
 interface Student {
     id: number;
     first_name: string;
@@ -47,9 +63,18 @@ interface Props {
         requirementsPercentage: number;
     };
     enrollmentClearance: EnrollmentClearance | null;
+    paymentInfo: PaymentInfo | null;
+    incompleteRequirements: IncompleteRequirement[];
 }
 
-export default function Dashboard({ student, stats, enrollmentClearance }: Props) {
+export default function Dashboard({ student, stats, enrollmentClearance, paymentInfo, incompleteRequirements }: Props) {
+    const formatCurrency = (amount: number) => {
+        return `₱${amount.toLocaleString('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    };
+
     const getStatusBadge = (status: string) => {
         const colors = {
             'not-enrolled': 'bg-gray-100 text-gray-800',
@@ -61,11 +86,127 @@ export default function Dashboard({ student, stats, enrollmentClearance }: Props
         return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
     };
 
+    const isNotEnrolled = student.enrollment_status !== 'enrolled';
+
     return (
         <StudentLayout>
             <Head title="Dashboard" />
 
             <div className="space-y-6 p-6">
+                {/* Unenrolled Warning Banner */}
+                {isNotEnrolled && (
+                    <Alert variant="destructive" className="border-2 border-red-500 bg-red-50">
+                        <AlertTriangle className="h-6 w-6" />
+                        <AlertTitle className="text-lg font-bold">You are NOT officially enrolled</AlertTitle>
+                        <AlertDescription className="mt-2">
+                            <p className="text-base mb-4">
+                                Your enrollment status is <strong className="uppercase">{student.enrollment_status.replace(/-/g, ' ')}</strong>.
+                                You need to complete the following before you can be officially enrolled:
+                            </p>
+                            
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {/* Payment Status */}
+                                {paymentInfo && (
+                                    <Card className="bg-white">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm flex items-center gap-2">
+                                                <CreditCard className="h-4 w-4" />
+                                                Payment Status
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span>Total Fees:</span>
+                                                <span>{formatCurrency(paymentInfo.total_fees)}</span>
+                                            </div>
+                                            {paymentInfo.discount_amount > 0 && (
+                                                <div className="flex justify-between text-sm text-green-600">
+                                                    <span>Discount:</span>
+                                                    <span>-{formatCurrency(paymentInfo.discount_amount)}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between text-sm">
+                                                <span>Total Paid:</span>
+                                                <span>{formatCurrency(paymentInfo.total_paid)}</span>
+                                            </div>
+                                            <div className="flex justify-between font-bold pt-2 border-t">
+                                                <span>Balance:</span>
+                                                <span className={paymentInfo.balance > 0 ? 'text-red-600' : 'text-green-600'}>
+                                                    {formatCurrency(paymentInfo.balance)}
+                                                </span>
+                                            </div>
+                                            {paymentInfo.is_fully_paid ? (
+                                                <Badge className="w-full justify-center bg-green-100 text-green-800">
+                                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                                    Fully Paid
+                                                </Badge>
+                                            ) : (
+                                                <Badge className="w-full justify-center bg-red-100 text-red-800">
+                                                    <XCircle className="h-3 w-3 mr-1" />
+                                                    Balance Due
+                                                </Badge>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {/* Incomplete Requirements */}
+                                {incompleteRequirements.length > 0 && (
+                                    <Card className="bg-white">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm flex items-center gap-2">
+                                                <FileText className="h-4 w-4" />
+                                                Incomplete Requirements ({incompleteRequirements.length})
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ul className="space-y-1 text-sm max-h-32 overflow-y-auto">
+                                                {incompleteRequirements.slice(0, 5).map((req) => (
+                                                    <li key={req.id} className="flex items-center justify-between">
+                                                        <span className="truncate">{req.name}</span>
+                                                        <Badge variant="outline" className="text-xs">
+                                                            {req.status}
+                                                        </Badge>
+                                                    </li>
+                                                ))}
+                                                {incompleteRequirements.length > 5 && (
+                                                    <li className="text-muted-foreground">
+                                                        and {incompleteRequirements.length - 5} more...
+                                                    </li>
+                                                )}
+                                            </ul>
+                                            <Link href="/student/requirements">
+                                                <Button variant="outline" size="sm" className="w-full mt-3">
+                                                    View All Requirements
+                                                    <ArrowRight className="h-3 w-3 ml-2" />
+                                                </Button>
+                                            </Link>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
+
+                            {/* Clearance Status Summary */}
+                            {enrollmentClearance && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <Badge className={enrollmentClearance.requirements_complete ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                                        {enrollmentClearance.requirements_complete ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                                        Requirements
+                                    </Badge>
+                                    <Badge className={enrollmentClearance.registrar_clearance ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                                        {enrollmentClearance.registrar_clearance ? <CheckCircle className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
+                                        Registrar Clearance
+                                    </Badge>
+                                    <Badge className={enrollmentClearance.accounting_clearance ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                                        {enrollmentClearance.accounting_clearance ? <CheckCircle className="h-3 w-3 mr-1" /> : <Clock className="h-3 w-3 mr-1" />}
+                                        Accounting Clearance
+                                    </Badge>
+                                </div>
+                            )}
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {/* Welcome Header */}
                 <div>
                     <h1 className="text-3xl font-bold">
