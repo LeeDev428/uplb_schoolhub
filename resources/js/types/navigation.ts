@@ -12,6 +12,7 @@ export type NavItem = {
     icon?: LucideIcon | null;
     isActive?: boolean;
     badge?: number | string | null;
+    locked?: boolean; // For items that require enrollment
     items?: {
         title: string;
         href: NonNullable<InertiaLinkProps['href']>;
