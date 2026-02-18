@@ -94,40 +94,45 @@ class PromissoryNoteController extends Controller
         }
 
         $validated = $request->validate([
-            'student_fee_id' => 'required|exists:student_fees,id',
-            'amount' => 'required|numeric|min:0.01',
+            'student_fee_id' => 'nullable|exists:student_fees,id',
+            'amount' => 'nullable|numeric|min:0.01',
             'due_date' => 'required|date|after:today',
             'reason' => 'required|string|max:1000',
         ]);
 
-        // Check if the fee belongs to this student
-        $fee = StudentFee::where('id', $validated['student_fee_id'])
-            ->where('student_id', $student->id)
-            ->first();
+        // If fee is provided, check if it belongs to this student
+        $fee = null;
+        if (!empty($validated['student_fee_id'])) {
+            $fee = StudentFee::where('id', $validated['student_fee_id'])
+                ->where('student_id', $student->id)
+                ->first();
 
-        if (!$fee) {
-            return back()->withErrors(['error' => 'Invalid fee selected.']);
+            if (!$fee) {
+                return back()->withErrors(['error' => 'Invalid fee selected.']);
+            }
+
+            // Check if amount doesn't exceed balance (only if amount is provided)
+            if (!empty($validated['amount']) && $validated['amount'] > $fee->balance) {
+                return back()->withErrors(['amount' => 'Amount cannot exceed the remaining balance.']);
+            }
         }
 
-        // Check if amount doesn't exceed balance
-        if ($validated['amount'] > $fee->balance) {
-            return back()->withErrors(['amount' => 'Amount cannot exceed the remaining balance.']);
+        // Check for existing pending promissory note for this student
+        $existingQuery = PromissoryNote::where('student_id', $student->id)
+            ->where('status', 'pending');
+        
+        if (!empty($validated['student_fee_id'])) {
+            $existingQuery->where('student_fee_id', $validated['student_fee_id']);
         }
-
-        // Check for existing pending promissory note for the same fee
-        $existingPending = PromissoryNote::where('student_id', $student->id)
-            ->where('student_fee_id', $validated['student_fee_id'])
-            ->where('status', 'pending')
-            ->exists();
-
-        if ($existingPending) {
-            return back()->withErrors(['error' => 'You already have a pending promissory note for this fee.']);
+        
+        if ($existingQuery->exists()) {
+            return back()->withErrors(['error' => 'You already have a pending promissory note.']);
         }
 
         PromissoryNote::create([
             'student_id' => $student->id,
-            'student_fee_id' => $validated['student_fee_id'],
-            'amount' => $validated['amount'],
+            'student_fee_id' => $validated['student_fee_id'] ?? null,
+            'amount' => $validated['amount'] ?? null,
             'submitted_date' => now(),
             'due_date' => $validated['due_date'],
             'reason' => $validated['reason'],
