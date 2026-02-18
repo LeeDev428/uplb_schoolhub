@@ -76,8 +76,8 @@ export function StudentSidebar() {
             icon: FileText,
         },
         {
-            title: 'Payments',
-            href: '/student/payments',
+            title: 'Online Payments',
+            href: '/student/online-payments',
             icon: CreditCard,
         },
         {
