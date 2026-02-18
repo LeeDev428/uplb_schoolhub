@@ -44,7 +44,7 @@ class PromissoryNoteController extends Controller
                     'student_fee_id' => $note->student_fee_id,
                     'submitted_date' => $note->submitted_date->format('M d, Y'),
                     'due_date' => $note->due_date->format('M d, Y'),
-                    'amount' => (float) $note->amount,
+                    'amount' => $note->amount !== null ? (float) $note->amount : null,
                     'reason' => $note->reason,
                     'status' => $note->status,
                     'reviewed_by' => $note->reviewer?->name,
