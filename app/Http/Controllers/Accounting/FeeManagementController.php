@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\DocumentFeeItem;
 use App\Models\FeeCategory;
 use App\Models\FeeItem;
+use App\Models\FeeItemAssignment;
 use App\Models\Program;
 use App\Models\Section;
 use App\Models\YearLevel;
@@ -319,6 +320,64 @@ class FeeManagementController extends Controller
         $documentFee->delete();
 
         return redirect()->back()->with('success', 'Document fee item deleted successfully.');
+    }
+
+    /**
+     * Get fee assignments for a specific classification/department/year_level.
+     */
+    public function getAssignments(Request $request)
+    {
+        $validated = $request->validate([
+            'classification' => 'required|string',
+            'department_id' => 'required|exists:departments,id',
+            'year_level_id' => 'required|exists:year_levels,id',
+        ]);
+
+        $assignments = FeeItemAssignment::where('classification', $validated['classification'])
+            ->where('department_id', $validated['department_id'])
+            ->where('year_level_id', $validated['year_level_id'])
+            ->pluck('fee_item_id')
+            ->toArray();
+
+        return response()->json([
+            'assignments' => $assignments,
+        ]);
+    }
+
+    /**
+     * Save fee assignments for a specific classification/department/year_level.
+     */
+    public function saveAssignments(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'classification' => 'required|string',
+            'department_id' => 'required|exists:departments,id',
+            'year_level_id' => 'required|exists:year_levels,id',
+            'fee_item_ids' => 'array',
+            'fee_item_ids.*' => 'exists:fee_items,id',
+            'school_year' => 'required|string',
+        ]);
+
+        // Delete existing assignments for this combination
+        FeeItemAssignment::where('classification', $validated['classification'])
+            ->where('department_id', $validated['department_id'])
+            ->where('year_level_id', $validated['year_level_id'])
+            ->delete();
+
+        // Create new assignments
+        $feeItemIds = $validated['fee_item_ids'] ?? [];
+        foreach ($feeItemIds as $feeItemId) {
+            FeeItemAssignment::create([
+                'fee_item_id' => $feeItemId,
+                'classification' => $validated['classification'],
+                'department_id' => $validated['department_id'],
+                'year_level_id' => $validated['year_level_id'],
+                'school_year' => $validated['school_year'],
+                'is_active' => true,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Fee assignments saved successfully.');
     }
 
 }
