@@ -220,10 +220,37 @@ class StudentPaymentController extends Controller
             }
         }
 
+        // Calculate aggregate financial statistics for all students
+        $currentYear = date('Y') . '-' . (date('Y') + 1);
+        
+        // Get all fees for current year to calculate statistics
+        $allCurrentFees = StudentFee::where('school_year', $currentYear)->get();
+        
+        // Calculate original tuition (tuition_fee before grant discount)
+        $totalTuitionFees = $allCurrentFees->sum('tuition_fee');
+        $totalGrantDiscounts = $allCurrentFees->sum('grant_discount');
+        
+        // Calculate total fees after discount (registration + tuition + misc + books + other)
+        $totalFeesAfterDiscount = $allCurrentFees->sum('total_amount');
+        
+        // Calculate previous balance (from all previous years)
+        $totalPreviousBalance = StudentFee::where('school_year', '!=', $currentYear)->sum('balance');
+        
+        // Calculate total balance to pay (current year balance + previous balance)
+        $totalCurrentBalance = $allCurrentFees->sum('balance');
+        $totalBalanceToPay = $totalCurrentBalance + $totalPreviousBalance;
+
         return Inertia::render('accounting/payments/index', [
             'students' => $students,
             'selectedStudent' => $paymentData,
             'filters' => $request->only(['search', 'enrollment_status', 'student_id']),
+            'statistics' => [
+                'original_tuition' => $totalTuitionFees,
+                'grant_deduction' => $totalGrantDiscounts,
+                'total_tuition_fees' => $totalTuitionFees - $totalGrantDiscounts,
+                'previous_balance' => $totalPreviousBalance,
+                'total_balance_to_pay' => $totalBalanceToPay,
+            ],
         ]);
     }
 
