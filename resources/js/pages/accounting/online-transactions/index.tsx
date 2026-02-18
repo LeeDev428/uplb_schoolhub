@@ -64,6 +64,7 @@ interface OnlineTransaction {
     provider_reference?: string;
     provider_status?: string;
     payment_details?: Record<string, any>;
+    payment_proof_url?: string;
     verified_at?: string;
     failed_at?: string;
     refunded_at?: string;
@@ -530,6 +531,19 @@ export default function OnlineTransactionsIndex({
                                 <div className="text-sm">
                                     <p className="text-muted-foreground">Remarks</p>
                                     <p>{selectedTransaction.remarks}</p>
+                                </div>
+                            )}
+
+                            {selectedTransaction.payment_proof_url && (
+                                <div>
+                                    <p className="text-muted-foreground text-sm mb-2">Payment Proof / Receipt Screenshot</p>
+                                    <div className="border rounded-lg overflow-hidden">
+                                        <img 
+                                            src={selectedTransaction.payment_proof_url} 
+                                            alt="Payment proof"
+                                            className="w-full h-auto max-h-96 object-contain bg-gray-50"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>
