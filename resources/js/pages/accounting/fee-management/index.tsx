@@ -46,7 +46,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw, FileText, Clock } from 'lucide-react';
 
 interface FeeItem {
     id: number;
@@ -109,6 +110,17 @@ interface Section {
     classification: string;
 }
 
+interface DocumentFeeItem {
+    id: number;
+    category: string;
+    name: string;
+    price: string;
+    processing_days: number;
+    processing_type: 'normal' | 'rush';
+    description?: string;
+    is_active: boolean;
+}
+
 interface Props {
     categories: FeeCategory[];
     totals: {
@@ -120,13 +132,19 @@ interface Props {
     programs: Program[];
     yearLevels: YearLevel[];
     sections: Section[];
+    documentFees: DocumentFeeItem[];
+    documentCategories: string[];
+    tab: string;
 }
 
-export default function FeeManagementIndex({ categories, totals, departments, programs, yearLevels, sections }: Props) {
+export default function FeeManagementIndex({ categories, totals, departments, programs, yearLevels, sections, documentFees, documentCategories, tab }: Props) {
+    const [activeTab, setActiveTab] = useState(tab || 'general');
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+    const [isDocFeeModalOpen, setIsDocFeeModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<FeeCategory | null>(null);
     const [editingItem, setEditingItem] = useState<FeeItem | null>(null);
+    const [editingDocFee, setEditingDocFee] = useState<DocumentFeeItem | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     const categoryForm = useForm({
@@ -134,6 +152,16 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         code: '',
         description: '',
         sort_order: 0,
+        is_active: true,
+    });
+
+    const docFeeForm = useForm({
+        category: '',
+        name: '',
+        price: '',
+        processing_days: 5,
+        processing_type: 'normal' as 'normal' | 'rush',
+        description: '',
         is_active: true,
     });
 
@@ -293,6 +321,66 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         }
     };
 
+    // Document Fee Handlers
+    const openDocFeeModal = (docFee?: DocumentFeeItem) => {
+        if (docFee) {
+            setEditingDocFee(docFee);
+            docFeeForm.setData({
+                category: docFee.category,
+                name: docFee.name,
+                price: docFee.price,
+                processing_days: docFee.processing_days,
+                processing_type: docFee.processing_type,
+                description: docFee.description || '',
+                is_active: docFee.is_active,
+            });
+        } else {
+            setEditingDocFee(null);
+            docFeeForm.reset();
+        }
+        setIsDocFeeModalOpen(true);
+    };
+
+    const handleDocFeeSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingDocFee) {
+            docFeeForm.put(`/accounting/fee-management/document-fees/${editingDocFee.id}`, {
+                onSuccess: () => {
+                    setIsDocFeeModalOpen(false);
+                    docFeeForm.reset();
+                    setEditingDocFee(null);
+                },
+            });
+        } else {
+            docFeeForm.post('/accounting/fee-management/document-fees', {
+                onSuccess: () => {
+                    setIsDocFeeModalOpen(false);
+                    docFeeForm.reset();
+                },
+            });
+        }
+    };
+
+    const handleDeleteDocFee = (id: number) => {
+        if (confirm('Are you sure you want to delete this document fee item?')) {
+            router.delete(`/accounting/fee-management/document-fees/${id}`);
+        }
+    };
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        router.get('/accounting/fee-management', { tab: value }, { preserveState: true, preserveScroll: true });
+    };
+
+    // Group document fees by category
+    const groupedDocFees = documentFees?.reduce((acc, fee) => {
+        if (!acc[fee.category]) {
+            acc[fee.category] = [];
+        }
+        acc[fee.category].push(fee);
+        return acc;
+    }, {} as Record<string, DocumentFeeItem[]>) || {};
+
     return (
         <AccountingLayout>
             <Head title="Fee Management" />
@@ -300,9 +388,11 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
             <div className="space-y-6 p-6">
                 <PageHeader
                     title="Fee Management"
-                    description="Manage fee categories and items with cost, selling price, and profit tracking"
+                    description="Manage fee categories, items, and document request fees"
                     action={
                         <div className="flex gap-2">
+                            {activeTab === 'general' && (
+                            <>
                             <Button variant="outline" onClick={handleRecalculateFees}>
                                 <RefreshCw className="mr-2 h-4 w-4" />
                                 Recalculate All Fees
@@ -384,22 +474,37 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                 </form>
                             </DialogContent>
                         </Dialog>
+                        </>
+                        )}
+                        {activeTab === 'documents' && (
+                            <Button onClick={() => openDocFeeModal()}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Document Fee
+                            </Button>
+                        )}
                         </div>
                     }
                 />
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
-                            <Calculator className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(totals?.cost ?? 0)}</div>
-                            <p className="text-xs text-muted-foreground">Base cost of all fee items</p>
-                        </CardContent>
-                    </Card>
+                <Tabs value={activeTab} onValueChange={handleTabChange}>
+                    <TabsList className="grid w-full grid-cols-2 max-w-md">
+                        <TabsTrigger value="general">General Fees</TabsTrigger>
+                        <TabsTrigger value="documents">Document Fees</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="general" className="space-y-6 mt-6">
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+                                    <Calculator className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{formatCurrency(totals?.cost ?? 0)}</div>
+                                    <p className="text-xs text-muted-foreground">Base cost of all fee items</p>
+                                </CardContent>
+                            </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Selling</CardTitle>
@@ -559,7 +664,220 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                         ))}
                     </Accordion>
                 )}
+                    </TabsContent>
+
+                    <TabsContent value="documents" className="space-y-6 mt-6">
+                        {/* Document Fee Categories */}
+                        {Object.keys(groupedDocFees).length === 0 ? (
+                            <Card>
+                                <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                    <FileText className="h-12 w-12 mb-4" />
+                                    <p>No document fees configured yet.</p>
+                                    <p className="text-sm mt-2">Add document fees for items like transcripts, certificates, etc.</p>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="space-y-6">
+                                {Object.entries(groupedDocFees).map(([category, fees]) => (
+                                    <Card key={category}>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <FileText className="h-5 w-5" />
+                                                {category}
+                                            </CardTitle>
+                                            <CardDescription>
+                                                {fees.length} fee option{fees.length !== 1 ? 's' : ''} available
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Name</TableHead>
+                                                        <TableHead>Type</TableHead>
+                                                        <TableHead>Processing Days</TableHead>
+                                                        <TableHead className="text-right">Price</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead className="text-right">Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {fees.map((fee) => (
+                                                        <TableRow key={fee.id}>
+                                                            <TableCell className="font-medium">{fee.name}</TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={fee.processing_type === 'rush' ? 'destructive' : 'secondary'}>
+                                                                    {fee.processing_type === 'rush' ? 'Rush' : 'Normal'}
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell className="flex items-center gap-1">
+                                                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                                                {fee.processing_days} day{fee.processing_days !== 1 ? 's' : ''}
+                                                            </TableCell>
+                                                            <TableCell className="text-right font-medium">
+                                                                {formatCurrency(fee.price)}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={fee.is_active ? 'default' : 'outline'}>
+                                                                    {fee.is_active ? 'Active' : 'Inactive'}
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button variant="ghost" size="icon">
+                                                                            <MoreHorizontal className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end">
+                                                                        <DropdownMenuItem onClick={() => openDocFeeModal(fee)}>
+                                                                            <Edit className="h-4 w-4 mr-2" />
+                                                                            Edit
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => handleDeleteDocFee(fee.id)}
+                                                                            className="text-red-600"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                                            Delete
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </TabsContent>
+                </Tabs>
             </div>
+
+            {/* Document Fee Modal */}
+            <Dialog open={isDocFeeModalOpen} onOpenChange={(open) => {
+                setIsDocFeeModalOpen(open);
+                if (!open) {
+                    setEditingDocFee(null);
+                    docFeeForm.reset();
+                }
+            }}>
+                <DialogContent className="max-w-md">
+                    <form onSubmit={handleDocFeeSubmit}>
+                        <DialogHeader>
+                            <DialogTitle>{editingDocFee ? 'Edit Document Fee' : 'Add Document Fee'}</DialogTitle>
+                            <DialogDescription>
+                                {editingDocFee ? 'Update document fee details' : 'Create a new document fee item'}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="doc_category">Category *</Label>
+                                <div className="flex gap-2">
+                                    <Select
+                                        value={docFeeForm.data.category}
+                                        onValueChange={(value) => docFeeForm.setData('category', value)}
+                                    >
+                                        <SelectTrigger className="flex-1">
+                                            <SelectValue placeholder="Select or type category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {documentCategories?.map((cat) => (
+                                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                            ))}
+                                            <SelectItem value="__new__">+ Add New Category</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {docFeeForm.data.category === '__new__' && (
+                                    <Input
+                                        placeholder="Enter new category name"
+                                        onChange={(e) => docFeeForm.setData('category', e.target.value)}
+                                    />
+                                )}
+                                {docFeeForm.errors.category && <p className="text-sm text-red-500">{docFeeForm.errors.category}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="doc_name">Name *</Label>
+                                <Input
+                                    id="doc_name"
+                                    value={docFeeForm.data.name}
+                                    onChange={(e) => docFeeForm.setData('name', e.target.value)}
+                                    placeholder="e.g., Form 137 (Normal Processing)"
+                                />
+                                {docFeeForm.errors.name && <p className="text-sm text-red-500">{docFeeForm.errors.name}</p>}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="doc_price">Price *</Label>
+                                    <Input
+                                        id="doc_price"
+                                        type="number"
+                                        step="0.01"
+                                        value={docFeeForm.data.price}
+                                        onChange={(e) => docFeeForm.setData('price', e.target.value)}
+                                        placeholder="0.00"
+                                    />
+                                    {docFeeForm.errors.price && <p className="text-sm text-red-500">{docFeeForm.errors.price}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="doc_days">Processing Days *</Label>
+                                    <Input
+                                        id="doc_days"
+                                        type="number"
+                                        min="1"
+                                        value={docFeeForm.data.processing_days}
+                                        onChange={(e) => docFeeForm.setData('processing_days', parseInt(e.target.value) || 1)}
+                                    />
+                                    {docFeeForm.errors.processing_days && <p className="text-sm text-red-500">{docFeeForm.errors.processing_days}</p>}
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Processing Type *</Label>
+                                <RadioGroup
+                                    value={docFeeForm.data.processing_type}
+                                    onValueChange={(value: 'normal' | 'rush') => docFeeForm.setData('processing_type', value)}
+                                    className="flex gap-4"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="normal" id="type_normal" />
+                                        <Label htmlFor="type_normal">Normal</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="rush" id="type_rush" />
+                                        <Label htmlFor="type_rush">Rush</Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="doc_description">Description</Label>
+                                <Textarea
+                                    id="doc_description"
+                                    value={docFeeForm.data.description}
+                                    onChange={(e) => docFeeForm.setData('description', e.target.value)}
+                                    placeholder="Optional description..."
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id="doc_is_active"
+                                    checked={docFeeForm.data.is_active}
+                                    onCheckedChange={(checked) => docFeeForm.setData('is_active', checked)}
+                                />
+                                <Label htmlFor="doc_is_active">Active</Label>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit" disabled={docFeeForm.processing}>
+                                {editingDocFee ? 'Update' : 'Create'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* Item Modal */}
             <Dialog open={isItemModalOpen} onOpenChange={(open) => {
