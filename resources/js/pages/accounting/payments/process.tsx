@@ -177,7 +177,6 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
     const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('all');
     const [printReceipt, setPrintReceipt] = useState(true);
     const [amountReceived, setAmountReceived] = useState<string>('');
-    const [selectedCashier, setSelectedCashier] = useState<string>('');
 
     // Payment allocation calculation
     const paymentAllocation = useMemo(() => {
@@ -219,9 +218,8 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
         payment_mode: 'CASH',
         reference_number: '',
         bank_name: '',
-        payment_for: 'general',
+        payment_for: 'tuition',
         notes: '',
-        cashier_id: '',
         print_receipt: true,
     });
 
