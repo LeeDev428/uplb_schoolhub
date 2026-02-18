@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('student_payments', function (Blueprint $table) {
-            $table->enum('payment_mode', ['CASH', 'GCASH', 'BANK'])->default('CASH')->after('payment_for');
-            $table->string('reference_number')->nullable()->after('payment_mode');
+            if (!Schema::hasColumn('student_payments', 'payment_mode')) {
+                $table->enum('payment_mode', ['CASH', 'GCASH', 'BANK'])->default('CASH')->after('payment_for');
+            }
+            if (!Schema::hasColumn('student_payments', 'reference_number')) {
+                $table->string('reference_number')->nullable()->after('payment_mode');
+            }
         });
     }
 
