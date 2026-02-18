@@ -82,6 +82,11 @@ class PromissoryNote extends Model
             'reviewed_at' => now(),
             'review_notes' => $notes,
         ]);
+        
+        // Clear overdue status on the associated student fee
+        if ($this->studentFee) {
+            $this->studentFee->clearOverdue();
+        }
     }
 
     /**
