@@ -19,7 +19,7 @@ class PromissoryNoteController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-        $student = Student::where('email', $user->email)->first();
+        $student = $user->student;
         
         if (!$student) {
             return Inertia::render('student/promissory-notes/index', [
@@ -87,7 +87,7 @@ class PromissoryNoteController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = auth()->user();
-        $student = Student::where('email', $user->email)->first();
+        $student = $user->student;
         
         if (!$student) {
             return back()->withErrors(['error' => 'Student record not found.']);
@@ -148,7 +148,7 @@ class PromissoryNoteController extends Controller
     public function cancel(PromissoryNote $note): RedirectResponse
     {
         $user = auth()->user();
-        $student = Student::where('email', $user->email)->first();
+        $student = $user->student;
         
         if (!$student || $note->student_id !== $student->id) {
             return back()->withErrors(['error' => 'Unauthorized action.']);
