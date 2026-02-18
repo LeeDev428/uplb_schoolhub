@@ -192,17 +192,17 @@ export default function OnlineTransactionsIndex({
     const getProviderIcon = (provider: string) => {
         switch (provider.toLowerCase()) {
             case 'gcash':
-                return '💙';
+                return '';
             case 'maya':
             case 'paymaya':
-                return '💚';
+                return '';
             case 'bpi':
             case 'bdo':
             case 'metrobank':
             case 'bank':
-                return '🏦';
+                return '';
             default:
-                return '💳';
+                return '';
         }
     };
 
