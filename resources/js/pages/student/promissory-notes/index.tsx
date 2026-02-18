@@ -152,22 +152,21 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Promissory Notes</h1>
                         <p className="text-muted-foreground">
-                            Request and track your promissory notes for fee payments
+                            Request and track your payment extensions
                         </p>
                     </div>
-                    {studentFees.length > 0 && (
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button>
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Request Promissory Note
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px]">
-                                <DialogHeader>
-                                    <DialogTitle>Request Payment Extension</DialogTitle>
-                                    <DialogDescription>
-                                        Submit a request for a payment extension. This allows accounting to give you more time to settle your fees.
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Request Payment Extension
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle>Request Payment Extension</DialogTitle>
+                                <DialogDescription>
+                                    Submit a request for a payment extension. This allows accounting to give you more time to settle your fees.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleSubmit}>
