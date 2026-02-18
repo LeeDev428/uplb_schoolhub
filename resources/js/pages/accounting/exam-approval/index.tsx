@@ -73,17 +73,19 @@ interface PaginatedApprovals {
     links: { url: string | null; label: string; active: boolean }[];
 }
 
-interface StudentOverdue {
+interface EligibleStudent {
     id: number;
     full_name: string;
     lrn: string;
-    overdue_amount: string;
+    student_photo_url: string | null;
+    balance: string;
+    total_paid: string;
     school_year: string;
 }
 
 interface Props {
     approvals: PaginatedApprovals;
-    studentsWithOverdue: StudentOverdue[];
+    eligibleStudents: EligibleStudent[];
     examTypes: Record<string, string>;
     terms: Record<string, string>;
     schoolYears: string[];
@@ -97,7 +99,7 @@ interface Props {
 
 export default function ExamApprovalIndex({
     approvals,
-    studentsWithOverdue,
+    eligibleStudents,
     examTypes,
     terms,
     schoolYears,
@@ -279,20 +281,20 @@ export default function ExamApprovalIndex({
                                                     value={createForm.data.student_id}
                                                     onValueChange={(value) => {
                                                         createForm.setData('student_id', value);
-                                                        const student = studentsWithOverdue.find(s => s.id.toString() === value);
+                                                        const student = eligibleStudents.find(s => s.id.toString() === value);
                                                         if (student) {
-                                                            createForm.setData('required_amount', student.overdue_amount);
+                                                            createForm.setData('required_amount', student.balance);
                                                             createForm.setData('school_year', student.school_year);
                                                         }
                                                     }}
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select student" />
+                                                        <SelectValue placeholder="Select eligible student" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {studentsWithOverdue.map((student) => (
+                                                        {eligibleStudents.map((student) => (
                                                             <SelectItem key={student.id} value={student.id.toString()}>
-                                                                {student.full_name} - {formatCurrency(student.overdue_amount)} overdue
+                                                                {student.full_name} - Paid: {formatCurrency(student.total_paid)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
