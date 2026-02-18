@@ -4,6 +4,8 @@ import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Pagination } from '@/components/ui/pagination';
 import {
     Table,
     TableBody,
@@ -109,7 +111,7 @@ export default function OnlineTransactionsIndex({
     filters,
 }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || 'all');
+    const [activeTab, setActiveTab] = useState(filters.status || 'pending');
     const [provider, setProvider] = useState(filters.payment_provider || 'all');
 
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -118,7 +120,19 @@ export default function OnlineTransactionsIndex({
     const handleFilter = () => {
         router.get('/accounting/online-transactions', {
             search: search || undefined,
-            status: status !== 'all' ? status : undefined,
+            status: activeTab,
+            payment_provider: provider !== 'all' ? provider : undefined,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        router.get('/accounting/online-transactions', {
+            search: search || undefined,
+            status: value,
             payment_provider: provider !== 'all' ? provider : undefined,
         }, {
             preserveState: true,
@@ -128,7 +142,7 @@ export default function OnlineTransactionsIndex({
 
     const handleReset = () => {
         setSearch('');
-        setStatus('all');
+        setActiveTab('pending');
         setProvider('all');
         router.get('/accounting/online-transactions');
     };
@@ -285,15 +299,6 @@ export default function OnlineTransactionsIndex({
                         placeholder="Search by student, reference..."
                     />
                     <FilterDropdown
-                        label="Status"
-                        value={status}
-                        options={statusOptions}
-                        onChange={(value) => {
-                            setStatus(value);
-                            setTimeout(handleFilter, 0);
-                        }}
-                    />
-                    <FilterDropdown
                         label="Provider"
                         value={provider}
                         options={providerOptions}
@@ -307,8 +312,18 @@ export default function OnlineTransactionsIndex({
                     </Button>
                 </FilterBar>
 
-                {/* Table */}
-                <div className="rounded-md border">
+                {/* Tabs */}
+                <Tabs value={activeTab} onValueChange={handleTabChange}>
+                    <TabsList>
+                        <TabsTrigger value="pending">Pending</TabsTrigger>
+                        <TabsTrigger value="completed">Completed</TabsTrigger>
+                        <TabsTrigger value="failed">Failed</TabsTrigger>
+                        <TabsTrigger value="refunded">Refunded</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value={activeTab} className="mt-6">
+                        {/* Table */}
+                        <div className="rounded-md border">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -411,25 +426,15 @@ export default function OnlineTransactionsIndex({
                 </div>
 
                 {/* Pagination */}
-                {transactions.last_page > 1 && (
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">
-                            Showing {transactions.data.length} of {transactions.total} records
-                        </p>
-                        <div className="flex gap-2">
-                            {transactions.links.map((link, index) => (
-                                <Button
-                                    key={index}
-                                    variant={link.active ? 'default' : 'outline'}
-                                    size="sm"
-                                    disabled={!link.url}
-                                    onClick={() => link.url && router.get(link.url)}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <Pagination 
+                    data={{
+                        ...transactions,
+                        from: (transactions.current_page - 1) * transactions.per_page + 1,
+                        to: Math.min(transactions.current_page * transactions.per_page, transactions.total),
+                    }} 
+                />
+                    </TabsContent>
+                </Tabs>
             </div>
 
             {/* Transaction Detail Modal */}
