@@ -46,50 +46,35 @@ class ExamApprovalController extends Controller
 
         $approvals = $query->latest()->paginate(20)->withQueryString();
 
-        // Get students with overdue fees OR registrar clearance for creating approvals
-        // Include students who are cleared by registrar even if not 100% complete
-        $studentsWithOverdue = StudentFee::where('is_overdue', true)
-            ->with('student.enrollmentClearance')
-            ->get()
-            ->map(function ($fee) {
-                return [
-                    'id' => $fee->student->id,
-                    'full_name' => $fee->student->full_name,
-                    'lrn' => $fee->student->lrn,
-                    'overdue_amount' => $fee->balance,
-                    'school_year' => $fee->school_year,
-                ];
-            });
-
-        // Also include students with registrar clearance (even if requirements not 100% complete)
-        $studentsWithClearance = Student::whereHas('enrollmentClearance', function ($q) {
-                $q->where('registrar_clearance', true);
+        // Get students who are NOT overdue (eligible for exam approval)
+        // These are students with enrollment clearance and no overdue fees
+        $eligibleStudents = Student::whereHas('enrollmentClearance', function ($q) {
+                $q->where('registrar_clearance', true)
+                  ->orWhere('requirements_complete', true);
             })
-            ->with('enrollmentClearance')
+            ->whereDoesntHave('fees', function ($q) {
+                $q->where('is_overdue', true);
+            })
+            ->with('fees')
             ->get()
             ->map(function ($student) {
-                // Get their current school year fee or default
                 $currentFee = $student->fees()->latest()->first();
                 return [
                     'id' => $student->id,
                     'full_name' => $student->full_name,
                     'lrn' => $student->lrn,
-                    'overdue_amount' => $currentFee->balance ?? 0,
+                    'student_photo_url' => $student->student_photo_url,
+                    'balance' => $currentFee->balance ?? 0,
+                    'total_paid' => $currentFee->total_paid ?? 0,
                     'school_year' => $currentFee->school_year ?? now()->format('Y') . '-' . (now()->year + 1),
-                    'registrar_cleared' => true,
                 ];
             });
-
-        // Merge and remove duplicates based on student ID
-        $combinedStudents = $studentsWithOverdue->concat($studentsWithClearance)
-            ->unique('id')
-            ->values();
 
         $schoolYears = ExamApproval::distinct()->pluck('school_year')->sort()->values();
 
         return Inertia::render('accounting/exam-approval/index', [
             'approvals' => $approvals,
-            'studentsWithOverdue' => $combinedStudents,
+            'eligibleStudents' => $eligibleStudents,
             'examTypes' => ExamApproval::EXAM_TYPES,
             'terms' => ExamApproval::TERMS,
             'schoolYears' => $schoolYears,
