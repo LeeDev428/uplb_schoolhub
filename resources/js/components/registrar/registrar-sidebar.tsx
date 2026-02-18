@@ -4,6 +4,7 @@ import {
     BookOpen,
     BookText,
     Calendar,
+    ClipboardCheck,
     FileText,
     GraduationCap,
     LayoutGrid,
@@ -78,6 +79,11 @@ export function RegistrarSidebar() {
             title: 'Document Requests',
             href: '/registrar/documents/requests',
             icon: BookText,
+        },
+        {
+            title: 'Document Approvals',
+            href: '/registrar/document-approvals',
+            icon: ClipboardCheck,
         },
         {
             title: 'Deadlines',
