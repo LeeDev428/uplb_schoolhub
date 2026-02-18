@@ -283,6 +283,12 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('schedules', [App\Http\Controllers\Student\ScheduleController::class, 'index'])->name('schedules');
     Route::get('profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
     
+    // Document Requests
+    Route::get('document-requests', [App\Http\Controllers\Student\DocumentRequestController::class, 'index'])->name('document-requests.index');
+    Route::post('document-requests', [App\Http\Controllers\Student\DocumentRequestController::class, 'store'])->name('document-requests.store');
+    Route::get('document-requests/history', [App\Http\Controllers\Student\DocumentRequestController::class, 'history'])->name('document-requests.history');
+    Route::post('document-requests/{documentRequest}/cancel', [App\Http\Controllers\Student\DocumentRequestController::class, 'cancel'])->name('document-requests.cancel');
+    
     // Quizzes
     Route::get('quizzes', [App\Http\Controllers\Student\QuizController::class, 'index'])->name('quizzes.index');
     Route::get('quizzes/{quiz}', [App\Http\Controllers\Student\QuizController::class, 'show'])->name('quizzes.show');
