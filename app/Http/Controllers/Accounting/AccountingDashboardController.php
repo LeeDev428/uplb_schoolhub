@@ -136,6 +136,81 @@ class AccountingDashboardController extends Controller
     }
 
     /**
+     * Display the simplified main dashboard.
+     */
+    public function mainDashboard(): Response
+    {
+        // Get stats
+        $totalStudents = Student::count();
+        $fullyPaid = StudentFee::where('balance', '<=', 0)->count();
+        $partialPaid = StudentFee::where('total_paid', '>', 0)->where('balance', '>', 0)->count();
+        $unpaid = StudentFee::where('total_paid', 0)->where('balance', '>', 0)->count();
+        $totalCollectibles = StudentFee::where('balance', '>', 0)->sum('balance');
+        $totalCollectedToday = StudentPayment::whereDate('payment_date', today())->sum('amount');
+
+        $stats = [
+            'total_students' => $totalStudents,
+            'fully_paid' => $fullyPaid,
+            'partial_paid' => $partialPaid,
+            'unpaid' => $unpaid,
+            'total_collectibles' => (string) $totalCollectibles,
+            'total_collected_today' => (string) $totalCollectedToday,
+        ];
+
+        // Recent payments with student and recorded_by info
+        $recentPayments = StudentPayment::with(['student', 'recordedBy'])
+            ->latest('payment_date')
+            ->latest('created_at')
+            ->take(10)
+            ->get()
+            ->map(function ($payment) {
+                return [
+                    'id' => $payment->id,
+                    'payment_date' => $payment->payment_date->format('Y-m-d'),
+                    'or_number' => $payment->or_number,
+                    'amount' => (string) $payment->amount,
+                    'student' => [
+                        'first_name' => $payment->student->first_name,
+                        'last_name' => $payment->student->last_name,
+                        'lrn' => $payment->student->lrn,
+                    ],
+                    'recorded_by' => $payment->recordedBy ? [
+                        'name' => $payment->recordedBy->name,
+                    ] : null,
+                ];
+            })
+            ->toArray();
+
+        // Top pending payments
+        $pendingPayments = StudentFee::with(['student'])
+            ->where('balance', '>', 0)
+            ->orderBy('balance', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function ($fee) {
+                return [
+                    'id' => $fee->id,
+                    'balance' => (string) $fee->balance,
+                    'total_amount' => (string) $fee->total_amount,
+                    'student' => [
+                        'first_name' => $fee->student->first_name,
+                        'last_name' => $fee->student->last_name,
+                        'lrn' => $fee->student->lrn,
+                        'program' => $fee->student->program ?? 'N/A',
+                        'year_level' => $fee->student->year_level ?? 'N/A',
+                    ],
+                ];
+            })
+            ->toArray();
+
+        return Inertia::render('accounting/dashboard', [
+            'stats' => $stats,
+            'recentPayments' => $recentPayments,
+            'pendingPayments' => $pendingPayments,
+        ]);
+    }
+
+    /**
      * Display the account dashboard (per-student detail view).
      */
     public function accountDashboard(Request $request): Response
