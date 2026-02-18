@@ -61,6 +61,11 @@ export function AccountingSidebar() {
             icon: FileText,
         },
         {
+            title: 'Doc Approvals',
+            href: '/accounting/document-approvals',
+            icon: FileCheck,
+        },
+        {
             title: 'Payment Processing',
             href: '/accounting/payments',
             icon: CreditCard,
