@@ -169,7 +169,7 @@ class OnlinePaymentController extends Controller
             ->where('status', 'verified')
             ->sum('amount');
 
-        $totalRegularPaid = Payment::whereHas('studentFee', function ($query) use ($student) {
+        $totalRegularPaid = StudentPayment::whereHas('studentFee', function ($query) use ($student) {
             $query->where('student_id', $student->id);
         })->sum('amount');
 
