@@ -59,10 +59,35 @@ class StudentPaymentController extends Controller
                 ->where('school_year', '!=', $currentYear)
                 ->sum('balance');
 
+            // Determine status
+            $totalBalance = $currentBalance + (float) $previousBalance;
+            $status = 'pending';
+            
+            // Check for approved promissory notes
+            $hasApprovedPromissory = PromissoryNote::where('student_id', $student->id)
+                ->where('status', 'approved')
+                ->exists();
+            
+            // Get current fee record to check is_overdue
+            $currentFee = StudentFee::where('student_id', $student->id)
+                ->where('school_year', $currentYear)
+                ->first();
+            
+            if ($totalBalance <= 0) {
+                $status = 'fully_paid';
+            } elseif ($hasApprovedPromissory) {
+                $status = 'approved'; // Has approved promissory note
+            } elseif ($currentFee?->is_overdue && $currentFee->total_paid <= 0) {
+                $status = 'overdue';
+            }
+
             return [
                 'id' => $student->id,
                 'full_name' => $student->full_name,
+                'first_name' => $student->first_name,
+                'last_name' => $student->last_name,
                 'lrn' => $student->lrn,
+                'student_photo_url' => $student->student_photo_url,
                 'program' => $student->program,
                 'year_level' => $student->year_level,
                 'section' => $student->section,
@@ -71,7 +96,8 @@ class StudentPaymentController extends Controller
                 'enrollment_progress' => $student->enrollmentClearance,
                 'current_balance' => $currentBalance,
                 'previous_balance' => (float) $previousBalance,
-                'total_balance' => $currentBalance + (float) $previousBalance,
+                'total_balance' => $totalBalance,
+                'status' => $status,
             ];
         });
 
