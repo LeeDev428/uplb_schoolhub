@@ -149,7 +149,10 @@ interface Props {
     cashiers?: Cashier[];
 }
 
-function formatCurrency(amount: number): string {
+function formatCurrency(amount: number | null): string {
+    if (amount === null || amount === undefined) {
+        return 'N/A';
+    }
     return `₱${amount.toLocaleString('en-PH', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
