@@ -285,11 +285,11 @@ export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
                                                     <span className="font-medium">{note.student_name}</span>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>{note.school_year}</TableCell>
+                                            <TableCell>{note.school_year || 'General Request'}</TableCell>
                                             <TableCell>{formatDate(note.submitted_date)}</TableCell>
                                             <TableCell>{formatDate(note.due_date)}</TableCell>
                                             <TableCell className="text-right font-medium">
-                                                {formatCurrency(note.amount)}
+                                                {note.amount !== null ? formatCurrency(note.amount) : 'Full Balance'}
                                             </TableCell>
                                             <TableCell>{getStatusBadge(note.status)}</TableCell>
                                             <TableCell className="text-right">
