@@ -197,7 +197,7 @@ export default function DocumentRequestsIndex({ requests, documentFees, feesByCa
                                         New Request
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-lg">
+                                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                                     <form onSubmit={handleSubmit}>
                                         <DialogHeader>
                                             <DialogTitle>Request Document</DialogTitle>
