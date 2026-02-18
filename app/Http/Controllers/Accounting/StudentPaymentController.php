@@ -287,7 +287,7 @@ class StudentPaymentController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['recorded_by'] = auth()->id();
+        $validated['recorded_by'] = $request->user()->id;
 
         StudentPayment::create($validated);
 
@@ -352,7 +352,7 @@ class StudentPaymentController extends Controller
      * Show payment processing page for a specific student.
      * Fees are calculated DYNAMICALLY from fee_items table.
      */
-    public function process(Student $student): Response
+    public function process(Request $request, Student $student): Response
     {
         // Load student with department for classification matching
         $student->load('department');
@@ -447,7 +447,7 @@ class StudentPaymentController extends Controller
             ->get(['id', 'name']);
 
         // Get current authenticated user for cashier field
-        $currentUser = auth()->user();
+        $currentUser = $request->user();
 
         return Inertia::render('accounting/payments/process', [
             'student' => [
