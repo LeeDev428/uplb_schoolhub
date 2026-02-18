@@ -202,7 +202,6 @@ class StudentAccountController extends Controller
             ->first();
 
         $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
-        $isOverdue = $studentFee ? $studentFee->is_overdue : false;
         $dueDate = $studentFee?->due_date;
 
         // Get payments count
@@ -215,14 +214,27 @@ class StudentAccountController extends Controller
         // Calculate balance
         $balance = max(0, $totalAmount - $grantDiscount - $totalPaid);
 
+        // Check for approved promissory notes
+        $hasApprovedPromissory = \App\Models\PromissoryNote::where('student_id', $student->id)
+            ->where('status', 'approved')
+            ->exists();
+
+        // Determine if overdue:
+        // NOT overdue if: student has paid something (partial) OR has approved promissory note
+        $isOverdue = false;
+        if ($studentFee && $studentFee->is_overdue && $balance > 0) {
+            // Only mark as overdue if no partial payment AND no approved promissory
+            $isOverdue = ($totalPaid <= 0) && !$hasApprovedPromissory;
+        }
+
         // Determine payment status
         $paymentStatus = 'unpaid';
-        if ($isOverdue) {
-            $paymentStatus = 'overdue';
-        } elseif ($totalAmount > 0 && $balance <= 0) {
+        if ($balance <= 0 && $totalAmount > 0) {
             $paymentStatus = 'paid';
         } elseif ($totalPaid > 0) {
             $paymentStatus = 'partial';
+        } elseif ($isOverdue) {
+            $paymentStatus = 'overdue';
         }
 
         return [
