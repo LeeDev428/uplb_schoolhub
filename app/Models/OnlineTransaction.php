@@ -108,6 +108,18 @@ class OnlineTransaction extends Model
     }
 
     /**
+     * Get the payment proof URL.
+     */
+    public function getPaymentProofUrlAttribute(): ?string
+    {
+        if (!$this->payment_proof) {
+            return null;
+        }
+        
+        return \Storage::url($this->payment_proof);
+    }
+
+    /**
      * Generate unique transaction ID.
      */
     public static function generateTransactionId(): string
