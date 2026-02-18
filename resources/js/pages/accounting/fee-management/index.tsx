@@ -148,6 +148,15 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
     const [editingDocFee, setEditingDocFee] = useState<DocumentFeeItem | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
+    // Fee Assignment state
+    const [assignClassification, setAssignClassification] = useState<string>('');
+    const [assignDepartmentId, setAssignDepartmentId] = useState<number | null>(null);
+    const [assignYearLevelId, setAssignYearLevelId] = useState<number | null>(null);
+    const [selectedFeeItemIds, setSelectedFeeItemIds] = useState<number[]>([]);
+    const [loadingAssignments, setLoadingAssignments] = useState(false);
+    const [savingAssignments, setSavingAssignments] = useState(false);
+
+
     const categoryForm = useForm({
         name: '',
         code: '',
@@ -382,6 +391,80 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         return acc;
     }, {} as Record<string, DocumentFeeItem[]>) || {};
 
+    // Filtered year levels based on selected department
+    const filteredYearLevels = yearLevels.filter(yl => 
+        yl.classification === assignClassification && 
+        (!assignDepartmentId || yl.department_id === assignDepartmentId)
+    );
+
+    // Filtered departments based on selected classification
+    const filteredDepartments = departments.filter(d => d.classification === assignClassification);
+
+    // Load assignments when classification/department/year_level are all selected
+    useEffect(() => {
+        if (assignClassification && assignDepartmentId && assignYearLevelId) {
+            setLoadingAssignments(true);
+            fetch(`/accounting/fee-management/assignments?classification=${assignClassification}&department_id=${assignDepartmentId}&year_level_id=${assignYearLevelId}`)
+                .then(res => res.json())
+                .then(data => {
+                    setSelectedFeeItemIds(data.assignments || []);
+                    setLoadingAssignments(false);
+                })
+                .catch(() => {
+                    setSelectedFeeItemIds([]);
+                    setLoadingAssignments(false);
+                });
+        } else {
+            setSelectedFeeItemIds([]);
+        }
+    }, [assignClassification, assignDepartmentId, assignYearLevelId]);
+
+    const toggleFeeItemSelection = (itemId: number) => {
+        setSelectedFeeItemIds(prev => 
+            prev.includes(itemId) 
+                ? prev.filter(id => id !== itemId) 
+                : [...prev, itemId]
+        );
+    };
+
+    const toggleCategorySelection = (categoryId: number) => {
+        const categoryItems = categories.find(c => c.id === categoryId)?.items || [];
+        const categoryItemIds = categoryItems.filter(item => item.is_active).map(item => item.id);
+        const allSelected = categoryItemIds.every(id => selectedFeeItemIds.includes(id));
+        
+        if (allSelected) {
+            // Deselect all items in this category
+            setSelectedFeeItemIds(prev => prev.filter(id => !categoryItemIds.includes(id)));
+        } else {
+            // Select all items in this category
+            setSelectedFeeItemIds(prev => [...new Set([...prev, ...categoryItemIds])]);
+        }
+    };
+
+    const handleSaveAssignments = () => {
+        if (!assignClassification || !assignDepartmentId || !assignYearLevelId) return;
+        
+        setSavingAssignments(true);
+        router.post('/accounting/fee-management/assignments', {
+            classification: assignClassification,
+            department_id: assignDepartmentId,
+            year_level_id: assignYearLevelId,
+            fee_item_ids: selectedFeeItemIds,
+            school_year: '2024-2025',
+        }, {
+            onSuccess: () => {
+                setSavingAssignments(false);
+            },
+            onError: () => {
+                setSavingAssignments(false);
+            },
+        });
+    };
+
+    // Get selected department and year level names for display
+    const selectedDepartment = departments.find(d => d.id === assignDepartmentId);
+    const selectedYearLevel = yearLevels.find(yl => yl.id === assignYearLevelId);
+
     return (
         <AccountingLayout>
             <Head title="Fee Management" />
@@ -488,8 +571,9 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 />
 
                 <Tabs value={activeTab} onValueChange={handleTabChange}>
-                    <TabsList className="grid w-full grid-cols-2 max-w-md">
+                    <TabsList className="grid w-full grid-cols-3 max-w-lg">
                         <TabsTrigger value="general">General Fees</TabsTrigger>
+                        <TabsTrigger value="assignments">Assign Fees</TabsTrigger>
                         <TabsTrigger value="documents">Document Fees</TabsTrigger>
                     </TabsList>
 
@@ -665,6 +749,175 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                         ))}
                     </Accordion>
                 )}
+                    </TabsContent>
+
+                    {/* Fee Assignment Tab */}
+                    <TabsContent value="assignments" className="space-y-6 mt-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <CheckSquare className="h-5 w-5" />
+                                    Assign Fees to Student Groups
+                                </CardTitle>
+                                <CardDescription>
+                                    Select a classification, department, and year level to assign fee items
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {/* Selection Dropdowns */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label>Classification *</Label>
+                                        <Select
+                                            value={assignClassification}
+                                            onValueChange={(value) => {
+                                                setAssignClassification(value);
+                                                setAssignDepartmentId(null);
+                                                setAssignYearLevelId(null);
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select classification" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="K-12">K-12</SelectItem>
+                                                <SelectItem value="College">College</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Department *</Label>
+                                        <Select
+                                            value={assignDepartmentId?.toString() || ''}
+                                            onValueChange={(value) => {
+                                                setAssignDepartmentId(parseInt(value));
+                                                setAssignYearLevelId(null);
+                                            }}
+                                            disabled={!assignClassification}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select department" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {filteredDepartments.map(dept => (
+                                                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                        {dept.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Grade/Year Level *</Label>
+                                        <Select
+                                            value={assignYearLevelId?.toString() || ''}
+                                            onValueChange={(value) => setAssignYearLevelId(parseInt(value))}
+                                            disabled={!assignDepartmentId}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select year level" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {filteredYearLevels.map(yl => (
+                                                    <SelectItem key={yl.id} value={yl.id.toString()}>
+                                                        {yl.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                {/* Selected Group Display */}
+                                {assignClassification && assignDepartmentId && assignYearLevelId && (
+                                    <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                                        <p className="text-sm font-medium text-blue-800">
+                                            Select Fee Items for: {assignClassification} &gt; {selectedDepartment?.name} &gt; {selectedYearLevel?.name}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Fee Categories with Checkboxes */}
+                                {assignClassification && assignDepartmentId && assignYearLevelId ? (
+                                    loadingAssignments ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <p className="text-muted-foreground">Loading assignments...</p>
+                                        </div>
+                                    ) : categories.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            <p>No fee categories available. Create fee items in the General Fees tab first.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {categories.map(category => {
+                                                const activeItems = category.items.filter(item => item.is_active);
+                                                const categoryItemIds = activeItems.map(item => item.id);
+                                                const allSelected = categoryItemIds.length > 0 && categoryItemIds.every(id => selectedFeeItemIds.includes(id));
+                                                const someSelected = categoryItemIds.some(id => selectedFeeItemIds.includes(id));
+                                                
+                                                if (activeItems.length === 0) return null;
+                                                
+                                                return (
+                                                    <Card key={category.id}>
+                                                        <CardHeader className="py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <Checkbox
+                                                                    checked={allSelected}
+                                                                    className={someSelected && !allSelected ? 'opacity-50' : ''}
+                                                                    onCheckedChange={() => toggleCategorySelection(category.id)}
+                                                                />
+                                                                <div>
+                                                                    <CardTitle className="text-base">{category.name}</CardTitle>
+                                                                    {category.description && (
+                                                                        <CardDescription className="text-xs">{category.description}</CardDescription>
+                                                                    )}
+                                                                </div>
+                                                                <Badge variant="secondary" className="ml-auto">
+                                                                    {categoryItemIds.filter(id => selectedFeeItemIds.includes(id)).length} / {activeItems.length} selected
+                                                                </Badge>
+                                                            </div>
+                                                        </CardHeader>
+                                                        <CardContent className="pt-0">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                {activeItems.map(item => (
+                                                                    <div
+                                                                        key={item.id}
+                                                                        className="flex items-center gap-3 p-2 rounded border hover:bg-muted/50 cursor-pointer"
+                                                                        onClick={() => toggleFeeItemSelection(item.id)}
+                                                                    >
+                                                                        <Checkbox
+                                                                            checked={selectedFeeItemIds.includes(item.id)}
+                                                                            onCheckedChange={() => toggleFeeItemSelection(item.id)}
+                                                                        />
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-sm font-medium truncate">{item.name}</p>
+                                                                            <p className="text-xs text-muted-foreground">{formatCurrency(item.selling_price)}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                );
+                                            })}
+                                            
+                                            {/* Save Button */}
+                                            <div className="flex justify-end pt-4">
+                                                <Button onClick={handleSaveAssignments} disabled={savingAssignments}>
+                                                    <Save className="mr-2 h-4 w-4" />
+                                                    {savingAssignments ? 'Saving...' : 'Save Assignments'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <CheckSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>Select a classification, department, and grade/year level to assign fees.</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </TabsContent>
 
                     <TabsContent value="documents" className="space-y-6 mt-6">
