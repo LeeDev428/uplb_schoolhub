@@ -108,7 +108,7 @@ interface PromissoryNote {
     student_fee_id: number;
     submitted_date: string;
     due_date: string;
-    amount: number;
+    amount: number | null;
     reason: string;
     status: 'pending' | 'approved' | 'declined' | 'fulfilled';
     school_year: string;
