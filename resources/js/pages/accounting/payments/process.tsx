@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -50,6 +51,8 @@ import {
     GraduationCap,
     User,
     RefreshCw,
+    CreditCard,
+    Printer,
 } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
@@ -127,6 +130,13 @@ interface Summary {
     total_discount: number;
     total_paid: number;
     total_balance: number;
+    previous_balance: number;
+    current_fees_balance: number;
+}
+
+interface Cashier {
+    id: number;
+    name: string;
 }
 
 interface Props {
@@ -136,6 +146,7 @@ interface Props {
     promissoryNotes: PromissoryNote[];
     grants: Grant[];
     summary: Summary;
+    cashiers?: Cashier[];
 }
 
 function formatCurrency(amount: number): string {
@@ -153,10 +164,44 @@ function formatDate(dateString: string): string {
     });
 }
 
-export default function PaymentProcess({ student, fees, payments, promissoryNotes, grants, summary }: Props) {
+export default function PaymentProcess({ student, fees, payments, promissoryNotes, grants, summary, cashiers = [] }: Props) {
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
     const [isPromissoryDialogOpen, setIsPromissoryDialogOpen] = useState(false);
     const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('all');
+    const [printReceipt, setPrintReceipt] = useState(true);
+    const [amountReceived, setAmountReceived] = useState<string>('');
+    const [selectedCashier, setSelectedCashier] = useState<string>('');
+
+    // Payment allocation calculation
+    const paymentAllocation = useMemo(() => {
+        const amount = parseFloat(amountReceived) || 0;
+        const previousBalance = summary.previous_balance || 0;
+        const currentFeesBalance = summary.current_fees_balance || summary.total_balance;
+        
+        let previousBalancePaid = 0;
+        let currentFeesPaid = 0;
+        let remainingAmount = amount;
+        
+        // First, pay off previous balance
+        if (previousBalance > 0 && remainingAmount > 0) {
+            previousBalancePaid = Math.min(previousBalance, remainingAmount);
+            remainingAmount -= previousBalancePaid;
+        }
+        
+        // Then, pay current fees
+        if (currentFeesBalance > 0 && remainingAmount > 0) {
+            currentFeesPaid = Math.min(currentFeesBalance, remainingAmount);
+            remainingAmount -= currentFeesPaid;
+        }
+        
+        return {
+            previousBalancePaid,
+            currentFeesPaid,
+            remainingPreviousBalance: Math.max(0, previousBalance - previousBalancePaid),
+            remainingCurrentFeesBalance: Math.max(0, currentFeesBalance - currentFeesPaid),
+            change: Math.max(0, remainingAmount),
+        };
+    }, [amountReceived, summary]);
 
     const paymentForm = useForm({
         student_id: student.id.toString(),
@@ -169,6 +214,8 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
         bank_name: '',
         payment_for: 'general',
         notes: '',
+        cashier_id: '',
+        print_receipt: true,
     });
 
     const promissoryForm = useForm({
@@ -184,6 +231,42 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
         paymentForm.post('/accounting/payments', {
             onSuccess: () => {
                 setIsPaymentDialogOpen(false);
+                paymentForm.reset();
+            },
+        });
+    };
+
+    const handleMakePayment = (e: React.FormEvent) => {
+        e.preventDefault();
+        const amount = parseFloat(amountReceived) || 0;
+        if (amount <= 0) return;
+        
+        // Find the fee with balance to apply payment to
+        const feeWithBalance = fees.find(f => f.balance > 0);
+        if (!feeWithBalance) return;
+        
+        paymentForm.setData({
+            ...paymentForm.data,
+            student_fee_id: feeWithBalance.id.toString(),
+            amount: amountReceived,
+            cashier_id: selectedCashier,
+            print_receipt: printReceipt,
+        });
+        
+        router.post('/accounting/payments', {
+            student_id: student.id.toString(),
+            student_fee_id: feeWithBalance.id.toString(),
+            payment_date: paymentForm.data.payment_date,
+            or_number: paymentForm.data.or_number,
+            amount: amountReceived,
+            payment_mode: 'CASH',
+            payment_for: 'general',
+            notes: paymentForm.data.notes,
+            cashier_id: selectedCashier,
+            print_receipt: printReceipt,
+        }, {
+            onSuccess: () => {
+                setAmountReceived('');
                 paymentForm.reset();
             },
         });
@@ -494,25 +577,243 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                 </Card>
 
                 {/* Tabs */}
-                <Tabs defaultValue="breakdown" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                <Tabs defaultValue="make-payment" className="w-full">
+                    <TabsList className="grid w-full grid-cols-5">
+                        <TabsTrigger value="make-payment" className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            Make Payment
+                        </TabsTrigger>
                         <TabsTrigger value="breakdown" className="flex items-center gap-2">
                             <Receipt className="h-4 w-4" />
-                            Payment Breakdown
+                            Fee Breakdown
                         </TabsTrigger>
                         <TabsTrigger value="school-year" className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
-                            School Year Details
+                            School Year
                         </TabsTrigger>
                         <TabsTrigger value="promissory" className="flex items-center gap-2">
                             <FileText className="h-4 w-4" />
-                            Promissory Notes
+                            Promissory
                         </TabsTrigger>
                         <TabsTrigger value="transactions" className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4" />
-                            Transaction Details
+                            Transactions
                         </TabsTrigger>
                     </TabsList>
+
+                    {/* Tab 0: Make Payment */}
+                    <TabsContent value="make-payment" className="space-y-4">
+                        <form onSubmit={handleMakePayment}>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Left Column - Payment Form */}
+                                <div className="lg:col-span-2 space-y-4">
+                                    {/* Payment Details Card */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Payment Details</CardTitle>
+                                            <CardDescription>Enter payment information</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="or_number">OR Number *</Label>
+                                                    <Input
+                                                        id="or_number"
+                                                        value={paymentForm.data.or_number}
+                                                        onChange={(e) => paymentForm.setData('or_number', e.target.value)}
+                                                        placeholder="Official Receipt #"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="payment_date">Payment Date *</Label>
+                                                    <Input
+                                                        id="payment_date"
+                                                        type="date"
+                                                        value={paymentForm.data.payment_date}
+                                                        onChange={(e) => paymentForm.setData('payment_date', e.target.value)}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label>Payment Method</Label>
+                                                    <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+                                                        <DollarSign className="h-4 w-4 text-green-600" />
+                                                        <span className="font-medium">Cash</span>
+                                                    </div>
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="amount_received">Amount Received *</Label>
+                                                    <Input
+                                                        id="amount_received"
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0.01"
+                                                        value={amountReceived}
+                                                        onChange={(e) => setAmountReceived(e.target.value)}
+                                                        placeholder="0.00"
+                                                        required
+                                                        className="text-lg font-semibold"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Payment Breakdown Card */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Payment Breakdown</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Previous Balance</span>
+                                                    <span className="font-medium">{formatCurrency(summary.previous_balance || 0)}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Current Fees Balance</span>
+                                                    <span className="font-medium">{formatCurrency(summary.current_fees_balance || summary.total_balance)}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 bg-blue-50 px-3 rounded-md">
+                                                    <span className="font-medium text-blue-700">Amount Received</span>
+                                                    <span className="font-bold text-blue-700">{formatCurrency(parseFloat(amountReceived) || 0)}</span>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Payment Allocation Card */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Payment Allocation</CardTitle>
+                                            <CardDescription>How the payment will be applied</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Previous Balance Paid</span>
+                                                    <span className="font-medium text-green-600">{formatCurrency(paymentAllocation.previousBalancePaid)}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Current Fees Paid</span>
+                                                    <span className="font-medium text-green-600">{formatCurrency(paymentAllocation.currentFeesPaid)}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Remaining Previous Balance</span>
+                                                    <span className="font-medium text-red-600">{formatCurrency(paymentAllocation.remainingPreviousBalance)}</span>
+                                                </div>
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Remaining Current Fees Balance</span>
+                                                    <span className="font-medium text-red-600">{formatCurrency(paymentAllocation.remainingCurrentFeesBalance)}</span>
+                                                </div>
+                                                {paymentAllocation.change > 0 && (
+                                                    <div className="flex justify-between py-2 bg-yellow-50 px-3 rounded-md">
+                                                        <span className="font-medium text-yellow-700">Change</span>
+                                                        <span className="font-bold text-yellow-700">{formatCurrency(paymentAllocation.change)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+
+                                {/* Right Column - Fee Summary & Actions */}
+                                <div className="space-y-4">
+                                    {/* Fee Summary Card */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Fee Summary</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Total Fees</span>
+                                                    <span className="font-medium">{formatCurrency(summary.total_fees)}</span>
+                                                </div>
+                                                {summary.total_discount > 0 && (
+                                                    <div className="flex justify-between py-2 border-b">
+                                                        <span className="text-muted-foreground">Discount</span>
+                                                        <span className="font-medium text-green-600">-{formatCurrency(summary.total_discount)}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between py-2 border-b">
+                                                    <span className="text-muted-foreground">Total Paid</span>
+                                                    <span className="font-medium text-blue-600">{formatCurrency(summary.total_paid)}</span>
+                                                </div>
+                                                <div className="flex justify-between py-3 bg-red-50 px-3 rounded-md">
+                                                    <span className="font-semibold text-red-700">Balance Due</span>
+                                                    <span className="font-bold text-red-700">{formatCurrency(summary.total_balance)}</span>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Cashier & Options */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Processing Options</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            {cashiers.length > 0 && (
+                                                <div className="grid gap-2">
+                                                    <Label>Cashier</Label>
+                                                    <Select
+                                                        value={selectedCashier}
+                                                        onValueChange={setSelectedCashier}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select cashier" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {cashiers.map((cashier) => (
+                                                                <SelectItem key={cashier.id} value={cashier.id.toString()}>
+                                                                    {cashier.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-3 py-2">
+                                                <Checkbox
+                                                    id="print_receipt"
+                                                    checked={printReceipt}
+                                                    onCheckedChange={(checked) => setPrintReceipt(checked as boolean)}
+                                                />
+                                                <Label htmlFor="print_receipt" className="flex items-center gap-2 cursor-pointer">
+                                                    <Printer className="h-4 w-4" />
+                                                    Print Receipt
+                                                </Label>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="notes">Notes (Optional)</Label>
+                                                <Textarea
+                                                    id="notes"
+                                                    value={paymentForm.data.notes}
+                                                    onChange={(e) => paymentForm.setData('notes', e.target.value)}
+                                                    placeholder="Additional notes..."
+                                                    rows={2}
+                                                />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Action Button */}
+                                    <Button 
+                                        type="submit" 
+                                        className="w-full h-12 text-lg"
+                                        disabled={!amountReceived || parseFloat(amountReceived) <= 0 || !paymentForm.data.or_number}
+                                    >
+                                        <Receipt className="h-5 w-5 mr-2" />
+                                        Record Payment
+                                    </Button>
+                                </div>
+                            </div>
+                        </form>
+                    </TabsContent>
 
                     {/* Tab 1: Payment Breakdown */}
                     <TabsContent value="breakdown" className="space-y-4">
@@ -593,7 +894,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}}
+                                        ))}
                                     </div>
                                 )}
                             </CardContent>
