@@ -49,12 +49,18 @@ interface Props {
     paymentMethods: { value: string; label: string }[];
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; icon: any; bgColor: string; textColor: string }> = {
     pending: {
         label: 'Pending Verification',
         icon: Clock,
         bgColor: 'bg-yellow-100',
         textColor: 'text-yellow-700',
+    },
+    completed: {
+        label: 'Completed',
+        icon: CheckCircle2,
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-700',
     },
     verified: {
         label: 'Verified',
@@ -395,7 +401,7 @@ export default function OnlinePayment({ feeItems, summary, recentPayments, payme
                                 ) : (
                                     <div className="space-y-4">
                                         {recentPayments.map((payment) => {
-                                            const status = statusConfig[payment.status];
+                                            const status = statusConfig[payment.status] || statusConfig.pending;
                                             const StatusIcon = status.icon;
                                             return (
                                                 <div key={payment.id} className="border rounded-lg p-4">
