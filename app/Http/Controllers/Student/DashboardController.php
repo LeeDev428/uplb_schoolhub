@@ -35,9 +35,10 @@ class DashboardController extends Controller
             ->get();
 
         if ($studentFee) {
-            $totalPaid = (float) $studentFee->total_paid;
-            $totalFees = (float) $studentFee->total_amount;
+            // Calculate total fees BEFORE discount (same as StudentFee stores it)
             $discountAmount = (float) $studentFee->grant_discount;
+            $totalFees = (float) $studentFee->total_amount + $discountAmount; // Add back the discount to get original total
+            $totalPaid = (float) $studentFee->total_paid;
             $balance = (float) $studentFee->balance;
             
             // Check for approved promissory notes covering balance
