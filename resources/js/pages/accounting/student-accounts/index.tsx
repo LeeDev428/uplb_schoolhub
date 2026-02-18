@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { StudentPhoto } from '@/components/ui/student-photo';
 import {
     Table,
     TableBody,
@@ -47,6 +48,9 @@ import { Link } from '@inertiajs/react';
 interface Student {
     id: number;
     full_name: string;
+    first_name: string;
+    last_name: string;
+    student_photo_url: string | null;
     lrn: string;
     program?: string;
     year_level?: string;
@@ -235,12 +239,125 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         description="View and manage student fee accounts, balances, and payment status"
                     />
                     <div className="flex gap-2">
-                        {/* <ImportButton
-                            importUrl="/accounting/student-accounts/import"
-                            templateUrl="/accounting/student-accounts/template"
-                            title="Import Student Accounts"
-                            description="Upload an Excel or CSV file to import student fee accounts."
-                        /> */}
+                        <Dialog open={isOverdueDialogOpen} onOpenChange={setIsOverdueDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="destructive">
+                                    <AlertTriangle className="h-4 w-4 mr-2" />
+                                    Mark Overdue
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                                <form onSubmit={handleBulkOverdue}>
+                                    <DialogHeader className="text-center">
+                                        <div className="flex justify-center mb-4">
+                                            <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+                                                <AlertTriangle className="h-8 w-8 text-red-600" />
+                                            </div>
+                                        </div>
+                                        <DialogTitle className="text-red-600 text-xl">Mark Overdue Balances</DialogTitle>
+                                        <DialogDescription className="text-amber-600 flex items-center justify-center gap-1">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            Once marked overdue, this action cannot be undone.
+                                            <AlertTriangle className="h-4 w-4" />
+                                        </DialogDescription>
+                                    </DialogHeader>
+
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid gap-2">
+                                            <Label>Classification</Label>
+                                            <Select
+                                                value={overdueForm.data.classification}
+                                                onValueChange={(value) => overdueForm.setData('classification', value)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="All Classifications" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Classifications</SelectItem>
+                                                    {classifications.map((classification) => (
+                                                        <SelectItem key={classification} value={classification}>
+                                                            {classification}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label>Department</Label>
+                                            <Select
+                                                value={overdueForm.data.department_id}
+                                                onValueChange={(value) => overdueForm.setData('department_id', value)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="All Departments" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Departments</SelectItem>
+                                                    {departments.map((dept) => (
+                                                        <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                            {dept.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label>Year Level</Label>
+                                            <Select
+                                                value={overdueForm.data.year_level}
+                                                onValueChange={(value) => overdueForm.setData('year_level', value)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="All Years" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">All Years</SelectItem>
+                                                    {yearLevels.map((yl) => (
+                                                        <SelectItem key={yl.id} value={yl.name}>
+                                                            {yl.name} ({yl.classification})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label>Set Overdue Date</Label>
+                                            <Input
+                                                type="date"
+                                                value={overdueForm.data.overdue_date}
+                                                onChange={(e) => overdueForm.setData('overdue_date', e.target.value)}
+                                            />
+                                            {overdueForm.errors.overdue_date && (
+                                                <p className="text-sm text-red-500">{overdueForm.errors.overdue_date}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <DialogFooter className="flex gap-2">
+                                        <Button
+                                            type="submit"
+                                            variant="destructive"
+                                            disabled={overdueForm.processing}
+                                            className="flex-1"
+                                        >
+                                            <AlertTriangle className="h-4 w-4 mr-2" />
+                                            Confirm Overdue
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setIsOverdueDialogOpen(false)}
+                                            className="flex-1"
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
 
@@ -345,127 +462,6 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                     <Button onClick={handleFilter} className="mt-auto">
                         Apply Filters
                     </Button>
-                    
-                    {/* Mark Overdue Button and Dialog */}
-                    <Dialog open={isOverdueDialogOpen} onOpenChange={setIsOverdueDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button variant="destructive" className="mt-auto">
-                                <AlertTriangle className="h-4 w-4 mr-2" />
-                                Mark Overdue
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-md">
-                            <form onSubmit={handleBulkOverdue}>
-                                <DialogHeader className="text-center">
-                                    <div className="flex justify-center mb-4">
-                                        <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
-                                            <AlertTriangle className="h-8 w-8 text-red-600" />
-                                        </div>
-                                    </div>
-                                    <DialogTitle className="text-red-600 text-xl">Mark Overdue Balances</DialogTitle>
-                                    <DialogDescription className="text-amber-600 flex items-center justify-center gap-1">
-                                        <AlertTriangle className="h-4 w-4" />
-                                        Once marked overdue, this action cannot be undone.
-                                        <AlertTriangle className="h-4 w-4" />
-                                    </DialogDescription>
-                                </DialogHeader>
-
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid gap-2">
-                                        <Label>Classification</Label>
-                                        <Select
-                                            value={overdueForm.data.classification}
-                                            onValueChange={(value) => overdueForm.setData('classification', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="All Classifications" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">All Classifications</SelectItem>
-                                                {classifications.map((classification) => (
-                                                    <SelectItem key={classification} value={classification}>
-                                                        {classification}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label>Department</Label>
-                                        <Select
-                                            value={overdueForm.data.department_id}
-                                            onValueChange={(value) => overdueForm.setData('department_id', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="All Departments" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">All Departments</SelectItem>
-                                                {departments.map((dept) => (
-                                                    <SelectItem key={dept.id} value={dept.id.toString()}>
-                                                        {dept.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label>Year Level</Label>
-                                        <Select
-                                            value={overdueForm.data.year_level}
-                                            onValueChange={(value) => overdueForm.setData('year_level', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="All Years" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">All Years</SelectItem>
-                                                {yearLevels.map((yl) => (
-                                                    <SelectItem key={yl.id} value={yl.name}>
-                                                        {yl.name} ({yl.classification})
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label>Set Overdue Date</Label>
-                                        <Input
-                                            type="date"
-                                            value={overdueForm.data.overdue_date}
-                                            onChange={(e) => overdueForm.setData('overdue_date', e.target.value)}
-                                        />
-                                        {overdueForm.errors.overdue_date && (
-                                            <p className="text-sm text-red-500">{overdueForm.errors.overdue_date}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <DialogFooter className="flex gap-2">
-                                    <Button
-                                        type="submit"
-                                        variant="destructive"
-                                        disabled={overdueForm.processing}
-                                        className="flex-1"
-                                    >
-                                        <AlertTriangle className="h-4 w-4 mr-2" />
-                                        Confirm Overdue
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setIsOverdueDialogOpen(false)}
-                                        className="flex-1"
-                                    >
-                                        Cancel
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
                 </FilterBar>
 
                 {/* Table */}
@@ -494,22 +490,30 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                 accounts.data.map((account) => (
                                     <TableRow key={account.id} className={account.is_overdue ? 'bg-red-50' : ''}>
                                         <TableCell>
-                                            <div>
-                                                <div className="font-medium">{account.student.full_name}</div>
-                                                <div className="text-sm text-muted-foreground">
-                                                    {account.student.lrn}
-                                                    {account.student.program && ` • ${account.student.program}`}
-                                                    {account.student.year_level && ` - ${account.student.year_level}`}
-                                                </div>
-                                                {account.grants.length > 0 && (
-                                                    <div className="flex gap-1 mt-1">
-                                                        {account.grants.map((grant, idx) => (
-                                                            <Badge key={idx} variant="secondary" className="text-xs">
-                                                                {grant.name}
-                                                            </Badge>
-                                                        ))}
+                                            <div className="flex items-center gap-3">
+                                                <StudentPhoto
+                                                    src={account.student.student_photo_url}
+                                                    firstName={account.student.first_name}
+                                                    lastName={account.student.last_name}
+                                                    size="sm"
+                                                />
+                                                <div>
+                                                    <div className="font-medium">{account.student.full_name}</div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {account.student.lrn}
+                                                        {account.student.program && ` • ${account.student.program}`}
+                                                        {account.student.year_level && ` - ${account.student.year_level}`}
                                                     </div>
-                                                )}
+                                                    {account.grants.length > 0 && (
+                                                        <div className="flex gap-1 mt-1">
+                                                            {account.grants.map((grant, idx) => (
+                                                                <Badge key={idx} variant="secondary" className="text-xs">
+                                                                    {grant.name}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>{account.school_year}</TableCell>
