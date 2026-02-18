@@ -414,13 +414,36 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                                <h3 className="text-xl font-semibold">{student.full_name}</h3>
+                                <div className="flex items-center gap-3">
+                                    <h3 className="text-xl font-semibold">{student.full_name}</h3>
+                                    {grants.length > 0 && (
+                                        <Badge className="bg-green-100 text-green-700 border-green-200">
+                                            {(() => {
+                                                const totalDiscount = summary.total_discount;
+                                                const totalFees = summary.total_fees;
+                                                if (totalFees > 0 && totalDiscount > 0) {
+                                                    const discountPercent = Math.round((totalDiscount / totalFees) * 100);
+                                                    return `${discountPercent}% Discount`;
+                                                }
+                                                return 'Grant Applied';
+                                            })()}
+                                        </Badge>
+                                    )}
+                                </div>
                                 <p className="text-muted-foreground">LRN: {student.lrn}</p>
                                 <div className="flex gap-4 mt-1 text-sm">
                                     {student.program && <span>{student.program}</span>}
                                     {student.year_level && <span>• {student.year_level}</span>}
                                     {student.section && <span>• {student.section}</span>}
                                 </div>
+                                {/* Grant Info */}
+                                {grants.length > 0 && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-sm text-green-600 font-medium">
+                                            Grant: {grants.map(g => `${g.name} (${formatCurrency(g.discount_amount)})`).join(', ')}
+                                        </span>
+                                    </div>
+                                )}
                                 {/* Progress Bar */}
                                 <div className="mt-3">
                                     <div className="flex items-center justify-between mb-1">
