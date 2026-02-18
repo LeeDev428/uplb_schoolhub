@@ -123,8 +123,8 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
     const selectedFee = studentFees.find(f => f.id.toString() === selectedFeeId);
 
     const handleFeeChange = (value: string) => {
-        setSelectedFeeId(value);
-        form.setData('student_fee_id', value);
+        setSelectedFeeId(value === 'general' ? '' : value);
+        form.setData('student_fee_id', value === 'general' ? '' : value);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -175,14 +175,14 @@ export default function PromissoryNotes({ notes, studentFees, stats }: Props) {
                                         <div className="space-y-2">
                                             <Label htmlFor="fee">Select Fee (Optional)</Label>
                                             <Select
-                                                value={form.data.student_fee_id}
+                                                value={form.data.student_fee_id || 'general'}
                                                 onValueChange={handleFeeChange}
                                             >
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="General request (all fees)" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="">General request (all fees)</SelectItem>
+                                                    <SelectItem value="general">General request (all fees)</SelectItem>
                                                     {studentFees.map((fee) => (
                                                         <SelectItem key={fee.id} value={fee.id.toString()}>
                                                             {fee.school_year} - Balance: {formatCurrency(fee.balance)}
