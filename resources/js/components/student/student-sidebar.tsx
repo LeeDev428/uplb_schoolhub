@@ -10,6 +10,7 @@ import {
     Settings,
     FileQuestion,
     FileSignature,
+    FileText,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -67,6 +68,11 @@ export function StudentSidebar() {
             title: 'Schedules',
             href: '/student/schedules',
             icon: Calendar,
+        },
+        {
+            title: 'Document Requests',
+            href: '/student/document-requests',
+            icon: FileText,
         },
         {
             title: 'Promissory Notes',
