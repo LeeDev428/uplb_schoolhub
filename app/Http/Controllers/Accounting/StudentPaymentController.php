@@ -365,7 +365,7 @@ class StudentPaymentController extends Controller
                     'student_fee_id' => $note->student_fee_id,
                     'submitted_date' => $note->submitted_date->format('Y-m-d'),
                     'due_date' => $note->due_date->format('Y-m-d'),
-                    'amount' => (float) $note->amount,
+                    'amount' => $note->amount !== null ? (float) $note->amount : null,
                     'reason' => $note->reason,
                     'status' => $note->status,
                     'school_year' => $note->studentFee?->school_year,
