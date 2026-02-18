@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, ArrowRight, DollarSign, Users, AlertCircle } from 'lucide-react';
+import { Search, ArrowRight, DollarSign, Users, AlertCircle, Wallet, TrendingDown, CreditCard, Receipt } from 'lucide-react';
 import { StudentPhoto } from '@/components/ui/student-photo';
 
 interface Student {
@@ -57,6 +57,13 @@ interface Props {
         search?: string;
         enrollment_status?: string;
     };
+    statistics: {
+        original_tuition: number;
+        grant_deduction: number;
+        total_tuition_fees: number;
+        previous_balance: number;
+        total_balance_to_pay: number;
+    };
 }
 
 function formatCurrency(amount: number): string {
@@ -77,7 +84,7 @@ function getStatusBadge(status: string) {
     return <Badge className={config.className}>{config.label}</Badge>;
 }
 
-export default function PaymentProcessingIndex({ students, filters }: Props) {
+export default function PaymentProcessingIndex({ students, filters, statistics }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [enrollmentStatus, setEnrollmentStatus] = useState(filters.enrollment_status || 'all');
 
@@ -115,6 +122,60 @@ export default function PaymentProcessingIndex({ students, filters }: Props) {
                     title="Payment Processing"
                     description="Process student payments and manage fee accounts. Click a student to view details and process payments."
                 />
+
+                {/* Financial Summary Statistics */}
+                <div className="grid gap-4 md:grid-cols-5">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Original Tuition</CardTitle>
+                            <Wallet className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(statistics.original_tuition)}</div>
+                            <p className="text-xs text-muted-foreground">Before grant deductions</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Grant Deduction</CardTitle>
+                            <TrendingDown className="h-4 w-4 text-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-green-600">-{formatCurrency(statistics.grant_deduction)}</div>
+                            <p className="text-xs text-muted-foreground">Total scholarships & grants</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Tuition Fees</CardTitle>
+                            <Receipt className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(statistics.total_tuition_fees)}</div>
+                            <p className="text-xs text-muted-foreground">After grant deductions</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Previous Balance</CardTitle>
+                            <CreditCard className="h-4 w-4 text-orange-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-orange-600">{formatCurrency(statistics.previous_balance)}</div>
+                            <p className="text-xs text-muted-foreground">From previous years</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Balance to Pay</CardTitle>
+                            <DollarSign className="h-4 w-4 text-red-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-red-600">{formatCurrency(statistics.total_balance_to_pay)}</div>
+                            <p className="text-xs text-muted-foreground">Overall outstanding balance</p>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-4">
