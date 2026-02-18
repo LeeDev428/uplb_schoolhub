@@ -55,13 +55,13 @@ export function AccountingSidebar() {
             href: '/accounting/student-accounts',
             icon: Users,
         },
+        // {
+        //     title: 'Document Request',
+        //     href: '/accounting/document-requests',
+        //     icon: FileText,
+        // },
         {
             title: 'Document Request',
-            href: '/accounting/document-requests',
-            icon: FileText,
-        },
-        {
-            title: 'Doc Approvals',
             href: '/accounting/document-approvals',
             icon: FileCheck,
         },
