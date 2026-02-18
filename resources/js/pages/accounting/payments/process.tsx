@@ -1014,10 +1014,10 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                     <div className="flex gap-2">
                                         <Dialog open={isPromissoryDialogOpen} onOpenChange={setIsPromissoryDialogOpen}>
                                             <DialogTrigger asChild>
-                                                <Button className="bg-green-600 hover:bg-green-700">
+                                                {/* <Button className="bg-green-600 hover:bg-green-700">
                                                     <Plus className="h-4 w-4 mr-2" />
                                                     New Promissory Note
-                                                </Button>
+                                                </Button> */}
                                             </DialogTrigger>
                                             <DialogContent className="sm:max-w-[500px]">
                                                 <form onSubmit={handlePromissorySubmit}>
