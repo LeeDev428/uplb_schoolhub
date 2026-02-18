@@ -47,13 +47,25 @@ class ExamApprovalController extends Controller
         $approvals = $query->latest()->paginate(20)->withQueryString();
 
         // Get students who are NOT overdue (eligible for exam approval)
-        // These are students with enrollment clearance and no overdue fees
+        // These are students with enrollment clearance and either:
+        // 1. No overdue fees, OR
+        // 2. Have approved promissory notes, OR
+        // 3. Have made partial payments
         $eligibleStudents = Student::whereHas('enrollmentClearance', function ($q) {
                 $q->where('registrar_clearance', true)
                   ->orWhere('requirements_complete', true);
             })
-            ->whereDoesntHave('fees', function ($q) {
-                $q->where('is_overdue', true);
+            ->where(function ($q) {
+                // Not overdue OR has approved promissory note OR has made payments
+                $q->whereDoesntHave('fees', function ($fq) {
+                    $fq->where('is_overdue', true);
+                })
+                ->orWhereHas('promissoryNotes', function ($pq) {
+                    $pq->where('status', 'approved');
+                })
+                ->orWhereHas('fees', function ($fq) {
+                    $fq->where('total_paid', '>', 0);
+                });
             })
             ->with('fees')
             ->get()
