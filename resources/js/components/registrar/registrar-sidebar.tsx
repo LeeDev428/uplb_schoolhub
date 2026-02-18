@@ -75,13 +75,13 @@ export function RegistrarSidebar() {
             href: '/registrar/documents/create',
             icon: FileText,
         },
+        // {
+        //     title: 'Document Requests',
+        //     href: '/registrar/documents/requests',
+        //     icon: BookText,
+        // },
         {
             title: 'Document Requests',
-            href: '/registrar/documents/requests',
-            icon: BookText,
-        },
-        {
-            title: 'Document Approvals',
             href: '/registrar/document-approvals',
             icon: ClipboardCheck,
         },
