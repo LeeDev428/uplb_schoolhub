@@ -244,6 +244,11 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::delete('fee-management/items/{item}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'destroyItem'])->name('fee-management.destroy-item');
     Route::post('fee-management/recalculate', [App\Http\Controllers\Accounting\FeeManagementController::class, 'recalculateFees'])->name('fee-management.recalculate');
     
+    // Document Fee Items
+    Route::post('fee-management/document-fees', [App\Http\Controllers\Accounting\FeeManagementController::class, 'storeDocumentFee'])->name('fee-management.store-document-fee');
+    Route::put('fee-management/document-fees/{documentFee}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'updateDocumentFee'])->name('fee-management.update-document-fee');
+    Route::delete('fee-management/document-fees/{documentFee}', [App\Http\Controllers\Accounting\FeeManagementController::class, 'destroyDocumentFee'])->name('fee-management.destroy-document-fee');
+    
     // Online Transactions
     Route::get('online-transactions', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'index'])->name('online-transactions.index');
     Route::post('online-transactions/{transaction}/verify', [App\Http\Controllers\Accounting\OnlineTransactionController::class, 'verify'])->name('online-transactions.verify');
