@@ -147,6 +147,8 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
     const [editingItem, setEditingItem] = useState<FeeItem | null>(null);
     const [editingDocFee, setEditingDocFee] = useState<DocumentFeeItem | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+    const [isAddingNewDocCategory, setIsAddingNewDocCategory] = useState(false);
+    const [newDocCategoryName, setNewDocCategoryName] = useState('');
 
     // Fee Assignment state
     const [assignClassification, setAssignClassification] = useState<string>('');
@@ -335,6 +337,8 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
     const openDocFeeModal = (docFee?: DocumentFeeItem) => {
         if (docFee) {
             setEditingDocFee(docFee);
+            setIsAddingNewDocCategory(false);
+            setNewDocCategoryName('');
             docFeeForm.setData({
                 category: docFee.category,
                 name: docFee.name,
@@ -346,6 +350,8 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
             });
         } else {
             setEditingDocFee(null);
+            setIsAddingNewDocCategory(false);
+            setNewDocCategoryName('');
             docFeeForm.reset();
         }
         setIsDocFeeModalOpen(true);
@@ -353,19 +359,30 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
 
     const handleDocFeeSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // If adding a new category, use the new category name
+        const submitData = { ...docFeeForm.data };
+        if (isAddingNewDocCategory && newDocCategoryName.trim()) {
+            submitData.category = newDocCategoryName.trim();
+        }
+        
         if (editingDocFee) {
-            docFeeForm.put(`/accounting/fee-management/document-fees/${editingDocFee.id}`, {
+            router.put(`/accounting/fee-management/document-fees/${editingDocFee.id}`, submitData, {
                 onSuccess: () => {
                     setIsDocFeeModalOpen(false);
                     docFeeForm.reset();
                     setEditingDocFee(null);
+                    setIsAddingNewDocCategory(false);
+                    setNewDocCategoryName('');
                 },
             });
         } else {
-            docFeeForm.post('/accounting/fee-management/document-fees', {
+            router.post('/accounting/fee-management/document-fees', submitData, {
                 onSuccess: () => {
                     setIsDocFeeModalOpen(false);
                     docFeeForm.reset();
+                    setIsAddingNewDocCategory(false);
+                    setNewDocCategoryName('');
                 },
             });
         }
@@ -1016,6 +1033,8 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 setIsDocFeeModalOpen(open);
                 if (!open) {
                     setEditingDocFee(null);
+                    setIsAddingNewDocCategory(false);
+                    setNewDocCategoryName('');
                     docFeeForm.reset();
                 }
             }}>
@@ -1032,8 +1051,17 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                 <Label htmlFor="doc_category">Category *</Label>
                                 <div className="flex gap-2">
                                     <Select
-                                        value={docFeeForm.data.category}
-                                        onValueChange={(value) => docFeeForm.setData('category', value)}
+                                        value={isAddingNewDocCategory ? '__new__' : docFeeForm.data.category}
+                                        onValueChange={(value) => {
+                                            if (value === '__new__') {
+                                                setIsAddingNewDocCategory(true);
+                                                setNewDocCategoryName('');
+                                            } else {
+                                                setIsAddingNewDocCategory(false);
+                                                setNewDocCategoryName('');
+                                                docFeeForm.setData('category', value);
+                                            }
+                                        }}
                                     >
                                         <SelectTrigger className="flex-1">
                                             <SelectValue placeholder="Select or type category" />
@@ -1046,10 +1074,11 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {docFeeForm.data.category === '__new__' && (
+                                {isAddingNewDocCategory && (
                                     <Input
                                         placeholder="Enter new category name"
-                                        onChange={(e) => docFeeForm.setData('category', e.target.value)}
+                                        value={newDocCategoryName}
+                                        onChange={(e) => setNewDocCategoryName(e.target.value)}
                                     />
                                 )}
                                 {docFeeForm.errors.category && <p className="text-sm text-red-500">{docFeeForm.errors.category}</p>}
