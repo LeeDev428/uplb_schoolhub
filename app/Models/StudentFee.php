@@ -59,6 +59,14 @@ class StudentFee extends Model
     }
 
     /**
+     * Get all promissory notes for this fee record.
+     */
+    public function promissoryNotes(): HasMany
+    {
+        return $this->hasMany(PromissoryNote::class);
+    }
+
+    /**
      * Calculate and update the balance.
      */
     public function updateBalance(): void
