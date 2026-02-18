@@ -384,7 +384,6 @@ class StudentPaymentController extends Controller
 
         // Get cashiers (accounting staff)
         $cashiers = \App\Models\User::where('role', 'accounting')
-            ->where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name']);
 
