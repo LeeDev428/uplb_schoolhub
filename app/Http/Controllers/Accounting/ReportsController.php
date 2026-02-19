@@ -83,6 +83,7 @@ class ReportsController extends Controller
             ->orderBy('balance', 'desc')
             ->get()
             ->map(function ($fee) {
+                /** @var \App\Models\StudentFee $fee */
                 return [
                     'student' => [
                         'id' => $fee->student->id,
@@ -179,7 +180,8 @@ class ReportsController extends Controller
         $documentFeeReport = DocumentFeeItem::where('is_active', true)
             ->orderBy('category')->orderBy('name')
             ->get()
-            ->each(function ($item) {
+            ->map(function ($item) {
+                /** @var \App\Models\DocumentFeeItem $item */
                 // Recount from real approved requests
                 $item->actual_availed = DocumentRequest::where('document_fee_item_id', $item->id)
                     ->where('accounting_status', 'approved')
@@ -187,9 +189,11 @@ class ReportsController extends Controller
                 $item->actual_revenue = (float) DocumentRequest::where('document_fee_item_id', $item->id)
                     ->where('accounting_status', 'approved')
                     ->sum('fee');
+                return $item;
             })
             ->groupBy('category')
             ->map(function ($fees, $cat) {
+                /** @var \Illuminate\Support\Collection $fees */
                 $items = $fees->map(function ($fee) {
                     $price   = (float) $fee->price;
                     $availed = $fee->actual_availed;
