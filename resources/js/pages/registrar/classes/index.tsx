@@ -452,7 +452,7 @@ export default function RegistrarClassesIndex({
                                                 <p className="text-sm font-medium truncate">{getStudentName(student)}</p>
                                                 <div className="flex gap-2 mt-0.5">
                                                     {student.lrn && (
-                                                        <span className="text-xs text-muted-foreground">LRN: {student.lrn}</span>
+                                                        <span className="text-xs text-muted-foreground">Student No.: {student.lrn}</span>
                                                     )}
                                                     {student.program && (
                                                         <span className="text-xs text-muted-foreground">• {student.program}</span>
