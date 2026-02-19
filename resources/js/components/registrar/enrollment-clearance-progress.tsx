@@ -20,8 +20,7 @@ interface StudentInfo {
     last_name: string;
     middle_name?: string | null;
     suffix?: string | null;
-    lrn?: string;
-    student_number?: string;
+    lrn?: string;           // lrn is also used as Student No.
     program?: string;
     year_level?: string;
     section?: string | null;
@@ -104,7 +103,7 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
 
     <div class="cert-text">
         This is to certify that <strong>${studentName}</strong>, 
-        with Student No. <strong>${student?.student_number || 'N/A'}</strong> and LRN <strong>${student?.lrn || 'N/A'}</strong>, 
+        with Student No. <strong>${student?.lrn || 'N/A'}</strong>, 
         is officially enrolled at <strong>${appName}</strong> for the Academic Year 
         <strong>${student?.school_year || 'N/A'}</strong>, 
         taking up <strong>${student?.program || 'N/A'}</strong>, 
@@ -113,8 +112,7 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
 
     <div class="section-title">Student Information</div>
     <div class="info-grid">
-        <div class="info-row"><span class="info-label">Student No.:</span><span class="info-value">${student?.student_number || 'N/A'}</span></div>
-        <div class="info-row"><span class="info-label">LRN:</span><span class="info-value">${student?.lrn || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Student No.:</span><span class="info-value">${student?.lrn || 'N/A'}</span></div>
         <div class="info-row"><span class="info-label">Full Name:</span><span class="info-value">${studentName}</span></div>
         <div class="info-row"><span class="info-label">Date of Birth:</span><span class="info-value">${student?.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString('en-PH') : 'N/A'}</span></div>
         <div class="info-row"><span class="info-label">Program/Course:</span><span class="info-value">${student?.program || 'N/A'}</span></div>
