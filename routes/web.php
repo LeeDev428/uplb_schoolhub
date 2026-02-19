@@ -79,6 +79,9 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::get('reports/export/financial', [App\Http\Controllers\Owner\ReportsController::class, 'exportFinancial'])->name('reports.export.financial');
     Route::get('reports/export/students', [App\Http\Controllers\Owner\ReportsController::class, 'exportStudents'])->name('reports.export.students');
 
+    Route::get('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'index'])->name('app-settings');
+    Route::post('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'update'])->name('app-settings.update');
+
     // Academic Structure Management
     Route::resource('departments', \App\Http\Controllers\Owner\DepartmentController::class)->only([
         'index', 'store', 'update', 'destroy'
