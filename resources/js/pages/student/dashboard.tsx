@@ -52,7 +52,7 @@ interface Student {
     id: number;
     first_name: string;
     last_name: string;
-    student_number: string;
+    lrn: string;  // used as Student No.
     program: string;
     year_level: string;
     enrollment_status: string;
@@ -284,8 +284,8 @@ export default function Dashboard({ student, stats, enrollmentClearance, payment
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Student ID</p>
-                                    <p className="font-medium">{student.student_number}</p>
+                                    <p className="text-sm text-muted-foreground">Student No.</p>
+                                    <p className="font-medium">{student.lrn}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Program</p>
