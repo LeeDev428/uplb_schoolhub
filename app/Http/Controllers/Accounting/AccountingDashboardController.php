@@ -138,8 +138,11 @@ class AccountingDashboardController extends Controller
     /**
      * Display the simplified main dashboard.
      */
-    public function mainDashboard(): Response
+    public function mainDashboard(Request $request): Response
     {
+        $selectedMonth = (int) $request->get('month', date('n'));
+        $selectedYear = (int) $request->get('year', date('Y'));
+
         // Get stats
         $totalStudents = Student::count();
         $fullyPaid = StudentFee::where('balance', '<=', 0)->count();
@@ -203,10 +206,70 @@ class AccountingDashboardController extends Controller
             })
             ->toArray();
 
+        // Daily income for the selected month
+        $monthStart = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth();
+        $monthEnd = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
+        $daysInMonth = $monthEnd->day;
+
+        $dailyIncome = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::create($selectedYear, $selectedMonth, $day);
+            $dayPayments = StudentPayment::whereDate('payment_date', $date)->get();
+            $total = $dayPayments->sum('amount');
+
+            $avgHour = null;
+            if ($dayPayments->count() > 0) {
+                $avgHour = $dayPayments->avg(function ($p) {
+                    return Carbon::parse($p->created_at)->hour + Carbon::parse($p->created_at)->minute / 60;
+                });
+            }
+
+            $timeFormatted = $avgHour !== null
+                ? sprintf('%d:%02d %s',
+                    $avgHour > 12 ? floor($avgHour - 12) : ($avgHour < 1 ? 12 : floor($avgHour)),
+                    round(($avgHour - floor($avgHour)) * 60),
+                    $avgHour >= 12 ? 'PM' : 'AM'
+                )
+                : null;
+
+            $dailyIncome[] = [
+                'day' => $day,
+                'date' => $date->format('Y-m-d'),
+                'day_label' => $date->format('D, M j'),
+                'total' => (float) $total,
+                'count' => $dayPayments->count(),
+                'avg_time' => $timeFormatted,
+            ];
+        }
+
+        // Months for dropdown
+        $months = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $months[] = [
+                'value' => $m,
+                'label' => Carbon::create(null, $m)->format('F'),
+            ];
+        }
+
+        $years = StudentPayment::selectRaw('YEAR(payment_date) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        if (empty($years)) {
+            $years = [(int) date('Y')];
+        }
+
         return Inertia::render('accounting/dashboard', [
             'stats' => $stats,
             'recentPayments' => $recentPayments,
             'pendingPayments' => $pendingPayments,
+            'dailyIncome' => $dailyIncome,
+            'selectedMonth' => $selectedMonth,
+            'selectedYear' => $selectedYear,
+            'months' => $months,
+            'years' => $years,
         ]);
     }
 
