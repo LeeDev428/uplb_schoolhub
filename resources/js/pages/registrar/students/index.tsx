@@ -282,7 +282,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Student</TableHead>
-                                <TableHead>LRN/ID</TableHead>
+                                <TableHead>Student No.</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Program</TableHead>
                                 <TableHead>Year & Section</TableHead>
