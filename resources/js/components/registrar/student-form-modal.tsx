@@ -379,7 +379,7 @@ export function StudentFormModal({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="lrn">Student ID / LRN *</Label>
+                                <Label htmlFor="lrn">Student No. *</Label>
                                 <Input
                                     id="lrn"
                                     value={data.lrn}
