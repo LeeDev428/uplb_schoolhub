@@ -232,7 +232,7 @@ export default function StudentsIndex({
                                 <thead>
                                     <tr className="border-b">
                                         <th className="p-3 text-left font-semibold">Student</th>
-                                        <th className="p-3 text-left font-semibold">LRN</th>
+                                        <th className="p-3 text-left font-semibold">Student No.</th>
                                         <th className="p-3 text-left font-semibold">Program</th>
                                         <th className="p-3 text-left font-semibold">Year Level</th>
                                         <th className="p-3 text-left font-semibold">Section</th>
