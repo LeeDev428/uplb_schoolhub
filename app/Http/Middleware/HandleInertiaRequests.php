@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Announcement;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -54,7 +55,33 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'announcementCount' => $this->getAnnouncementCount($user),
+            'appSettings' => $this->getAppSettings(),
         ];
+    }
+
+    /**
+     * Get global app settings.
+     */
+    protected function getAppSettings(): array
+    {
+        try {
+            $settings = AppSetting::current();
+            return [
+                'app_name' => $settings->app_name,
+                'logo_url' => $settings->logo_url,
+                'favicon_url' => $settings->favicon_url,
+                'primary_color' => $settings->primary_color,
+                'secondary_color' => $settings->secondary_color,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'app_name' => config('app.name'),
+                'logo_url' => null,
+                'favicon_url' => null,
+                'primary_color' => '#1d4ed8',
+                'secondary_color' => '#64748b',
+            ];
+        }
     }
 
     /**
