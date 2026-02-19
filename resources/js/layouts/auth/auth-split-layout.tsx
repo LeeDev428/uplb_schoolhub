@@ -1,14 +1,23 @@
 import { Link, usePage } from '@inertiajs/react';
-import AppLogoIcon from '@/components/app-logo-icon';
+import { GraduationCap } from 'lucide-react';
 import { home } from '@/routes';
-import type { AuthLayoutProps, SharedData } from '@/types';
+import type { AuthLayoutProps } from '@/types';
+
+interface AppSettings {
+    app_name?: string;
+    logo_url?: string | null;
+    primary_color?: string;
+}
 
 export default function AuthSplitLayout({
     children,
     title,
     description,
 }: AuthLayoutProps) {
-    const { name } = usePage<SharedData>().props;
+    const { appSettings } = usePage<{ appSettings?: AppSettings }>().props;
+    const appName = appSettings?.app_name || 'SchoolHub';
+    const logoUrl = appSettings?.logo_url;
+    const primaryColor = appSettings?.primary_color || '#2563eb';
 
     return (
         <div className="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -18,8 +27,14 @@ export default function AuthSplitLayout({
                     href={home()}
                     className="relative z-20 flex items-center text-lg font-medium"
                 >
-                    <AppLogoIcon className="mr-2 size-8 fill-current text-white" />
-                    {name}
+                    {logoUrl ? (
+                        <img src={logoUrl} alt={appName} className="mr-2 h-8 w-8 rounded object-contain bg-white" />
+                    ) : (
+                        <div className="mr-2 flex h-8 w-8 items-center justify-center rounded" style={{ backgroundColor: primaryColor }}>
+                            <GraduationCap className="h-5 w-5 text-white" />
+                        </div>
+                    )}
+                    {appName}
                 </Link>
             </div>
             <div className="w-full lg:p-8">
@@ -28,7 +43,13 @@ export default function AuthSplitLayout({
                         href={home()}
                         className="relative z-20 flex items-center justify-center lg:hidden"
                     >
-                        <AppLogoIcon className="h-10 fill-current text-black sm:h-12" />
+                        {logoUrl ? (
+                            <img src={logoUrl} alt={appName} className="h-10 w-10 rounded object-contain" />
+                        ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded" style={{ backgroundColor: primaryColor }}>
+                                <GraduationCap className="h-6 w-6 text-white" />
+                            </div>
+                        )}
                     </Link>
                     <div className="flex flex-col items-start gap-2 text-left sm:items-center sm:text-center">
                         <h1 className="text-xl font-medium">{title}</h1>
