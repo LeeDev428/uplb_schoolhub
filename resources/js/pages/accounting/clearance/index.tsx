@@ -421,7 +421,7 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                                     </Avatar>
                                                     <div>
                                                         <div className="font-medium">{getFullName(student)}</div>
-                                                        <div className="text-sm text-muted-foreground">LRN: {student.lrn}</div>
+                                                        <div className="text-sm text-muted-foreground">Student No.: {student.lrn}</div>
                                                     </div>
                                                 </div>
                                             </TableCell>
