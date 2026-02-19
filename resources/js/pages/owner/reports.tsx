@@ -43,6 +43,8 @@ interface ReportsProps {
         items: { name: string; selling_price: number; profit: number; students_availed: number; total_revenue: number; total_income: number }[];
         total_revenue: number;
         total_income: number;
+        total_assigned: number;
+        total_collected: number;
     }[];
     documentFeeReport: {
         category: string;
@@ -292,7 +294,8 @@ export default function OwnerReports({ summary, school_year, feeReport = [], doc
                                             <div className="flex items-center justify-between mb-2">
                                                 <h3 className="text-sm font-semibold uppercase text-muted-foreground">{cat.category}</h3>
                                                 <div className="flex gap-3 text-sm">
-                                                    <span className="text-blue-600 font-medium">Revenue: {formatCurrency(cat.total_revenue)}</span>
+                                                    <span className="text-muted-foreground">Assigned: {formatCurrency(cat.total_assigned ?? cat.total_revenue)}</span>
+                                                    <span className="text-blue-600 font-medium">Collected: {formatCurrency(cat.total_collected ?? 0)}</span>
                                                     <span className="text-green-600 font-medium">Income: {formatCurrency(cat.total_income)}</span>
                                                 </div>
                                             </div>
@@ -329,7 +332,8 @@ export default function OwnerReports({ summary, school_year, feeReport = [], doc
                                         </div>
                                     ))}
                                     <div className="flex justify-end gap-6 rounded-lg bg-muted p-3 text-sm font-semibold">
-                                        <span>Total Revenue: <span className="text-blue-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_revenue, 0))}</span></span>
+                                        <span>Total Assigned: <span className="text-muted-foreground">{formatCurrency(feeReport.reduce((s, c) => s + (c.total_assigned ?? c.total_revenue), 0))}</span></span>
+                                        <span>Total Collected: <span className="text-blue-600">{formatCurrency(feeReport.reduce((s, c) => s + (c.total_collected ?? 0), 0))}</span></span>
                                         <span>Total Income: <span className="text-green-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_income, 0))}</span></span>
                                     </div>
                                 </>
