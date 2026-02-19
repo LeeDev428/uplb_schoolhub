@@ -92,13 +92,13 @@ export default function Welcome({ canRegister }: Props) {
                         </p>
 
                         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                            {canRegister && (
+                            {/* {canRegister && (
                                 <Button size="lg" asChild className="min-w-48">
                                     <Link href={register()}>
                                         Start Free Trial
                                     </Link>
                                 </Button>
-                            )}
+                            )} */}
                             <Button
                                 size="lg"
                                 variant="outline"
