@@ -17,6 +17,7 @@ class FeeItem extends Model
         'description',
         'cost_price',
         'selling_price',
+        'students_availed',
         'school_year',
         'program',
         'year_level',
