@@ -62,6 +62,36 @@ interface BalanceReport {
     payment_status: string;
 }
 
+interface FeeReportItem {
+    name: string;
+    selling_price: number;
+    cost_price: number;
+    profit: number;
+    students_availed: number;
+    total_revenue: number;
+    total_income: number;
+}
+
+interface FeeReportCategory {
+    category: string;
+    items: FeeReportItem[];
+    total_revenue: number;
+    total_income: number;
+}
+
+interface DocFeeReportItem {
+    name: string;
+    price: number;
+    students_availed: number;
+    total_revenue: number;
+}
+
+interface DocFeeReportCategory {
+    category: string;
+    items: DocFeeReportItem[];
+    total_revenue: number;
+}
+
 interface Department {
     id: number;
     name: string;
@@ -72,6 +102,8 @@ interface Department {
 interface Props {
     paymentSummary: PaymentSummary[];
     balanceReport: BalanceReport[];
+    feeReport: FeeReportCategory[];
+    documentFeeReport: DocFeeReportCategory[];
     filters: {
         from?: string;
         to?: string;
@@ -95,6 +127,8 @@ interface Props {
 export default function AccountingReports({
     paymentSummary = [],
     balanceReport = [],
+    feeReport = [],
+    documentFeeReport = [],
     filters = {},
     schoolYears = [],
     departments = [],
@@ -391,6 +425,7 @@ export default function AccountingReports({
                     <TabsList>
                         <TabsTrigger value="balance">Balance Report</TabsTrigger>
                         <TabsTrigger value="collection">Collection Summary</TabsTrigger>
+                        <TabsTrigger value="fee-income">Fee Income</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="balance" className="space-y-4">
