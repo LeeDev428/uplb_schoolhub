@@ -332,8 +332,6 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                 <div className="mt-2 flex items-center space-x-4 text-sm text-muted-foreground">
                                     <span>Student No.: {student.lrn}</span>
                                     <span>•</span>
-                                    {/* student no shown above */}
-                                    <span>•</span>
                                     <Badge>{student.student_type}</Badge>
                                 </div>
                                 <div className="mt-4 grid grid-cols-3 gap-4">
