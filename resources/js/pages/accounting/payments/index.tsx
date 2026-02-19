@@ -276,7 +276,7 @@ export default function PaymentProcessingIndex({ students, filters, statistics }
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Student</TableHead>
-                                        <TableHead>LRN</TableHead>
+                                        <TableHead>Student No.</TableHead>
                                         <TableHead>Program</TableHead>
                                         <TableHead>Year & Section</TableHead>
                                         <TableHead className="text-right">Current Balance</TableHead>
