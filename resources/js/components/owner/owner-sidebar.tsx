@@ -11,6 +11,7 @@ import {
     Users,
     Grid3x3,
     Megaphone,
+    Settings,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -98,6 +99,11 @@ const mainNavItems: NavItem[] = [
         title: 'Export Reports',
         href: '/owner/reports',
         icon: FileText,
+    },
+    {
+        title: 'App Settings',
+        href: '/owner/app-settings',
+        icon: Settings,
     },
 ];
 
