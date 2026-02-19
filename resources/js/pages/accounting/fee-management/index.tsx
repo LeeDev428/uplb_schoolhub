@@ -66,6 +66,9 @@ interface FeeItem {
     year_level_id?: number | null;
     section_id?: number | null;
     assignment_scope?: 'all' | 'specific';
+    students_availed?: number;
+    total_revenue?: number;
+    total_income?: number;
 }
 
 interface FeeCategory {
@@ -79,6 +82,8 @@ interface FeeCategory {
     total_cost: string;
     total_selling: string;
     total_profit: string;
+    total_revenue?: number;
+    total_income?: number;
 }
 
 interface Department {
@@ -120,6 +125,8 @@ interface DocumentFeeItem {
     processing_type: 'normal' | 'rush';
     description?: string;
     is_active: boolean;
+    students_availed?: number;
+    total_revenue?: number;
 }
 
 interface Props {
@@ -171,6 +178,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         category: '',
         name: '',
         price: '',
+        students_availed: 0,
         processing_days: 5,
         processing_type: 'normal' as 'normal' | 'rush',
         description: '',
@@ -183,6 +191,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         description: '',
         cost_price: '',
         selling_price: '',
+        students_availed: 0,
         school_year: '2024-2025',
         classification: '' as string,
         department_id: null as number | null,
@@ -235,6 +244,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 description: item.description || '',
                 cost_price: item.cost_price,
                 selling_price: item.selling_price,
+                students_availed: item.students_availed || 0,
                 school_year: item.school_year || '2024-2025',
                 is_active: item.is_active,
                 classification: item.classification || '',
@@ -252,6 +262,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 description: '',
                 cost_price: '',
                 selling_price: '',
+                students_availed: 0,
                 school_year: '2024-2025',
                 is_active: true,
                 classification: '',
@@ -343,6 +354,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 category: docFee.category,
                 name: docFee.name,
                 price: docFee.price,
+                students_availed: docFee.students_availed || 0,
                 processing_days: docFee.processing_days,
                 processing_type: docFee.processing_type,
                 description: docFee.description || '',
@@ -660,6 +672,16 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                             <span className="text-muted-foreground">
                                                 Profit: <span className="text-green-600 font-medium">{formatCurrency(category.total_profit)}</span>
                                             </span>
+                                            {(category.total_revenue ?? 0) > 0 && (
+                                                <span className="text-muted-foreground">
+                                                    Revenue: <span className="text-blue-600 font-medium">{formatCurrency(category.total_revenue ?? 0)}</span>
+                                                </span>
+                                            )}
+                                            {(category.total_income ?? 0) > 0 && (
+                                                <span className="text-muted-foreground">
+                                                    Income: <span className="text-purple-600 font-medium">{formatCurrency(category.total_income ?? 0)}</span>
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </AccordionTrigger>
@@ -708,6 +730,9 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                         <TableHead className="text-right">Cost Price</TableHead>
                                                         <TableHead className="text-right">Selling Price</TableHead>
                                                         <TableHead className="text-right">Profit</TableHead>
+                                                        <TableHead className="text-right">Students Availed</TableHead>
+                                                        <TableHead className="text-right">Total Revenue</TableHead>
+                                                        <TableHead className="text-right">Total Income</TableHead>
                                                         <TableHead>Status</TableHead>
                                                         <TableHead className="text-right">Actions</TableHead>
                                                     </TableRow>
@@ -725,6 +750,15 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                                 <span className={parseFloat(item.profit) >= 0 ? 'text-green-600' : 'text-red-600'}>
                                                                     {formatCurrency(item.profit)}
                                                                 </span>
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {(item.students_availed ?? 0).toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="text-right text-blue-600 font-medium">
+                                                                {formatCurrency(item.total_revenue ?? 0)}
+                                                            </TableCell>
+                                                            <TableCell className="text-right text-purple-600 font-medium">
+                                                                {formatCurrency(item.total_income ?? 0)}
                                                             </TableCell>
                                                             <TableCell>
                                                                 {item.is_active ? (
@@ -968,6 +1002,8 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                         <TableHead>Type</TableHead>
                                                         <TableHead>Processing Days</TableHead>
                                                         <TableHead className="text-right">Price</TableHead>
+                                                        <TableHead className="text-right">Students Availed</TableHead>
+                                                        <TableHead className="text-right">Total Revenue</TableHead>
                                                         <TableHead>Status</TableHead>
                                                         <TableHead className="text-right">Actions</TableHead>
                                                     </TableRow>
@@ -987,6 +1023,12 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                             </TableCell>
                                                             <TableCell className="text-right font-medium">
                                                                 {formatCurrency(fee.price)}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {(fee.students_availed ?? 0).toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="text-right text-blue-600 font-medium">
+                                                                {formatCurrency(fee.total_revenue ?? 0)}
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Badge variant={fee.is_active ? 'default' : 'outline'}>
@@ -1106,6 +1148,27 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                     />
                                     {docFeeForm.errors.price && <p className="text-sm text-red-500">{docFeeForm.errors.price}</p>}
                                 </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="doc_availed">Students Availed</Label>
+                                    <Input
+                                        id="doc_availed"
+                                        type="number"
+                                        min="0"
+                                        value={docFeeForm.data.students_availed}
+                                        onChange={(e) => docFeeForm.setData('students_availed', parseInt(e.target.value) || 0)}
+                                        placeholder="0"
+                                    />
+                                </div>
+                            </div>
+                            {docFeeForm.data.students_availed > 0 && docFeeForm.data.price && (
+                                <div className="rounded-lg bg-muted p-3 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Revenue:</span>
+                                        <span className="font-semibold text-blue-600">{formatCurrency((parseFloat(docFeeForm.data.price) || 0) * docFeeForm.data.students_availed)}</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="doc_days">Processing Days *</Label>
                                     <Input
@@ -1446,6 +1509,30 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                     </span>
                                 </div>
                             </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="item_availed">Students Availed</Label>
+                                <Input
+                                    id="item_availed"
+                                    type="number"
+                                    min="0"
+                                    value={itemForm.data.students_availed}
+                                    onChange={(e) => itemForm.setData('students_availed', parseInt(e.target.value) || 0)}
+                                    placeholder="0"
+                                />
+                                <p className="text-xs text-muted-foreground">Number of students who availed this fee</p>
+                            </div>
+                            {itemForm.data.students_availed > 0 && itemForm.data.selling_price && (
+                                <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm space-y-1">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Revenue ({itemForm.data.students_availed} × ₱{itemForm.data.selling_price}):</span>
+                                        <span className="font-semibold text-blue-600">{formatCurrency((parseFloat(itemForm.data.selling_price) || 0) * itemForm.data.students_availed)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Income (profit × {itemForm.data.students_availed}):</span>
+                                        <span className="font-semibold text-purple-600">{formatCurrency(parseFloat(calculateProfit()) * itemForm.data.students_availed)}</span>
+                                    </div>
+                                </div>
+                            )}
                             <div className="flex items-center gap-2">
                                 <Switch
                                     id="item_is_active"
