@@ -40,8 +40,16 @@ const footerNavItems: NavItem[] = [
     // },
 ];
 
+interface AppSettings {
+    app_name?: string;
+    logo_url?: string | null;
+    primary_color?: string;
+}
+
 export function RegistrarSidebar() {
-    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+    const { announcementCount, appSettings } = usePage<{ announcementCount: number; appSettings?: AppSettings }>().props;
+    const appName = appSettings?.app_name || 'SchoolHub';
+    const logoUrl = appSettings?.logo_url;
 
     const mainNavItems: NavItem[] = [
         {
@@ -114,13 +122,15 @@ export function RegistrarSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/registrar/dashboard" prefetch>
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-                                    <GraduationCap className="h-5 w-5" />
-                                </div>
+                                {logoUrl ? (
+                                    <img src={logoUrl} alt={appName} className="h-8 w-8 rounded-lg object-contain bg-white" />
+                                ) : (
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                        <GraduationCap className="h-5 w-5" />
+                                    </div>
+                                )}
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">
-                                        SchoolHub
-                                    </span>
+                                    <span className="truncate font-semibold">{appName}</span>
                                     <span className="truncate text-xs text-muted-foreground">
                                         Registrar Portal
                                     </span>
