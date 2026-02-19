@@ -570,6 +570,132 @@ export default function AccountingReports({
                             </CardContent>
                         </Card>
                     </TabsContent>
+
+                    <TabsContent value="fee-income" className="space-y-6">
+                        {/* General Fee Income */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>General Fee Income Report</CardTitle>
+                                <CardDescription>
+                                    Revenue and income from fee items based on students availed
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {feeReport.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                                        <FileText className="h-10 w-10 mb-3" />
+                                        <p>No fee income data yet. Set the number of students availed in Fee Management.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {feeReport.map((cat) => (
+                                            <div key={cat.category} className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">{cat.category}</h3>
+                                                    <div className="flex gap-4 text-sm">
+                                                        <span className="text-blue-600 font-medium">Revenue: {formatCurrency(cat.total_revenue)}</span>
+                                                        <span className="text-green-600 font-medium">Income: {formatCurrency(cat.total_income)}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-lg border">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>Fee Item</TableHead>
+                                                                <TableHead className="text-right">Selling Price</TableHead>
+                                                                <TableHead className="text-right">Profit/Unit</TableHead>
+                                                                <TableHead className="text-right">Students Availed</TableHead>
+                                                                <TableHead className="text-right">Total Revenue</TableHead>
+                                                                <TableHead className="text-right">Total Income</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {cat.items.map((item) => (
+                                                                <TableRow key={item.name}>
+                                                                    <TableCell className="font-medium">{item.name}</TableCell>
+                                                                    <TableCell className="text-right">{formatCurrency(item.selling_price)}</TableCell>
+                                                                    <TableCell className={`text-right ${item.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                                        {formatCurrency(item.profit)}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-right">{item.students_availed.toLocaleString()}</TableCell>
+                                                                    <TableCell className="text-right text-blue-600 font-medium">
+                                                                        {formatCurrency(item.total_revenue)}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-right text-green-600 font-semibold">
+                                                                        {formatCurrency(item.total_income)}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="rounded-lg bg-muted p-4 flex gap-8 text-sm font-semibold justify-end">
+                                            <span>Total Revenue: <span className="text-blue-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_revenue, 0))}</span></span>
+                                            <span>Total Income: <span className="text-green-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_income, 0))}</span></span>
+                                        </div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Document Fee Income */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Document Fee Income Report</CardTitle>
+                                <CardDescription>
+                                    Revenue from document request fees based on students availed
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {documentFeeReport.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                                        <FileText className="h-10 w-10 mb-3" />
+                                        <p>No document fee income data. Set students availed in Document Fees.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {documentFeeReport.map((cat) => (
+                                            <div key={cat.category} className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">{cat.category}</h3>
+                                                    <span className="text-blue-600 font-medium text-sm">Revenue: {formatCurrency(cat.total_revenue)}</span>
+                                                </div>
+                                                <div className="rounded-lg border">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>Document Type</TableHead>
+                                                                <TableHead className="text-right">Price</TableHead>
+                                                                <TableHead className="text-right">Students Availed</TableHead>
+                                                                <TableHead className="text-right">Total Revenue</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {cat.items.map((item) => (
+                                                                <TableRow key={item.name}>
+                                                                    <TableCell className="font-medium">{item.name}</TableCell>
+                                                                    <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
+                                                                    <TableCell className="text-right">{item.students_availed.toLocaleString()}</TableCell>
+                                                                    <TableCell className="text-right text-blue-600 font-semibold">
+                                                                        {formatCurrency(item.total_revenue)}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="rounded-lg bg-muted p-4 flex justify-end text-sm font-semibold">
+                                            <span>Total Document Fee Revenue: <span className="text-blue-600">{formatCurrency(documentFeeReport.reduce((s, c) => s + c.total_revenue, 0))}</span></span>
+                                        </div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
                 </Tabs>
             </div>
         </AccountingLayout>
