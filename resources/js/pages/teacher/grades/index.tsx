@@ -95,7 +95,7 @@ export default function GradesIndex({ students, sections, filters }: Props) {
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b">
-                                        <th className="p-3 text-left font-semibold">LRN</th>
+                                        <th className="p-3 text-left font-semibold">Student No.</th>
                                         <th className="p-3 text-left font-semibold">Name</th>
                                         <th className="p-3 text-left font-semibold">Section</th>
                                         <th className="p-3 text-left font-semibold">Year Level</th>
