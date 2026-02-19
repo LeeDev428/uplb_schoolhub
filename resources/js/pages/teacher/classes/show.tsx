@@ -61,7 +61,7 @@ export default function ClassShow({ section, students }: Props) {
                                 <thead>
                                     <tr className="border-b">
                                         <th className="p-3 text-left font-semibold">#</th>
-                                        <th className="p-3 text-left font-semibold">LRN</th>
+                                        <th className="p-3 text-left font-semibold">Student No.</th>
                                         <th className="p-3 text-left font-semibold">Name</th>
                                         <th className="p-3 text-left font-semibold">Email</th>
                                         <th className="p-3 text-center font-semibold">Status</th>
