@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import { GraduationCap } from 'lucide-react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -12,6 +12,12 @@ import { home, register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
+interface AppSettings {
+    app_name: string;
+    logo_url: string | null;
+    primary_color: string;
+}
+
 type Props = {
     status?: string;
     canResetPassword: boolean;
@@ -23,6 +29,10 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const { appSettings } = usePage<{ appSettings?: AppSettings }>().props;
+    const logoUrl = appSettings?.logo_url;
+    const primaryColor = appSettings?.primary_color || '#2563eb';
+
     return (
         <AuthLayout
             title=""
@@ -31,9 +41,16 @@ export default function Login({
             <Head title="Log in" />
 
             <div className="mb-6 flex justify-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg">
-                    <GraduationCap className="h-7 w-7" />
-                </div>
+                {logoUrl ? (
+                    <img src={logoUrl} alt="Logo" className="h-12 w-12 rounded-xl object-contain" />
+                ) : (
+                    <div 
+                        className="flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-lg"
+                        style={{ backgroundColor: primaryColor }}
+                    >
+                        <GraduationCap className="h-7 w-7" />
+                    </div>
+                )}
             </div>
 
             <Form
