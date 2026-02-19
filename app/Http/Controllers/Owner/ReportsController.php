@@ -28,37 +28,40 @@ class ReportsController extends Controller
         $totalExpected = StudentFee::sum('total_amount');
         $totalBalance = StudentFee::sum('balance');
 
-        // Fee Income Report
-        $feeReport = FeeCategory::with(['items' => function ($q) {
-            $q->where('students_availed', '>', 0)->where('is_active', true);
-        }])
-        ->get()
-        ->map(function ($cat) {
-            $items = $cat->items->map(function ($item) {
-                $availed = (int) $item->students_availed;
-                $selling = (float) $item->selling_price;
-                $profit = $selling - (float) $item->cost_price;
+        // Fee Income Report — show all active items (0 availed = no revenue yet)
+        $feeReport = FeeCategory::where('is_active', true)
+            ->with(['items' => function ($q) {
+                $q->where('is_active', true)->orderBy('name');
+            }])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($cat) {
+                $items = $cat->items->map(function ($item) {
+                    $availed = (int) $item->students_availed;
+                    $selling = (float) $item->selling_price;
+                    $profit = $selling - (float) ($item->cost_price ?? 0);
+                    return [
+                        'name' => $item->name,
+                        'selling_price' => round($selling, 2),
+                        'profit' => round($profit, 2),
+                        'students_availed' => $availed,
+                        'total_revenue' => round($selling * $availed, 2),
+                        'total_income' => round($profit * $availed, 2),
+                    ];
+                })->values();
                 return [
-                    'name' => $item->name,
-                    'selling_price' => round($selling, 2),
-                    'profit' => round($profit, 2),
-                    'students_availed' => $availed,
-                    'total_revenue' => round($selling * $availed, 2),
-                    'total_income' => round($profit * $availed, 2),
+                    'category' => $cat->name,
+                    'items' => $items,
+                    'total_revenue' => round($items->sum('total_revenue'), 2),
+                    'total_income' => round($items->sum('total_income'), 2),
                 ];
-            })->values();
-            return [
-                'category' => $cat->name,
-                'items' => $items,
-                'total_revenue' => round($items->sum('total_revenue'), 2),
-                'total_income' => round($items->sum('total_income'), 2),
-            ];
-        })
-        ->filter(fn ($cat) => $cat['items']->count() > 0)
-        ->values();
+            })
+            ->values();
 
-        $documentFeeReport = DocumentFeeItem::where('students_availed', '>', 0)
-            ->where('is_active', true)
+        $documentFeeReport = DocumentFeeItem::where('is_active', true)
+            ->orderBy('category')
+            ->orderBy('name')
             ->get()
             ->groupBy('category')
             ->map(function ($fees, $cat) {
