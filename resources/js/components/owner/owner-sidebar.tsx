@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BadgeDollarSign,
     Calendar,
@@ -107,7 +107,17 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+interface AppSettings {
+    app_name?: string;
+    logo_url?: string | null;
+    primary_color?: string;
+}
+
 export function OwnerSidebar() {
+    const { appSettings } = usePage<{ appSettings?: AppSettings }>().props;
+    const appName = appSettings?.app_name || 'SchoolHub';
+    const logoUrl = appSettings?.logo_url;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -115,15 +125,17 @@ export function OwnerSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/owner/dashboard" prefetch>
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-700 to-blue-900 text-white">
-                                    <GraduationCap className="h-5 w-5" />
-                                </div>
+                                {logoUrl ? (
+                                    <img src={logoUrl} alt={appName} className="h-8 w-8 rounded-lg object-contain bg-white" />
+                                ) : (
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                        <GraduationCap className="h-5 w-5" />
+                                    </div>
+                                )}
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">
-                                        Owner Portal
-                                    </span>
+                                    <span className="truncate font-semibold">{appName}</span>
                                     <span className="truncate text-xs text-muted-foreground">
-                                        School Management
+                                        Owner Portal
                                     </span>
                                 </div>
                             </Link>
