@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\DocumentFeeItem;
 use App\Models\DocumentRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -138,6 +139,17 @@ class DocumentApprovalController extends Controller
         }
 
         $documentRequest->approveByAccounting(auth()->id(), $validated['remarks'] ?? null);
+
+        // Sync students_availed on the DocumentFeeItem from real approved count
+        if ($documentRequest->document_fee_item_id) {
+            $feeItem = DocumentFeeItem::find($documentRequest->document_fee_item_id);
+            if ($feeItem) {
+                $feeItem->students_availed = DocumentRequest::where('document_fee_item_id', $feeItem->id)
+                    ->where('accounting_status', 'approved')
+                    ->count();
+                $feeItem->save();
+            }
+        }
 
         return redirect()->back()->with('success', 'Document request approved. Processing will begin.');
     }
