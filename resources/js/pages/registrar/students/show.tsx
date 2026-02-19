@@ -331,9 +331,9 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                             <div className="flex-1">
                                 <h1 className="text-3xl font-bold">{fullName}</h1>
                                 <div className="mt-2 flex items-center space-x-4 text-sm text-muted-foreground">
-                                    <span>Student ID: {student.student_number || student.lrn}</span>
+                                    <span>Student No.: {student.lrn}</span>
                                     <span>•</span>
-                                    <span>LRN: {student.lrn}</span>
+                                    {/* student no shown above */}
                                     <span>•</span>
                                     <Badge>{student.student_type}</Badge>
                                 </div>
