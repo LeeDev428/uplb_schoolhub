@@ -373,6 +373,7 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                         <EnrollmentClearanceProgress 
                             studentId={student.id}
                             clearance={enrollmentClearance}
+                            student={student}
                         />
                         
                         <Card>
