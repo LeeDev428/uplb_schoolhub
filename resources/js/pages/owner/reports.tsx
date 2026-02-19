@@ -268,45 +268,52 @@ export default function OwnerReports({ summary, school_year, feeReport = [], doc
                     </CardContent>
                 </Card>
 
-                {/* Fee Income Section */}
-                {(feeReport.length > 0 || documentFeeReport.length > 0) && (
-                    <>
-                        <Separator />
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <DollarSign className="h-5 w-5 text-green-600" />
-                                <h2 className="text-xl font-bold">Fee Income Overview</h2>
-                            </div>
+                {/* Fee Income Section — always visible */}
+                <Separator />
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-green-600" />
+                        <h2 className="text-xl font-bold">Fee Income Overview</h2>
+                    </div>
 
-                            {feeReport.length > 0 && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>General Fee Income</CardTitle>
-                                        <CardDescription>Revenue and income based on fee items × students availed</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {feeReport.map((cat) => (
-                                            <div key={cat.category}>
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h3 className="text-sm font-semibold uppercase text-muted-foreground">{cat.category}</h3>
-                                                    <div className="flex gap-3 text-sm">
-                                                        <span className="text-blue-600 font-medium">Revenue: {formatCurrency(cat.total_revenue)}</span>
-                                                        <span className="text-green-600 font-medium">Income: {formatCurrency(cat.total_income)}</span>
-                                                    </div>
+                    {/* General Fee Income */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>General Fee Income</CardTitle>
+                            <CardDescription>Revenue and income based on fee items × students availed</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {feeReport.length === 0 ? (
+                                <p className="py-6 text-center text-sm text-muted-foreground">No active fee categories found.</p>
+                            ) : (
+                                <>
+                                    {feeReport.map((cat) => (
+                                        <div key={cat.category}>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-semibold uppercase text-muted-foreground">{cat.category}</h3>
+                                                <div className="flex gap-3 text-sm">
+                                                    <span className="text-blue-600 font-medium">Revenue: {formatCurrency(cat.total_revenue)}</span>
+                                                    <span className="text-green-600 font-medium">Income: {formatCurrency(cat.total_income)}</span>
                                                 </div>
-                                                <div className="rounded border">
-                                                    <Table>
-                                                        <TableHeader>
+                                            </div>
+                                            <div className="rounded border">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead>Fee Item</TableHead>
+                                                            <TableHead className="text-right">Price</TableHead>
+                                                            <TableHead className="text-right">Availed</TableHead>
+                                                            <TableHead className="text-right">Revenue</TableHead>
+                                                            <TableHead className="text-right">Income</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {cat.items.length === 0 ? (
                                                             <TableRow>
-                                                                <TableHead>Fee Item</TableHead>
-                                                                <TableHead className="text-right">Price</TableHead>
-                                                                <TableHead className="text-right">Availed</TableHead>
-                                                                <TableHead className="text-right">Revenue</TableHead>
-                                                                <TableHead className="text-right">Income</TableHead>
+                                                                <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">No fee items in this category.</TableCell>
                                                             </TableRow>
-                                                        </TableHeader>
-                                                        <TableBody>
-                                                            {cat.items.map((item) => (
+                                                        ) : (
+                                                            cat.items.map((item) => (
                                                                 <TableRow key={item.name}>
                                                                     <TableCell>{item.name}</TableCell>
                                                                     <TableCell className="text-right">{formatCurrency(item.selling_price)}</TableCell>
@@ -314,63 +321,71 @@ export default function OwnerReports({ summary, school_year, feeReport = [], doc
                                                                     <TableCell className="text-right text-blue-600">{formatCurrency(item.total_revenue)}</TableCell>
                                                                     <TableCell className="text-right text-green-600 font-semibold">{formatCurrency(item.total_income)}</TableCell>
                                                                 </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </div>
+                                                            ))
+                                                        )}
+                                                    </TableBody>
+                                                </Table>
                                             </div>
-                                        ))}
-                                        <div className="flex justify-end gap-6 rounded-lg bg-muted p-3 text-sm font-semibold">
-                                            <span>Total Revenue: <span className="text-blue-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_revenue, 0))}</span></span>
-                                            <span>Total Income: <span className="text-green-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_income, 0))}</span></span>
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                    ))}
+                                    <div className="flex justify-end gap-6 rounded-lg bg-muted p-3 text-sm font-semibold">
+                                        <span>Total Revenue: <span className="text-blue-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_revenue, 0))}</span></span>
+                                        <span>Total Income: <span className="text-green-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_income, 0))}</span></span>
+                                    </div>
+                                </>
                             )}
+                        </CardContent>
+                    </Card>
 
-                            {documentFeeReport.length > 0 && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Document Fee Income</CardTitle>
-                                        <CardDescription>Revenue from document request fees</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {documentFeeReport.map((cat) => (
-                                            <div key={cat.category}>
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h3 className="text-sm font-semibold uppercase text-muted-foreground">{cat.category}</h3>
-                                                    <span className="text-blue-600 font-medium text-sm">Revenue: {formatCurrency(cat.total_revenue)}</span>
-                                                </div>
-                                                <div className="rounded border">
-                                                    <Table>
-                                                        <TableHeader>
-                                                            <TableRow>
-                                                                <TableHead>Document</TableHead>
-                                                                <TableHead className="text-right">Price</TableHead>
-                                                                <TableHead className="text-right">Availed</TableHead>
-                                                                <TableHead className="text-right">Revenue</TableHead>
-                                                            </TableRow>
-                                                        </TableHeader>
-                                                        <TableBody>
-                                                            {cat.items.map((item) => (
-                                                                <TableRow key={item.name}>
-                                                                    <TableCell>{item.name}</TableCell>
-                                                                    <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                                                                    <TableCell className="text-right">{item.students_availed.toLocaleString()}</TableCell>
-                                                                    <TableCell className="text-right text-blue-600 font-semibold">{formatCurrency(item.total_revenue)}</TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </div>
+                    {/* Document Fee Income */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Document Fee Income</CardTitle>
+                            <CardDescription>Revenue from document request fees</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {documentFeeReport.length === 0 ? (
+                                <p className="py-6 text-center text-sm text-muted-foreground">No active document fee items found.</p>
+                            ) : (
+                                <>
+                                    {documentFeeReport.map((cat) => (
+                                        <div key={cat.category}>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-semibold uppercase text-muted-foreground">{cat.category}</h3>
+                                                <span className="text-blue-600 font-medium text-sm">Revenue: {formatCurrency(cat.total_revenue)}</span>
                                             </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
+                                            <div className="rounded border">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead>Document</TableHead>
+                                                            <TableHead className="text-right">Price</TableHead>
+                                                            <TableHead className="text-right">Availed</TableHead>
+                                                            <TableHead className="text-right">Revenue</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {cat.items.map((item) => (
+                                                            <TableRow key={item.name}>
+                                                                <TableCell>{item.name}</TableCell>
+                                                                <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
+                                                                <TableCell className="text-right">{item.students_availed.toLocaleString()}</TableCell>
+                                                                <TableCell className="text-right text-blue-600 font-semibold">{formatCurrency(item.total_revenue)}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="flex justify-end rounded-lg bg-muted p-3 text-sm font-semibold">
+                                        <span>Total Revenue: <span className="text-blue-600">{formatCurrency(documentFeeReport.reduce((s, c) => s + c.total_revenue, 0))}</span></span>
+                                    </div>
+                                </>
                             )}
-                        </div>
-                    </>
-                )}
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </OwnerLayout>
     );
