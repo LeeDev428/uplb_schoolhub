@@ -10,6 +10,7 @@ class DocumentFeeItem extends Model
         'category',
         'name',
         'price',
+        'students_availed',
         'processing_days',
         'processing_type',
         'description',
