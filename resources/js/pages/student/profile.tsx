@@ -121,7 +121,7 @@ export default function Profile({ student, user }: Props) {
 
                                 {student.lrn && (
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground">LRN</p>
+                                        <p className="text-sm font-medium text-muted-foreground">Student No.</p>
                                         <p className="text-base">{student.lrn}</p>
                                     </div>
                                 )}
