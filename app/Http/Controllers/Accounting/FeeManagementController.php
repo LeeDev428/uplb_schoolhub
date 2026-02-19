@@ -39,6 +39,8 @@ class FeeManagementController extends Controller
                 'is_active' => $category->is_active,
                 'sort_order' => $category->sort_order,
                 'items' => $category->items->map(function ($item) {
+                    $profit = (float) $item->selling_price - (float) $item->cost_price;
+                    $availed = (int) $item->students_availed;
                     return [
                         'id' => $item->id,
                         'fee_category_id' => $item->fee_category_id,
@@ -47,7 +49,10 @@ class FeeManagementController extends Controller
                         'description' => $item->description,
                         'cost_price' => $item->cost_price,
                         'selling_price' => $item->selling_price,
-                        'profit' => $item->profit,
+                        'profit' => $profit,
+                        'students_availed' => $availed,
+                        'total_revenue' => round((float) $item->selling_price * $availed, 2),
+                        'total_income' => round($profit * $availed, 2),
                         'school_year' => $item->school_year,
                         'program' => $item->program,
                         'year_level' => $item->year_level,
@@ -68,6 +73,13 @@ class FeeManagementController extends Controller
                 'total_cost' => $category->activeItems->sum('cost_price'),
                 'total_selling' => $category->activeItems->sum('selling_price'),
                 'total_profit' => $category->activeItems->sum('selling_price') - $category->activeItems->sum('cost_price'),
+                'total_revenue' => $category->activeItems->reduce(function ($carry, $item) {
+                    return $carry + (float) $item->selling_price * (int) $item->students_availed;
+                }, 0),
+                'total_income' => $category->activeItems->reduce(function ($carry, $item) {
+                    $profit = (float) $item->selling_price - (float) $item->cost_price;
+                    return $carry + $profit * (int) $item->students_availed;
+                }, 0),
             ];
         });
 
@@ -128,11 +140,14 @@ class FeeManagementController extends Controller
             ->orderBy('name')
             ->get()
             ->map(function ($item) {
+                $availed = (int) $item->students_availed;
                 return [
                     'id' => $item->id,
                     'category' => $item->category,
                     'name' => $item->name,
                     'price' => $item->price,
+                    'students_availed' => $availed,
+                    'total_revenue' => round((float) $item->price * $availed, 2),
                     'processing_days' => $item->processing_days,
                     'processing_type' => $item->processing_type,
                     'description' => $item->description,
@@ -214,6 +229,7 @@ class FeeManagementController extends Controller
             'description' => 'nullable|string',
             'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
+            'students_availed' => 'nullable|integer|min:0',
             'school_year' => 'required|string',
             'program' => 'nullable|string',
             'year_level' => 'nullable|string',
@@ -244,6 +260,7 @@ class FeeManagementController extends Controller
             'description' => 'nullable|string',
             'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
+            'students_availed' => 'nullable|integer|min:0',
             'school_year' => 'required|string',
             'program' => 'nullable|string',
             'year_level' => 'nullable|string',
@@ -281,6 +298,7 @@ class FeeManagementController extends Controller
             'category' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
+            'students_availed' => 'nullable|integer|min:0',
             'processing_days' => 'required|integer|min:1',
             'processing_type' => 'required|in:normal,rush',
             'description' => 'nullable|string',
@@ -301,6 +319,7 @@ class FeeManagementController extends Controller
             'category' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
+            'students_availed' => 'nullable|integer|min:0',
             'processing_days' => 'required|integer|min:1',
             'processing_type' => 'required|in:normal,rush',
             'description' => 'nullable|string',
