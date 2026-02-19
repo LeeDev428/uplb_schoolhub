@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     CheckCircle,
@@ -10,11 +10,22 @@ import {
 import { Button } from '@/components/ui/button';
 import { login, register } from '@/routes';
 
+interface AppSettings {
+    app_name: string;
+    logo_url: string | null;
+    primary_color: string;
+}
+
 type Props = {
     canRegister: boolean;
 };
 
 export default function Welcome({ canRegister }: Props) {
+    const { appSettings } = usePage<{ appSettings?: AppSettings }>().props;
+    const appName = appSettings?.app_name || 'SchoolHub';
+    const logoUrl = appSettings?.logo_url;
+    const primaryColor = appSettings?.primary_color || '#2563eb';
+
     return (
         <>
             <Head title="Welcome" />
@@ -24,12 +35,19 @@ export default function Welcome({ canRegister }: Props) {
                 <header className="border-b border-neutral-200/50 backdrop-blur-sm dark:border-neutral-800/50">
                     <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                         <div className="flex items-center space-x-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg">
-                                <GraduationCap className="h-6 w-6" />
-                            </div>
+                            {logoUrl ? (
+                                <img src={logoUrl} alt={appName} className="h-10 w-10 rounded-lg object-contain" />
+                            ) : (
+                                <div 
+                                    className="flex h-10 w-10 items-center justify-center rounded-lg text-white shadow-lg"
+                                    style={{ backgroundColor: primaryColor }}
+                                >
+                                    <GraduationCap className="h-6 w-6" />
+                                </div>
+                            )}
                             <div>
                                 <h1 className="text-xl font-bold text-neutral-900 dark:text-white">
-                                    SchoolHub
+                                    {appName}
                                 </h1>
                                 <p className="text-xs text-neutral-600 dark:text-neutral-400">
                                     Management System
@@ -143,13 +161,13 @@ export default function Welcome({ canRegister }: Props) {
                 </section>
 
                 {/* CTA Section */}
-                <section className="bg-gradient-to-r from-blue-600 to-violet-600 py-20">
+                <section className="bg-gradient-to-r from-blue-600 to-violet-600 py-20" style={{ background: `linear-gradient(to right, ${primaryColor}, #7c3aed)` }}>
                     <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
                         <h2 className="mb-6 text-4xl font-bold text-white">
                             Ready to transform your institution?
                         </h2>
                         <p className="mb-8 text-lg text-blue-100">
-                            Join thousands of schools already using SchoolHub to
+                            Join thousands of schools already using {appName} to
                             streamline their operations.
                         </p>
                         {canRegister && (
@@ -170,7 +188,7 @@ export default function Welcome({ canRegister }: Props) {
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="text-center text-sm text-neutral-600 dark:text-neutral-400">
                             <p>
-                                &copy; {new Date().getFullYear()} SchoolHub. All
+                                &copy; {new Date().getFullYear()} {appName}. All
                                 rights reserved.
                             </p>
                         </div>
