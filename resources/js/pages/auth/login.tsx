@@ -93,11 +93,11 @@ export default function Login({
                             </div>
 
                             <div className="flex items-center space-x-3">
-                                <Checkbox
+                                {/* <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
-                                />
+                                /> */}
                                 {/* <Label
                                     htmlFor="remember"
                                     className="text-sm font-normal"
