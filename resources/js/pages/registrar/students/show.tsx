@@ -438,6 +438,10 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                             <CardContent>
                                 <dl className="grid grid-cols-2 gap-6">
                                     <div>
+                                        <dt className="text-sm font-medium text-muted-foreground">Student No.</dt>
+                                        <dd className="mt-1 font-mono">{student.lrn || 'N/A'}</dd>
+                                    </div>
+                                    <div>
                                         <dt className="text-sm font-medium text-muted-foreground">Date of Birth</dt>
                                         <dd className="mt-1">{new Date(student.date_of_birth).toLocaleDateString()}</dd>
                                     </div>
