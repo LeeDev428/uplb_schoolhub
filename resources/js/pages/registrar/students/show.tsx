@@ -119,8 +119,7 @@ interface Student {
     middle_name: string | null;
     last_name: string;
     suffix: string | null;
-    lrn: string;
-    student_number: string;
+    lrn: string;  // used as Student No.
     email: string;
     phone: string;
     date_of_birth: string;
