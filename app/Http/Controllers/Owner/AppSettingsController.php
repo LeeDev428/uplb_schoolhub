@@ -35,7 +35,7 @@ class AppSettingsController extends Controller
             'primary_color' => 'required|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
-            'favicon' => 'nullable|image|mimes:png,jpg,jpeg,ico|max:512',
+            'favicon' => 'nullable|mimes:png,jpg,jpeg,ico,x-icon|max:512',
         ]);
 
         $settings = AppSetting::current();
