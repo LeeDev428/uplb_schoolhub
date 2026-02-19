@@ -241,6 +241,10 @@ class FeeItem extends Model
             $affectedCount++;
         }
 
+        // Always write back the real count so the field stays accurate
+        $this->students_availed = $affectedCount;
+        $this->save();
+
         return $affectedCount;
     }
 }
