@@ -515,7 +515,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                         </Badge>
                                     )}
                                 </div>
-                                <p className="text-muted-foreground">LRN: {student.lrn}</p>
+                                <p className="text-muted-foreground">Student No.: {student.lrn}</p>
                                 <div className="flex gap-4 mt-1 text-sm">
                                     {student.program && <span>{student.program}</span>}
                                     {student.year_level && <span>• {student.year_level}</span>}
