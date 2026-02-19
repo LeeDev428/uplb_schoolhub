@@ -21,7 +21,6 @@ class Student extends Model
         'middle_name',
         'suffix',
         'lrn',
-        'student_number',
         'email',
         'phone',
         'date_of_birth',
