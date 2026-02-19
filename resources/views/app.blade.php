@@ -19,6 +19,14 @@
             })();
         </script>
 
+        {{-- Apply dynamic primary color from app settings --}}
+        @php
+            $appSetting = \App\Models\AppSetting::current();
+            $primaryColor = $appSetting->primary_color ?? '#1d4ed8';
+            $appName = $appSetting->app_name ?? config('app.name', 'Laravel');
+            $faviconUrl = $appSetting->favicon_url;
+        @endphp
+
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
             html {
@@ -30,10 +38,14 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ $appName }}</title>
 
+        @if($faviconUrl)
+        <link rel="icon" href="{{ $faviconUrl }}" sizes="any">
+        @else
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        @endif
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
