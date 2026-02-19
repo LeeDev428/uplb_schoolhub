@@ -1,7 +1,16 @@
 import { Head, router } from '@inertiajs/react';
-import { Download, FileSpreadsheet, TrendingUp, Users, Wallet } from 'lucide-react';
+import { Download, FileSpreadsheet, TrendingUp, Users, Wallet, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import {
     Select,
     SelectContent,
@@ -29,9 +38,20 @@ interface ReportsProps {
         collection_rate: number;
     };
     school_year: string;
+    feeReport: {
+        category: string;
+        items: { name: string; selling_price: number; profit: number; students_availed: number; total_revenue: number; total_income: number }[];
+        total_revenue: number;
+        total_income: number;
+    }[];
+    documentFeeReport: {
+        category: string;
+        items: { name: string; price: number; students_availed: number; total_revenue: number }[];
+        total_revenue: number;
+    }[];
 }
 
-export default function OwnerReports({ summary, school_year }: ReportsProps) {
+export default function OwnerReports({ summary, school_year, feeReport = [], documentFeeReport = [] }: ReportsProps) {
     const handleExport = (type: string, format: string) => {
         const url = type === 'financial' 
             ? `/owner/reports/export/financial?format=${format}`
@@ -247,6 +267,110 @@ export default function OwnerReports({ summary, school_year }: ReportsProps) {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Fee Income Section */}
+                {(feeReport.length > 0 || documentFeeReport.length > 0) && (
+                    <>
+                        <Separator />
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <DollarSign className="h-5 w-5 text-green-600" />
+                                <h2 className="text-xl font-bold">Fee Income Overview</h2>
+                            </div>
+
+                            {feeReport.length > 0 && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>General Fee Income</CardTitle>
+                                        <CardDescription>Revenue and income based on fee items × students availed</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {feeReport.map((cat) => (
+                                            <div key={cat.category}>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h3 className="text-sm font-semibold uppercase text-muted-foreground">{cat.category}</h3>
+                                                    <div className="flex gap-3 text-sm">
+                                                        <span className="text-blue-600 font-medium">Revenue: {formatCurrency(cat.total_revenue)}</span>
+                                                        <span className="text-green-600 font-medium">Income: {formatCurrency(cat.total_income)}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="rounded border">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>Fee Item</TableHead>
+                                                                <TableHead className="text-right">Price</TableHead>
+                                                                <TableHead className="text-right">Availed</TableHead>
+                                                                <TableHead className="text-right">Revenue</TableHead>
+                                                                <TableHead className="text-right">Income</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {cat.items.map((item) => (
+                                                                <TableRow key={item.name}>
+                                                                    <TableCell>{item.name}</TableCell>
+                                                                    <TableCell className="text-right">{formatCurrency(item.selling_price)}</TableCell>
+                                                                    <TableCell className="text-right">{item.students_availed.toLocaleString()}</TableCell>
+                                                                    <TableCell className="text-right text-blue-600">{formatCurrency(item.total_revenue)}</TableCell>
+                                                                    <TableCell className="text-right text-green-600 font-semibold">{formatCurrency(item.total_income)}</TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="flex justify-end gap-6 rounded-lg bg-muted p-3 text-sm font-semibold">
+                                            <span>Total Revenue: <span className="text-blue-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_revenue, 0))}</span></span>
+                                            <span>Total Income: <span className="text-green-600">{formatCurrency(feeReport.reduce((s, c) => s + c.total_income, 0))}</span></span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {documentFeeReport.length > 0 && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Document Fee Income</CardTitle>
+                                        <CardDescription>Revenue from document request fees</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {documentFeeReport.map((cat) => (
+                                            <div key={cat.category}>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h3 className="text-sm font-semibold uppercase text-muted-foreground">{cat.category}</h3>
+                                                    <span className="text-blue-600 font-medium text-sm">Revenue: {formatCurrency(cat.total_revenue)}</span>
+                                                </div>
+                                                <div className="rounded border">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>Document</TableHead>
+                                                                <TableHead className="text-right">Price</TableHead>
+                                                                <TableHead className="text-right">Availed</TableHead>
+                                                                <TableHead className="text-right">Revenue</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {cat.items.map((item) => (
+                                                                <TableRow key={item.name}>
+                                                                    <TableCell>{item.name}</TableCell>
+                                                                    <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
+                                                                    <TableCell className="text-right">{item.students_availed.toLocaleString()}</TableCell>
+                                                                    <TableCell className="text-right text-blue-600 font-semibold">{formatCurrency(item.total_revenue)}</TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         </OwnerLayout>
     );
