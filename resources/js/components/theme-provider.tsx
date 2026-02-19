@@ -1,26 +1,17 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 
-interface AppSettings {
-    app_name: string;
-    logo_url: string | null;
-    favicon_url: string | null;
-    primary_color: string;
-    secondary_color: string;
+export interface AppSettings {
+    app_name?: string;
+    logo_url?: string | null;
+    favicon_url?: string | null;
+    primary_color?: string;
+    secondary_color?: string;
 }
 
-interface PageProps {
-    appSettings?: AppSettings;
-}
-
-/**
- * Convert HEX color to HSL values for CSS custom properties.
- */
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
-    // Remove # if present
     hex = hex.replace(/^#/, '');
 
-    // Parse hex values
     let r: number, g: number, b: number;
     if (hex.length === 3) {
         r = parseInt(hex[0] + hex[0], 16) / 255;
@@ -59,88 +50,85 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
     return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
-/**
- * Convert HEX color to OKLCH for CSS (approximate).
- */
 function hexToOklch(hex: string): string | null {
     const hsl = hexToHsl(hex);
     if (!hsl) return null;
-
-    // Simplified conversion - for proper results we'd use color-convert library
-    // This approximation works reasonably for most colors
     const l = hsl.l / 100;
     const c = (hsl.s / 100) * 0.4 * (1 - Math.abs(2 * l - 1));
-    const h = hsl.h;
-
-    return `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${h.toFixed(1)})`;
+    return `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${hsl.h.toFixed(1)})`;
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const { appSettings } = usePage<PageProps>().props;
+/**
+ * Applies branding/theme from AppSettings to CSS custom properties and document meta.
+ * Safe to call both inside and outside Inertia context.
+ */
+export function applyTheme(appSettings: AppSettings | undefined) {
+    if (!appSettings) return;
 
+    if (appSettings.favicon_url) {
+        let favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+        if (!favicon) {
+            favicon = document.createElement('link');
+            favicon.rel = 'icon';
+            document.head.appendChild(favicon);
+        }
+        favicon.href = appSettings.favicon_url;
+    }
+
+    if (appSettings.primary_color) {
+        const oklch = hexToOklch(appSettings.primary_color);
+        const hsl = hexToHsl(appSettings.primary_color);
+        if (oklch && hsl) {
+            const root = document.documentElement;
+            root.style.setProperty('--primary', oklch);
+            const fgL = hsl.l > 50 ? 0.145 : 0.985;
+            root.style.setProperty('--primary-foreground', `oklch(${fgL} 0 0)`);
+            root.style.setProperty('--sidebar-primary', oklch);
+            root.style.setProperty('--sidebar-primary-foreground', `oklch(${fgL} 0 0)`);
+            const ringL = Math.min(hsl.l / 100 + 0.2, 1);
+            root.style.setProperty('--ring', `oklch(${ringL} ${(hsl.s / 100 * 0.3).toFixed(3)} ${hsl.h})`);
+        }
+    }
+
+    if (appSettings.secondary_color) {
+        const hsl = hexToHsl(appSettings.secondary_color);
+        if (hsl) {
+            document.documentElement.style.setProperty(
+                '--muted-foreground',
+                `oklch(${(hsl.l / 100).toFixed(3)} 0.01 ${hsl.h})`
+            );
+        }
+    }
+}
+
+/**
+ * ThemeProvider — place OUTSIDE <App> in app.tsx.
+ * Receives appSettings extracted from initial Inertia page props.
+ */
+export function ThemeProvider({
+    children,
+    appSettings,
+}: {
+    children: React.ReactNode;
+    appSettings?: AppSettings;
+}) {
     useEffect(() => {
-        if (!appSettings) return;
-
-        // Update document title
-        if (appSettings.app_name) {
-            // The title is handled by Inertia's Head component, but we can set a default
-            document.title = document.title.replace(/Laravel|SchoolHub/gi, appSettings.app_name);
-        }
-
-        // Update favicon if provided
-        if (appSettings.favicon_url) {
-            const existingFavicon = document.querySelector('link[rel="icon"]');
-            if (existingFavicon) {
-                existingFavicon.setAttribute('href', appSettings.favicon_url);
-            } else {
-                const favicon = document.createElement('link');
-                favicon.rel = 'icon';
-                favicon.href = appSettings.favicon_url;
-                document.head.appendChild(favicon);
-            }
-        }
-
-        // Apply primary color as CSS custom property
-        if (appSettings.primary_color) {
-            const primaryOklch = hexToOklch(appSettings.primary_color);
-            const primaryHsl = hexToHsl(appSettings.primary_color);
-            
-            if (primaryOklch && primaryHsl) {
-                const root = document.documentElement;
-                
-                // Set primary color - light mode uses darker version for good contrast
-                root.style.setProperty('--primary', primaryOklch);
-                
-                // Calculate foreground (white or black based on luminance)
-                const foregroundL = primaryHsl.l > 50 ? 0.145 : 0.985;
-                root.style.setProperty('--primary-foreground', `oklch(${foregroundL} 0 0)`);
-                
-                // Set sidebar primary to match
-                root.style.setProperty('--sidebar-primary', primaryOklch);
-                root.style.setProperty('--sidebar-primary-foreground', `oklch(${foregroundL} 0 0)`);
-                
-                // Set ring color to slightly transparent version
-                const ringL = Math.min(primaryHsl.l / 100 + 0.2, 1);
-                root.style.setProperty('--ring', `oklch(${ringL} ${(primaryHsl.s / 100 * 0.3).toFixed(3)} ${primaryHsl.h})`);
-            }
-        }
-
-        // Apply secondary color
-        if (appSettings.secondary_color) {
-            const secondaryOklch = hexToOklch(appSettings.secondary_color);
-            const secondaryHsl = hexToHsl(appSettings.secondary_color);
-            
-            if (secondaryOklch && secondaryHsl) {
-                const root = document.documentElement;
-                
-                // Muted foreground uses secondary color
-                const mutedL = secondaryHsl.l / 100;
-                root.style.setProperty('--muted-foreground', `oklch(${mutedL} 0.01 ${secondaryHsl.h})`);
-            }
-        }
+        applyTheme(appSettings);
     }, [appSettings]);
 
     return <>{children}</>;
+}
+
+/**
+ * ThemeSync — place INSIDE a layout (inside <App>).
+ * Uses usePage() to stay in sync with shared appSettings on every navigation.
+ */
+export function ThemeSync() {
+    const { appSettings } = usePage<{ appSettings?: AppSettings }>().props;
+    useEffect(() => {
+        applyTheme(appSettings);
+    }, [appSettings]);
+    return null;
 }
 
 export default ThemeProvider;
