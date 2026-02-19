@@ -442,7 +442,7 @@ export default function AccountingReports({
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Student Name</TableHead>
-                                                <TableHead>LRN</TableHead>
+                                                <TableHead>Student No.</TableHead>
                                                 <TableHead>Program</TableHead>
                                                 <TableHead>School Year</TableHead>
                                                 <TableHead className="text-right">Total Amount</TableHead>
