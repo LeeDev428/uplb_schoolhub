@@ -199,7 +199,7 @@ export default function SubjectStudents({ subject, students, sections, filters }
                                 <thead>
                                     <tr className="border-b">
                                         <th className="p-3 text-left font-semibold">Student</th>
-                                        <th className="p-3 text-left font-semibold">LRN</th>
+                                        <th className="p-3 text-left font-semibold">Student No.</th>
                                         <th className="p-3 text-left font-semibold">Year Level</th>
                                         <th className="p-3 text-left font-semibold">Section</th>
                                         <th className="p-3 text-center font-semibold">Status</th>
