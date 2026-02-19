@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\DocumentFeeItem;
+use App\Models\DocumentRequest;
 use App\Models\FeeCategory;
 use App\Models\FeeItem;
-use App\Models\DocumentFeeItem;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
@@ -28,51 +29,79 @@ class ReportsController extends Controller
         $totalExpected = StudentFee::sum('total_amount');
         $totalBalance = StudentFee::sum('balance');
 
-        // Fee Income Report — show all active items (0 availed = no revenue yet)
+        // Fee Income Report — real data from StudentFee & StudentPayment
+        $categoryFieldMap = [
+            'registration' => ['field' => 'registration_fee', 'payment_for' => 'registration'],
+            'tuition'      => ['field' => 'tuition_fee',      'payment_for' => 'tuition'],
+            'misc'         => ['field' => 'misc_fee',         'payment_for' => 'misc'],
+            'books'        => ['field' => 'books_fee',        'payment_for' => 'books'],
+        ];
+
         $feeReport = FeeCategory::where('is_active', true)
-            ->with(['items' => function ($q) {
-                $q->where('is_active', true)->orderBy('name');
-            }])
-            ->orderBy('sort_order')
-            ->orderBy('name')
+            ->with(['items' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
+            ->orderBy('sort_order')->orderBy('name')
             ->get()
-            ->map(function ($cat) {
-                $items = $cat->items->map(function ($item) {
-                    $availed = (int) $item->students_availed;
+            ->map(function ($cat) use ($categoryFieldMap) {
+                $catLower = strtolower($cat->name);
+                $mapping  = null;
+                foreach ($categoryFieldMap as $key => $map) {
+                    if (str_contains($catLower, $key)) { $mapping = $map; break; }
+                }
+                $dbField  = $mapping['field']      ?? 'other_fees';
+                $payFor   = $mapping['payment_for'] ?? 'other';
+
+                $studentsAssigned = StudentFee::where($dbField, '>', 0)->count();
+                $totalAssigned    = (float) StudentFee::sum($dbField);
+                $totalCollected   = (float) StudentPayment::where('payment_for', $payFor)->sum('amount');
+
+                $items = $cat->items->map(function ($item) use ($studentsAssigned) {
                     $selling = (float) $item->selling_price;
-                    $profit = $selling - (float) ($item->cost_price ?? 0);
+                    $profit  = $selling - (float) ($item->cost_price ?? 0);
+                    $availed = (int) $item->students_availed > 0
+                        ? (int) $item->students_availed
+                        : $studentsAssigned;
                     return [
-                        'name' => $item->name,
-                        'selling_price' => round($selling, 2),
-                        'profit' => round($profit, 2),
+                        'name'             => $item->name,
+                        'selling_price'    => round($selling, 2),
+                        'profit'           => round($profit, 2),
                         'students_availed' => $availed,
-                        'total_revenue' => round($selling * $availed, 2),
-                        'total_income' => round($profit * $availed, 2),
+                        'total_revenue'    => round($selling * $availed, 2),
+                        'total_income'     => round($profit * $availed, 2),
                     ];
                 })->values();
+
                 return [
-                    'category' => $cat->name,
-                    'items' => $items,
-                    'total_revenue' => round($items->sum('total_revenue'), 2),
-                    'total_income' => round($items->sum('total_income'), 2),
+                    'category'        => $cat->name,
+                    'items'           => $items,
+                    'total_assigned'  => round($totalAssigned, 2),
+                    'total_collected' => round($totalCollected, 2),
+                    'total_revenue'   => round($items->sum('total_revenue'), 2),
+                    'total_income'    => round($items->sum('total_income'), 2),
                 ];
             })
             ->values();
 
+        // Document Fee Income — real data from approved DocumentRequest rows
         $documentFeeReport = DocumentFeeItem::where('is_active', true)
-            ->orderBy('category')
-            ->orderBy('name')
+            ->orderBy('category')->orderBy('name')
             ->get()
+            ->each(function ($item) {
+                $item->actual_availed = DocumentRequest::where('document_fee_item_id', $item->id)
+                    ->where('accounting_status', 'approved')->count();
+                $item->actual_revenue = (float) DocumentRequest::where('document_fee_item_id', $item->id)
+                    ->where('accounting_status', 'approved')->sum('fee');
+            })
             ->groupBy('category')
             ->map(function ($fees, $cat) {
                 $items = $fees->map(function ($fee) {
-                    $availed = (int) $fee->students_availed;
-                    $price = (float) $fee->price;
+                    $price   = (float) $fee->price;
+                    $availed = $fee->actual_availed;
+                    $revenue = $fee->actual_revenue > 0 ? $fee->actual_revenue : round($price * $availed, 2);
                     return [
-                        'name' => $fee->name,
-                        'price' => round($price, 2),
+                        'name'             => $fee->name,
+                        'price'            => round($price, 2),
                         'students_availed' => $availed,
-                        'total_revenue' => round($price * $availed, 2),
+                        'total_revenue'    => round($revenue, 2),
                     ];
                 })->values();
                 return ['category' => $cat, 'items' => $items, 'total_revenue' => round($items->sum('total_revenue'), 2)];
