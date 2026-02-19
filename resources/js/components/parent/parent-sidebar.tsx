@@ -22,8 +22,15 @@ import type { NavItem } from '@/types';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 
+interface AppSettings {
+    app_name?: string;
+    logo_url?: string | null;
+}
+
 export function ParentSidebar() {
-    const { announcementCount } = usePage<{ announcementCount: number }>().props;
+    const { announcementCount, appSettings } = usePage<{ announcementCount: number; appSettings?: AppSettings }>().props;
+    const appName = appSettings?.app_name || 'SchoolHub';
+    const logoUrl = appSettings?.logo_url;
 
     const mainNavItems: NavItem[] = [
         {
@@ -81,12 +88,16 @@ export function ParentSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/parent/dashboard" prefetch>
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 text-white">
-                                    <Users className="h-5 w-5" />
-                                </div>
+                                {logoUrl ? (
+                                    <img src={logoUrl} alt={appName} className="h-8 w-8 rounded-lg object-contain bg-white" />
+                                ) : (
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                        <Users className="h-5 w-5" />
+                                    </div>
+                                )}
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">Parent Portal</span>
-                                    <span className="truncate text-xs text-muted-foreground">School Management</span>
+                                    <span className="truncate font-semibold">{appName}</span>
+                                    <span className="truncate text-xs text-muted-foreground">Parent Portal</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
