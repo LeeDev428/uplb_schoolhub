@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\FeeCategory;
+use App\Models\FeeItem;
+use App\Models\DocumentFeeItem;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
@@ -25,6 +28,54 @@ class ReportsController extends Controller
         $totalExpected = StudentFee::sum('total_amount');
         $totalBalance = StudentFee::sum('balance');
 
+        // Fee Income Report
+        $feeReport = FeeCategory::with(['items' => function ($q) {
+            $q->where('students_availed', '>', 0)->where('is_active', true);
+        }])
+        ->get()
+        ->map(function ($cat) {
+            $items = $cat->items->map(function ($item) {
+                $availed = (int) $item->students_availed;
+                $selling = (float) $item->selling_price;
+                $profit = $selling - (float) $item->cost_price;
+                return [
+                    'name' => $item->name,
+                    'selling_price' => round($selling, 2),
+                    'profit' => round($profit, 2),
+                    'students_availed' => $availed,
+                    'total_revenue' => round($selling * $availed, 2),
+                    'total_income' => round($profit * $availed, 2),
+                ];
+            })->values();
+            return [
+                'category' => $cat->name,
+                'items' => $items,
+                'total_revenue' => round($items->sum('total_revenue'), 2),
+                'total_income' => round($items->sum('total_income'), 2),
+            ];
+        })
+        ->filter(fn ($cat) => $cat['items']->count() > 0)
+        ->values();
+
+        $documentFeeReport = DocumentFeeItem::where('students_availed', '>', 0)
+            ->where('is_active', true)
+            ->get()
+            ->groupBy('category')
+            ->map(function ($fees, $cat) {
+                $items = $fees->map(function ($fee) {
+                    $availed = (int) $fee->students_availed;
+                    $price = (float) $fee->price;
+                    return [
+                        'name' => $fee->name,
+                        'price' => round($price, 2),
+                        'students_availed' => $availed,
+                        'total_revenue' => round($price * $availed, 2),
+                    ];
+                })->values();
+                return ['category' => $cat, 'items' => $items, 'total_revenue' => round($items->sum('total_revenue'), 2)];
+            })
+            ->values();
+
         return Inertia::render('owner/reports', [
             'summary' => [
                 'total_students' => $totalStudents,
@@ -36,6 +87,8 @@ class ReportsController extends Controller
                     : 0,
             ],
             'school_year' => $currentSchoolYear,
+            'feeReport' => $feeReport,
+            'documentFeeReport' => $documentFeeReport,
         ]);
     }
 
