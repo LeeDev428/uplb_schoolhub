@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Models\Section;
 use App\Models\Department;
 use App\Models\YearLevel;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -94,6 +95,17 @@ class ClassController extends Controller
             return $section;
         });
 
+        // Active teachers for teacher assignment dropdown
+        $teachers = Teacher::where('is_active', true)
+            ->select('id', 'first_name', 'last_name', 'suffix', 'department_id')
+            ->orderBy('last_name')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'full_name' => trim("{$t->last_name}, {$t->first_name}" . ($t->suffix ? " {$t->suffix}" : '')),
+                'department_id' => $t->department_id,
+            ]);
+
         // Stats
         $totalStudents = Student::whereNull('deleted_at')->where('enrollment_status', 'enrolled')->count();
         $assignedCount = Student::whereNull('deleted_at')->where('enrollment_status', 'enrolled')->whereNotNull('section_id')->count();
@@ -106,6 +118,7 @@ class ClassController extends Controller
             'sections' => $sections,
             'departments' => $departments,
             'yearLevels' => $yearLevels,
+            'teachers' => $teachers,
             'stats' => [
                 'totalStudents' => $totalStudents,
                 'assignedCount' => $assignedCount,
@@ -153,5 +166,20 @@ class ClassController extends Controller
         ]);
 
         return back()->with('success', "{$student->full_name} has been removed from their section.");
+    }
+
+    public function assignTeacher(Request $request, Section $section)
+    {
+        $request->validate([
+            'teacher_id' => 'nullable|exists:teachers,id',
+        ]);
+
+        $section->update(['teacher_id' => $request->teacher_id ?: null]);
+
+        $msg = $request->teacher_id
+            ? 'Teacher assigned to section successfully.'
+            : 'Teacher removed from section.';
+
+        return back()->with('success', $msg);
     }
 }
