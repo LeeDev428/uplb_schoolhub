@@ -93,6 +93,7 @@ class AccountingDashboardController extends Controller
                 return [
                     'id' => $payment->id,
                     'student_name' => $payment->student->full_name ?? 'Unknown',
+                    'student_photo_url' => $payment->student->student_photo_url ?? null,
                     'amount' => (float) $payment->amount,
                     'method' => $payment->payment_method ?? 'CASH',
                     'or_number' => $payment->or_number ?? 'N/A',
@@ -132,6 +133,8 @@ class AccountingDashboardController extends Controller
             'averageCollectionTime' => $averageCollectionTime,
             'years' => $years,
             'selectedYear' => (int) $selectedYear,
+            'projectedRevenue' => (float) StudentFee::sum('total_amount'),
+            'totalCollected' => (float) StudentPayment::sum('amount'),
         ]);
     }
 
@@ -283,7 +286,7 @@ class AccountingDashboardController extends Controller
         $studentId = $request->get('student_id');
 
         // Get all students for the dropdown
-        $students = Student::select('id', 'first_name', 'last_name', 'lrn')
+        $students = Student::select('id', 'first_name', 'last_name', 'lrn', 'student_photo_url')
             ->orderBy('last_name')
             ->get()
             ->map(function ($s) {
@@ -291,6 +294,7 @@ class AccountingDashboardController extends Controller
                     'id' => $s->id,
                     'full_name' => $s->full_name,
                     'lrn' => $s->lrn,
+                    'student_photo_url' => $s->student_photo_url,
                 ];
             });
 
@@ -306,7 +310,7 @@ class AccountingDashboardController extends Controller
         ];
 
         if ($studentId) {
-            $student = Student::with(['department', 'program', 'yearLevel', 'section'])
+            $student = Student::with(['department', 'program', 'yearLevel', 'section', 'fees'])
                 ->find($studentId);
 
             if ($student) {
@@ -408,6 +412,15 @@ class AccountingDashboardController extends Controller
                     }
                 }
 
+                // Calculate total balance (fees - paid)
+                $studentFees = $student->fees ?? collect();
+                $totalFeesAmount = (float) $studentFees->sum('total_amount');
+                $totalPaidAmount = (float) $studentFees->sum('total_paid');
+                $totalBalance = $totalFeesAmount - $totalPaidAmount;
+                $studentPhotoUrl = $student->student_photo_url;
+                $studentSchoolYear = $student->school_year;
+                $studentEnrollmentStatus = $student->enrollment_status;
+
                 // Map student data
                 $student = [
                     'id' => $student->id,
@@ -420,6 +433,12 @@ class AccountingDashboardController extends Controller
                     'phone' => $student->phone,
                     'address' => $student->address,
                     'student_id' => $student->lrn,
+                    'student_photo_url' => $studentPhotoUrl,
+                    'school_year' => $studentSchoolYear,
+                    'enrollment_status' => $studentEnrollmentStatus,
+                    'total_fees' => $totalFeesAmount,
+                    'total_paid' => $totalPaidAmount,
+                    'total_balance' => $totalBalance,
                 ];
             }
         }
