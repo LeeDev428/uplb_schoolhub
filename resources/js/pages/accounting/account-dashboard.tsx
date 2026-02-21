@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import {
     Select,
     SelectContent,
@@ -46,6 +48,12 @@ interface Student {
     phone?: string;
     address?: string;
     student_id?: string;
+    student_photo_url?: string | null;
+    school_year?: string;
+    enrollment_status?: string;
+    total_fees?: number;
+    total_paid?: number;
+    total_balance?: number;
 }
 
 interface Transaction {
@@ -172,6 +180,61 @@ export default function AccountDashboard({
                         </Button>
                     </div>
                 </div>
+
+                {/* Student Profile Card - shown when student is selected */}
+                {student && (
+                    <Card className="border-l-4" style={{ borderLeftColor: '#2563eb' }}>
+                        <CardContent className="pt-6">
+                            <div className="flex items-start gap-6">
+                                <Avatar className="h-20 w-20 ring-4 ring-blue-100 flex-shrink-0">
+                                    <AvatarImage src={student.student_photo_url ?? undefined} alt={student.full_name} />
+                                    <AvatarFallback className="text-xl font-semibold bg-blue-600 text-white">
+                                        {student.full_name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-900">{student.full_name}</h2>
+                                            <p className="text-sm text-muted-foreground font-mono">Student No.: {student.lrn}</p>
+                                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                {student.program && <Badge variant="secondary">{student.program}</Badge>}
+                                                {student.year_level && <Badge variant="outline">{student.year_level}{student.section ? ` - ${student.section}` : ''}</Badge>}
+                                                {student.school_year && <Badge variant="outline">SY {student.school_year}</Badge>}
+                                                {student.enrollment_status && (
+                                                    <Badge className={student.enrollment_status === 'enrolled' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
+                                                        {student.enrollment_status}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {/* Balance summary */}
+                                        {(student.total_fees ?? 0) > 0 && (
+                                            <div className="text-right min-w-[200px]">
+                                                <p className="text-sm text-muted-foreground mb-1">Payment Progress</p>
+                                                <Progress
+                                                    value={Math.min(((student.total_paid ?? 0) / (student.total_fees ?? 1)) * 100, 100)}
+                                                    className="h-2 mb-2"
+                                                />
+                                                <div className="flex justify-between text-xs text-muted-foreground">
+                                                    <span>Paid: {formatCurrency(student.total_paid ?? 0)}</span>
+                                                    <span>Total: {formatCurrency(student.total_fees ?? 0)}</span>
+                                                </div>
+                                                {(student.total_balance ?? 0) > 0 ? (
+                                                    <p className="mt-1 text-sm font-semibold text-red-600">
+                                                        Balance: {formatCurrency(student.total_balance ?? 0)}
+                                                    </p>
+                                                ) : (
+                                                    <p className="mt-1 text-sm font-semibold text-green-600">Fully Paid ✓</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Student Selection and Filters */}
                 <Card>
