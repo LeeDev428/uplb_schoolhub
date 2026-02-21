@@ -30,6 +30,12 @@ interface YearLevel {
     department_id: number;
 }
 
+interface TeacherMin {
+    id: number;
+    first_name: string;
+    last_name: string;
+}
+
 interface Subject {
     id: number;
     code: string;
@@ -42,6 +48,7 @@ interface Subject {
     is_active: boolean;
     department: Department;
     year_level: YearLevel | null;
+    teachers?: TeacherMin[];
 }
 
 interface Props {
@@ -60,9 +67,10 @@ interface Props {
         type?: string;
         classification?: string;
     };
+    teacherId?: number;
 }
 
-export default function SubjectsIndex({ subjects, filters }: Props) {
+export default function SubjectsIndex({ subjects, filters, teacherId }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [type, setType] = useState(filters.type || 'all');
     const [classification, setClassification] = useState(filters.classification || 'all');
@@ -128,7 +136,7 @@ export default function SubjectsIndex({ subjects, filters }: Props) {
                             Subjects
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            View subjects in your department
+                            Your assigned teaching subjects
                         </p>
                     </div>
                 </div>
@@ -175,12 +183,13 @@ export default function SubjectsIndex({ subjects, filters }: Props) {
                                         <th className="p-3 text-left text-sm font-semibold">Type</th>
                                         <th className="p-3 text-left text-sm font-semibold">Units</th>
                                         <th className="p-3 text-left text-sm font-semibold">Hours/Week</th>
+                                        <th className="p-3 text-left text-sm font-semibold">Instructor(s)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {subjects.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={7} className="p-8 text-center text-muted-foreground">
                                                 No subjects found
                                             </td>
                                         </tr>
@@ -223,6 +232,22 @@ export default function SubjectsIndex({ subjects, filters }: Props) {
                                                     <span className="text-sm">
                                                         {subject.hours_per_week ? `${subject.hours_per_week} hrs` : '-'}
                                                     </span>
+                                                </td>
+                                                <td className="p-3">
+                                                    {subject.teachers && subject.teachers.length > 0 ? (
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {subject.teachers.map(t => (
+                                                                <span key={t.id} className="text-sm">
+                                                                    {t.first_name} {t.last_name}
+                                                                    {t.id === teacherId && (
+                                                                        <Badge variant="outline" className="ml-1 text-xs py-0 px-1">You</Badge>
+                                                                    )}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm text-muted-foreground">—</span>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
