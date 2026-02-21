@@ -2,7 +2,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, UserPlus, GraduationCap } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -49,6 +49,16 @@ interface Subject {
     is_active: boolean;
     department: Department;
     year_level: YearLevel | null;
+    teachers?: TeacherSummary[];
+}
+
+interface TeacherSummary {
+    id: number;
+    full_name: string;
+    photo_url: string | null;
+    department_id: number | null;
+    department?: string | null;
+    specialization?: string | null;
 }
 
 interface Props {
@@ -64,6 +74,7 @@ interface Props {
     };
     departments: Department[];
     yearLevels: YearLevel[];
+    teachers: TeacherSummary[];
     filters: {
         search?: string;
         classification?: string;
@@ -79,7 +90,7 @@ interface AppSettingsData {
     [key: string]: unknown;
 }
 
-export default function SubjectsIndex({ subjects, departments, yearLevels, filters }: Props) {
+export default function SubjectsIndex({ subjects, departments, yearLevels, teachers, filters }: Props) {
     const { props } = usePage();
     const appSettings = props.appSettings as AppSettingsData | undefined;
     const hasK12 = appSettings?.has_k12 !== false;
@@ -97,6 +108,10 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
     const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [subjectToDelete, setSubjectToDelete] = useState<Subject | null>(null);
+    // Teacher assignment state
+    const [teacherDialogOpen, setTeacherDialogOpen] = useState(false);
+    const [subjectForTeacher, setSubjectForTeacher] = useState<Subject | null>(null);
+    const [selectedTeacherIds, setSelectedTeacherIds] = useState<number[]>([]);
     const [search, setSearch] = useState(filters.search || '');
     const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
@@ -263,6 +278,30 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         }
     };
 
+    const openTeacherAssignment = (subject: Subject) => {
+        setSubjectForTeacher(subject);
+        setSelectedTeacherIds((subject.teachers ?? []).map((t) => t.id));
+        setTeacherDialogOpen(true);
+    };
+
+    const handleAssignTeachers = () => {
+        if (!subjectForTeacher) return;
+        router.post(`/owner/subjects/${subjectForTeacher.id}/assign-teachers`, {
+            teacher_ids: selectedTeacherIds,
+        }, {
+            onSuccess: () => {
+                setTeacherDialogOpen(false);
+                setSubjectForTeacher(null);
+            },
+        });
+    };
+
+    const toggleTeacher = (teacherId: number) => {
+        setSelectedTeacherIds((prev) =>
+            prev.includes(teacherId) ? prev.filter((id) => id !== teacherId) : [...prev, teacherId]
+        );
+    };
+
     const getTypeBadge = (type: string) => {
         const variants: Record<string, { label: string; variant: any }> = {
             core: { label: 'Core', variant: 'default' },
@@ -384,6 +423,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                         <th className="p-3 text-left text-sm font-semibold">Classification</th>
                                         <th className="p-3 text-left text-sm font-semibold">Type</th>
                                         <th className="p-3 text-left text-sm font-semibold">Units</th>
+                                        <th className="p-3 text-left text-sm font-semibold">Teacher(s)</th>
                                         <th className="p-3 text-left text-sm font-semibold">Status</th>
                                         <th className="p-3 text-left text-sm font-semibold">Actions</th>
                                     </tr>
@@ -391,7 +431,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                 <tbody>
                                     {subjects.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={9} className="p-8 text-center text-muted-foreground">
                                                 No subjects found
                                             </td>
                                         </tr>
@@ -430,12 +470,31 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
+                                                    {(subject.teachers ?? []).length === 0 ? (
+                                                        <span className="text-xs text-muted-foreground italic">Unassigned</span>
+                                                    ) : (
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {(subject.teachers ?? []).map((t) => (
+                                                                <span key={t.id} className="text-sm font-medium">{t.full_name}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3">
                                                     <Badge variant={subject.is_active ? 'default' : 'secondary'}>
                                                         {subject.is_active ? 'Active' : 'Inactive'}
                                                     </Badge>
                                                 </td>
                                                 <td className="p-3">
                                                     <div className="flex gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => openTeacherAssignment(subject)}
+                                                            title="Assign Teachers"
+                                                        >
+                                                            <UserPlus className="h-4 w-4 text-primary" />
+                                                        </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -697,6 +756,54 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                 onConfirm={handleDelete}
                 variant="danger"
             />
+
+            {/* Teacher Assignment Dialog */}
+            <Dialog open={teacherDialogOpen} onOpenChange={setTeacherDialogOpen}>
+                <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <GraduationCap className="h-5 w-5" />
+                            Assign Teachers — {subjectForTeacher?.code}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <p className="text-sm text-muted-foreground">Select one or more teachers to assign to this subject.</p>
+                        {teachers.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-4">No active teachers found.</p>
+                        ) : (
+                            <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+                                {teachers.map((teacher) => (
+                                    <label
+                                        key={teacher.id}
+                                        className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                                            selectedTeacherIds.includes(teacher.id)
+                                                ? 'border-primary bg-primary/5'
+                                                : 'hover:bg-muted/50'
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedTeacherIds.includes(teacher.id)}
+                                            onChange={() => toggleTeacher(teacher.id)}
+                                            className="h-4 w-4 rounded"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-sm">{teacher.full_name}</p>
+                                            {teacher.department && (
+                                                <p className="text-xs text-muted-foreground">{teacher.department}{teacher.specialization ? ` · ${teacher.specialization}` : ''}</p>
+                                            )}
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setTeacherDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAssignTeachers}>Save Assignment</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </OwnerLayout>
     );
 }
