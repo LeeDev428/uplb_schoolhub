@@ -422,6 +422,23 @@ class FeeManagementController extends Controller
             ]);
         }
 
+        // Recalculate students_availed for each affected fee item
+        // Count enrolled students that match ANY assignment for that fee item
+        foreach ($feeItemIds as $feeItemId) {
+            $count = DB::table('fee_item_assignments as fa')
+                ->join('students as s', function ($join) {
+                    $join->whereColumn('s.department_id', 'fa.department_id')
+                         ->whereColumn('s.year_level_id', 'fa.year_level_id');
+                })
+                ->where('fa.fee_item_id', $feeItemId)
+                ->where('s.enrollment_status', 'enrolled')
+                ->whereNull('s.deleted_at')
+                ->distinct()
+                ->count('s.id');
+
+            FeeItem::where('id', $feeItemId)->update(['students_availed' => $count]);
+        }
+
         return redirect()->back()->with('success', 'Fee assignments saved successfully.');
     }
 
