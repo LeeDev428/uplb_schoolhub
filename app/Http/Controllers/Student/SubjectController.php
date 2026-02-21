@@ -18,7 +18,7 @@ class SubjectController extends Controller
         $student = $user->student;
         
         // Get student's department from their program
-        $query = Subject::with(['department', 'yearLevel'])
+        $query = Subject::with(['department', 'yearLevel', 'teachers:id,first_name,last_name'])
             ->where('is_active', true);
 
         // Filter by student's department (get from program)
