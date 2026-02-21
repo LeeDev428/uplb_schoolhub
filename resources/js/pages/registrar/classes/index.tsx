@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Users, UserCheck, UserMinus, ArrowRight, ChevronDown, ChevronRight,
-    X, GraduationCap, UserCog,
+    X, GraduationCap, UserCog, BookOpen,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -73,12 +73,24 @@ interface SectionData {
     teacher?: Teacher | null;
 }
 
+interface SubjectItem {
+    id: number;
+    department_id: number;
+    year_level_id: number | null;
+    code: string;
+    name: string;
+    type: string;
+    units: number | null;
+    teachers: string[];
+}
+
 interface Props {
     unassignedStudents: Student[];
     sections: SectionData[];
     departments: Department[];
     yearLevels: YearLevel[];
     teachers: Teacher[];
+    subjects: SubjectItem[];
     stats: {
         totalStudents: number;
         assignedCount: number;
@@ -101,6 +113,7 @@ export default function RegistrarClassesIndex({
     departments,
     yearLevels,
     teachers = [],
+    subjects = [],
     stats,
     filters,
 }: Props) {
@@ -571,41 +584,81 @@ export default function RegistrarClassesIndex({
                                                 </Select>
                                             </div>
 
-                                            {/* Expanded Student List */}
-                                            {expandedSections.has(section.id) && (
-                                                <div className="border-t bg-muted/20">
-                                                    {section.assigned_students.length === 0 ? (
-                                                        <p className="p-3 text-sm text-muted-foreground text-center">
-                                                            No students assigned
-                                                        </p>
-                                                    ) : (
-                                                        <div className="divide-y">
-                                                            {section.assigned_students.map((student) => (
-                                                                <div
-                                                                    key={student.id}
-                                                                    className="flex items-center justify-between p-2 px-4 hover:bg-muted/50"
-                                                                >
-                                                                    <div className="flex items-center gap-2 min-w-0">
-                                                                        <span className="text-sm truncate">{getStudentName(student)}</span>
-                                                                        <Badge variant="outline" className="text-xs shrink-0">
-                                                                            {student.gender === 'Male' ? 'M' : 'F'}
-                                                                        </Badge>
-                                                                    </div>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                                                                        onClick={() => handleRemoveStudent(student.id)}
-                                                                        title="Remove from section"
-                                                                    >
-                                                                        <X className="h-3.5 w-3.5" />
-                                                                    </Button>
+                                            {/* Expanded Student List + Subjects Panel */}
+                                            {expandedSections.has(section.id) && (() => {
+                                                const sectionSubjects = subjects.filter(
+                                                    s => s.department_id === section.department_id &&
+                                                        (s.year_level_id === null || s.year_level_id === section.year_level_id)
+                                                );
+                                                return (
+                                                    <>
+                                                        {/* Student list */}
+                                                        <div className="border-t bg-muted/20">
+                                                            {section.assigned_students.length === 0 ? (
+                                                                <p className="p-3 text-sm text-muted-foreground text-center">
+                                                                    No students assigned
+                                                                </p>
+                                                            ) : (
+                                                                <div className="divide-y">
+                                                                    {section.assigned_students.map((student) => (
+                                                                        <div
+                                                                            key={student.id}
+                                                                            className="flex items-center justify-between p-2 px-4 hover:bg-muted/50"
+                                                                        >
+                                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                                <span className="text-sm truncate">{getStudentName(student)}</span>
+                                                                                <Badge variant="outline" className="text-xs shrink-0">
+                                                                                    {student.gender === 'Male' ? 'M' : 'F'}
+                                                                                </Badge>
+                                                                            </div>
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
+                                                                                onClick={() => handleRemoveStudent(student.id)}
+                                                                                title="Remove from section"
+                                                                            >
+                                                                                <X className="h-3.5 w-3.5" />
+                                                                            </Button>
+                                                                        </div>
+                                                                    ))}
                                                                 </div>
-                                                            ))}
+                                                            )}
                                                         </div>
-                                                    )}
-                                                </div>
-                                            )}
+
+                                                        {/* Section Subjects Panel */}
+                                                        <div className="border-t bg-blue-50/40 dark:bg-blue-950/20">
+                                                            <div className="flex items-center gap-2 px-4 py-2 border-b border-blue-100 dark:border-blue-900">
+                                                                <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                                                                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                                                                    Subjects for this Level
+                                                                </span>
+                                                                <span className="ml-auto text-xs text-muted-foreground">
+                                                                    {sectionSubjects.length} subject{sectionSubjects.length !== 1 ? 's' : ''}
+                                                                </span>
+                                                            </div>
+                                                            {sectionSubjects.length === 0 ? (
+                                                                <p className="p-3 text-center text-xs text-muted-foreground">
+                                                                    No subjects catalogued for this dept/year level yet.
+                                                                </p>
+                                                            ) : (
+                                                                <div className="divide-y divide-blue-100 dark:divide-blue-900">
+                                                                    {sectionSubjects.map(sub => (
+                                                                        <div key={sub.id} className="flex items-center gap-3 px-4 py-1.5">
+                                                                            <span className="font-mono text-xs text-muted-foreground w-20 shrink-0">{sub.code}</span>
+                                                                            <span className="flex-1 text-xs truncate">{sub.name}</span>
+                                                                            <Badge variant="outline" className="text-xs shrink-0">{sub.type}</Badge>
+                                                                            <span className="text-xs text-muted-foreground shrink-0 max-w-[140px] truncate">
+                                                                                {sub.teachers.length > 0 ? sub.teachers.join(', ') : '—'}
+                                                                            </span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     ))}
                                 </div>
