@@ -72,6 +72,8 @@ class HandleInertiaRequests extends Middleware
                 'favicon_url' => $settings->favicon_url,
                 'primary_color' => $settings->primary_color,
                 'secondary_color' => $settings->secondary_color,
+                'has_k12' => (bool) $settings->has_k12,
+                'has_college' => (bool) $settings->has_college,
             ];
         } catch (\Exception $e) {
             return [
@@ -80,6 +82,8 @@ class HandleInertiaRequests extends Middleware
                 'favicon_url' => null,
                 'primary_color' => '#1d4ed8',
                 'secondary_color' => '#64748b',
+                'has_k12' => true,
+                'has_college' => true,
             ];
         }
     }
