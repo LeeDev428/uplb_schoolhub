@@ -1,7 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Upload, Save, Palette, Globe, Image } from 'lucide-react';
+import { Upload, Save, Palette, Globe, Image, GraduationCap } from 'lucide-react';
 import OwnerLayout from '@/layouts/owner/owner-layout';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,6 +22,8 @@ interface AppSettings {
     secondary_color: string;
     logo_url: string | null;
     favicon_url: string | null;
+    has_k12: boolean;
+    has_college: boolean;
 }
 
 interface Props {
@@ -32,6 +35,8 @@ export default function AppSettings({ settings }: Props) {
         app_name: settings.app_name || '',
         primary_color: settings.primary_color || '#2563eb',
         secondary_color: settings.secondary_color || '#64748b',
+        has_k12: settings.has_k12 ?? true,
+        has_college: settings.has_college ?? true,
     });
 
     const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -66,6 +71,8 @@ export default function AppSettings({ settings }: Props) {
         formData.append('app_name', data.app_name);
         formData.append('primary_color', data.primary_color);
         formData.append('secondary_color', data.secondary_color);
+        formData.append('has_k12', data.has_k12 ? '1' : '0');
+        formData.append('has_college', data.has_college ? '1' : '0');
         if (logoFile) formData.append('logo', logoFile);
         if (faviconFile) formData.append('favicon', faviconFile);
         formData.append('_method', 'POST');
@@ -120,6 +127,44 @@ export default function AppSettings({ settings }: Props) {
                                     This name appears in the browser tab, sidebar, and printed documents (COE, receipts).
                                 </p>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Academic Settings */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <GraduationCap className="h-5 w-5" />
+                                Academic Structure
+                            </CardTitle>
+                            <CardDescription>
+                                Enable the academic tracks your school offers. Disabled tracks won't appear in subject classification options.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between rounded-lg border p-4">
+                                <div>
+                                    <p className="font-medium">K-12</p>
+                                    <p className="text-sm text-muted-foreground">Senior High School / Junior High School tracks</p>
+                                </div>
+                                <Switch
+                                    checked={data.has_k12}
+                                    onCheckedChange={(checked) => setData('has_k12', checked)}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between rounded-lg border p-4">
+                                <div>
+                                    <p className="font-medium">College</p>
+                                    <p className="text-sm text-muted-foreground">Tertiary / Higher Education programs</p>
+                                </div>
+                                <Switch
+                                    checked={data.has_college}
+                                    onCheckedChange={(checked) => setData('has_college', checked)}
+                                />
+                            </div>
+                            {!data.has_k12 && !data.has_college && (
+                                <p className="text-sm text-destructive">At least one track must be enabled.</p>
+                            )}
                         </CardContent>
                     </Card>
 
