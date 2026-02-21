@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\Subject;
 use App\Models\Department;
+use App\Models\Teacher;
 use App\Models\YearLevel;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ class SubjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Subject::with(['department', 'yearLevel']);
+        $query = Subject::with(['department', 'yearLevel', 'teachers:id,first_name,last_name,photo_url,department_id']);
 
         // Search filter
         if ($request->filled('search')) {
@@ -57,11 +58,26 @@ class SubjectController extends Controller
             ->select('id', 'name', 'level_number', 'department_id')
             ->get();
 
+        $teachers = Teacher::where('is_active', true)
+            ->with('department:id,name,classification')
+            ->select('id', 'first_name', 'last_name', 'photo_url', 'department_id', 'specialization')
+            ->orderBy('last_name')
+            ->get()
+            ->map(fn ($t) => [
+                'id'             => $t->id,
+                'full_name'      => "{$t->first_name} {$t->last_name}",
+                'photo_url'      => $t->photo_url,
+                'department_id'  => $t->department_id,
+                'department'     => $t->department?->name,
+                'specialization' => $t->specialization,
+            ]);
+
         return Inertia::render('owner/subjects/index', [
-            'subjects' => $subjects,
+            'subjects'    => $subjects,
             'departments' => $departments,
-            'yearLevels' => $yearLevels,
-            'filters' => $request->only(['search', 'classification', 'department_id', 'type', 'status']),
+            'yearLevels'  => $yearLevels,
+            'teachers'    => $teachers,
+            'filters'     => $request->only(['search', 'classification', 'department_id', 'type', 'status']),
         ]);
     }
 
