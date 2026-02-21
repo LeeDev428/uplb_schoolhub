@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,7 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw, FileText, Clock, CheckSquare, Save } from 'lucide-react';
+import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw, FileText, Clock, CheckSquare, Save, TrendingUp } from 'lucide-react';
 
 interface FeeItem {
     id: number;
@@ -143,10 +143,24 @@ interface Props {
     documentFees: DocumentFeeItem[];
     documentCategories: string[];
     tab: string;
+    studentCounts: {
+        school_year: string | null;
+        classification: string;
+        department_id: number | null;
+        year_level_id: number | null;
+        count: number;
+    }[];
+    studentSchoolYears: string[];
 }
 
-export default function FeeManagementIndex({ categories, totals, departments, programs, yearLevels, sections, documentFees, documentCategories, tab }: Props) {
+export default function FeeManagementIndex({ categories, totals, departments, programs, yearLevels, sections, documentFees, documentCategories, tab, studentCounts = [], studentSchoolYears = [] }: Props) {
     const [activeTab, setActiveTab] = useState(tab || 'general');
+
+    // Projected revenue filter state
+    const [projSchoolYear, setProjSchoolYear] = useState<string>('');
+    const [projClassification, setProjClassification] = useState<string>('');
+    const [projDepartmentId, setProjDepartmentId] = useState<number | null>(null);
+    const [projYearLevelId, setProjYearLevelId] = useState<number | null>(null);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
     const [isDocFeeModalOpen, setIsDocFeeModalOpen] = useState(false);
@@ -408,8 +422,36 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
 
     const handleTabChange = (value: string) => {
         setActiveTab(value);
-        router.get('/accounting/fee-management', { tab: value }, { preserveState: true, preserveScroll: true });
+        if (value !== 'projected') {
+            router.get('/accounting/fee-management', { tab: value }, { preserveState: true, preserveScroll: true });
+        }
     };
+
+    // ── Projected Revenue helpers ──────────────────────────────────────────────
+    const projFilteredDepartments = useMemo(() =>
+        projClassification ? departments.filter(d => d.classification === projClassification) : departments
+    , [projClassification, departments]);
+
+    const projFilteredYearLevels = useMemo(() =>
+        projDepartmentId ? yearLevels.filter(yl => yl.department_id === projDepartmentId) : yearLevels
+    , [projDepartmentId, yearLevels]);
+
+    const projStudentCount = useMemo(() => {
+        return studentCounts
+            .filter(c => !projSchoolYear || c.school_year === projSchoolYear)
+            .filter(c => !projClassification || c.classification === projClassification)
+            .filter(c => !projDepartmentId || c.department_id === projDepartmentId)
+            .filter(c => !projYearLevelId || c.year_level_id === projYearLevelId)
+            .reduce((sum, c) => sum + Number(c.count), 0);
+    }, [studentCounts, projSchoolYear, projClassification, projDepartmentId, projYearLevelId]);
+
+    const projTotalGeneralRevenue = useMemo(() =>
+        categories.flatMap(cat => cat.items).reduce((sum, item) => sum + parseFloat(item.selling_price || '0') * projStudentCount, 0)
+    , [categories, projStudentCount]);
+
+    const projTotalDocRevenue = useMemo(() =>
+        documentFees.reduce((sum, d) => sum + parseFloat(d.price || '0') * projStudentCount, 0)
+    , [documentFees, projStudentCount]);
 
     // Group document fees by category
     const groupedDocFees = documentFees?.reduce((acc, fee) => {
@@ -600,10 +642,13 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 />
 
                 <Tabs value={activeTab} onValueChange={handleTabChange}>
-                    <TabsList className="grid w-full grid-cols-3 max-w-lg">
+                    <TabsList className="grid w-full grid-cols-4 max-w-2xl">
                         <TabsTrigger value="general">General Fees</TabsTrigger>
                         <TabsTrigger value="assignments">Assign Fees</TabsTrigger>
                         <TabsTrigger value="documents">Document Fees</TabsTrigger>
+                        <TabsTrigger value="projected">
+                            <TrendingUp className="mr-1 h-3.5 w-3.5" />Projected
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general" className="space-y-6 mt-6">
@@ -1066,6 +1111,168 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                 ))}
                             </div>
                         )}
+                    </TabsContent>
+
+                    {/* ── Projected Revenue Tab ─────────────────────────────── */}
+                    <TabsContent value="projected" className="space-y-6 mt-6">
+                        {/* Filters */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4" />
+                                    Projected Revenue by Student Filter
+                                </CardTitle>
+                                <p className="text-xs text-muted-foreground">Select filters to see how many enrolled students qualify and the projected fee revenue.</p>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">School Year</label>
+                                        <Select value={projSchoolYear || 'all'} onValueChange={v => setProjSchoolYear(v === 'all' ? '' : v)}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All Years" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All School Years</SelectItem>
+                                                {studentSchoolYears.map(sy => <SelectItem key={sy} value={sy}>{sy}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Classification</label>
+                                        <Select value={projClassification || 'all'} onValueChange={v => { setProjClassification(v === 'all' ? '' : v); setProjDepartmentId(null); setProjYearLevelId(null); }}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Classifications</SelectItem>
+                                                {[...new Set(departments.map(d => d.classification))].filter(Boolean).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department</label>
+                                        <Select value={projDepartmentId?.toString() || 'all'} onValueChange={v => { setProjDepartmentId(v === 'all' ? null : Number(v)); setProjYearLevelId(null); }}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Departments</SelectItem>
+                                                {projFilteredDepartments.map(d => <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Year Level</label>
+                                        <Select value={projYearLevelId?.toString() || 'all'} onValueChange={v => setProjYearLevelId(v === 'all' ? null : Number(v))}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Year Levels</SelectItem>
+                                                {projFilteredYearLevels.map(yl => <SelectItem key={yl.id} value={yl.id.toString()}>{yl.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Summary Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Projected Students</CardTitle>
+                                    <Calculator className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{projStudentCount.toLocaleString()}</div>
+                                    <p className="text-xs text-muted-foreground">Enrolled students matching filter</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">General Fee Revenue</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-blue-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(projTotalGeneralRevenue)}</div>
+                                    <p className="text-xs text-muted-foreground">All general fees × projected students</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Document Fee Revenue</CardTitle>
+                                    <FileText className="h-4 w-4 text-purple-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(projTotalDocRevenue)}</div>
+                                    <p className="text-xs text-muted-foreground">All document fees × projected students</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* General Fee Items Table */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base">General Fees ({projStudentCount} students)</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>Fee Item</TableHead>
+                                            <TableHead>School Year</TableHead>
+                                            <TableHead className="text-right">Unit Price</TableHead>
+                                            <TableHead className="text-right">Students</TableHead>
+                                            <TableHead className="text-right">Projected Revenue</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {categories.flatMap(cat => cat.items.map(item => ({ ...item, categoryName: cat.name }))).length === 0 ? (
+                                            <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No general fee items found.</TableCell></TableRow>
+                                        ) : categories.flatMap(cat => cat.items.map(item => ({ ...item, categoryName: cat.name }))).map(item => (
+                                            <TableRow key={item.id}>
+                                                <TableCell className="text-sm text-muted-foreground">{item.categoryName}</TableCell>
+                                                <TableCell className="font-medium">{item.name}</TableCell>
+                                                <TableCell className="text-sm">{item.school_year || '—'}</TableCell>
+                                                <TableCell className="text-right font-mono text-sm">{formatCurrency(item.selling_price)}</TableCell>
+                                                <TableCell className="text-right text-sm">{projStudentCount.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right font-semibold text-blue-700">{formatCurrency(parseFloat(item.selling_price || '0') * projStudentCount)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+
+                        {/* Document Fee Items Table */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base">Document Fees ({projStudentCount} students)</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>Document</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead className="text-right">Price</TableHead>
+                                            <TableHead className="text-right">Students</TableHead>
+                                            <TableHead className="text-right">Projected Revenue</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {documentFees.length === 0 ? (
+                                            <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No document fees found.</TableCell></TableRow>
+                                        ) : documentFees.map(doc => (
+                                            <TableRow key={doc.id}>
+                                                <TableCell className="text-sm text-muted-foreground">{doc.category}</TableCell>
+                                                <TableCell className="font-medium">{doc.name}</TableCell>
+                                                <TableCell><Badge variant="outline" className="text-xs capitalize">{doc.processing_type}</Badge></TableCell>
+                                                <TableCell className="text-right font-mono text-sm">{formatCurrency(doc.price)}</TableCell>
+                                                <TableCell className="text-right text-sm">{projStudentCount.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right font-semibold text-purple-700">{formatCurrency(parseFloat(doc.price || '0') * projStudentCount)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
                     </TabsContent>
                 </Tabs>
             </div>
