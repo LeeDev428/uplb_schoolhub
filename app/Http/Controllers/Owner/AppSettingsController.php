@@ -36,8 +36,9 @@ class AppSettingsController extends Controller
             'app_name' => 'required|string|max:100',
             'primary_color' => 'required|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
-            'has_k12' => 'boolean',
-            'has_college' => 'boolean',
+            // Accept '0'/'1' strings from FormData (Inertia forceFormData serialises integers as strings)
+            'has_k12' => 'nullable|in:0,1',
+            'has_college' => 'nullable|in:0,1',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg|max:2048',
             'favicon' => 'nullable|mimes:png,jpg,jpeg,ico,x-icon|max:512',
         ]);
@@ -47,9 +48,9 @@ class AppSettingsController extends Controller
         $settings->app_name = $validated['app_name'];
         $settings->primary_color = $validated['primary_color'];
         $settings->secondary_color = $validated['secondary_color'] ?? $settings->secondary_color;
-        // Use $request->boolean() to reliably convert '0'/'1' FormData strings to PHP bool
-        $settings->has_k12 = $request->boolean('has_k12', true);
-        $settings->has_college = $request->boolean('has_college', true);
+        // Explicitly cast to bool: '1' → true, '0'/null → false
+        $settings->has_k12 = (bool)(int)$request->input('has_k12', 1);
+        $settings->has_college = (bool)(int)$request->input('has_college', 1);
 
         if ($request->hasFile('logo')) {
             if ($settings->logo_path) {
