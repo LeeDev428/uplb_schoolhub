@@ -70,7 +70,7 @@ class ClassController extends Controller
         $unassignedStudents = $unassignedQuery->orderBy('last_name')->orderBy('first_name')->get();
 
         // Sections with assigned students
-        $sectionsQuery = Section::with(['department', 'yearLevel'])
+        $sectionsQuery = Section::with(['department', 'yearLevel', 'teacher'])
             ->withCount('students')
             ->where('is_active', true);
 
@@ -92,6 +92,9 @@ class ClassController extends Controller
                 ->orderBy('last_name')
                 ->orderBy('first_name')
                 ->get();
+            $section->teacher_display = $section->teacher
+                ? trim("{$section->teacher->last_name}, {$section->teacher->first_name}" . ($section->teacher->suffix ? " {$section->teacher->suffix}" : ''))
+                : null;
             return $section;
         });
 
@@ -102,7 +105,7 @@ class ClassController extends Controller
             ->get()
             ->map(fn($t) => [
                 'id' => $t->id,
-                'full_name' => trim("{$t->last_name}, {$t->first_name}" . ($t->suffix ? " {$t->suffix}" : '')),
+                'name' => trim("{$t->last_name}, {$t->first_name}" . ($t->suffix ? " {$t->suffix}" : '')),
                 'department_id' => $t->department_id,
             ]);
 
