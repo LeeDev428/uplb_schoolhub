@@ -30,6 +30,21 @@ class AppSettingsController extends Controller
         ]);
     }
 
+    public function updateAcademicStructure(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'has_k12'      => 'required|boolean',
+            'has_college'  => 'required|boolean',
+        ]);
+
+        $settings = AppSetting::current();
+        $settings->has_k12     = (bool) $request->input('has_k12');
+        $settings->has_college = (bool) $request->input('has_college');
+        $settings->save();
+
+        return redirect()->back()->with('success', 'Academic structure updated.');
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
