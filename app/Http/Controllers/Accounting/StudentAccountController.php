@@ -148,6 +148,9 @@ class StudentAccountController extends Controller
                 ];
             });
 
+        $classListBase = Student::whereNull('deleted_at')
+            ->select('id', 'first_name', 'last_name', 'middle_name', 'suffix', 'lrn', 'gender', 'program', 'year_level', 'section', 'enrollment_status', 'student_photo_url');
+
         return Inertia::render('accounting/student-accounts/index', [
             'accounts' => $accounts,
             'schoolYears' => $schoolYears,
@@ -156,6 +159,8 @@ class StudentAccountController extends Controller
             'classifications' => $classifications,
             'yearLevels' => $yearLevels,
             'filters' => $request->only(['search', 'status', 'school_year', 'department_id', 'classification']),
+            'classListMale' => (clone $classListBase)->whereRaw("LOWER(gender) = 'male'")->orderBy('last_name')->orderBy('first_name')->get(),
+            'classListFemale' => (clone $classListBase)->whereRaw("LOWER(gender) = 'female'")->orderBy('last_name')->orderBy('first_name')->get(),
         ]);
     }
 
