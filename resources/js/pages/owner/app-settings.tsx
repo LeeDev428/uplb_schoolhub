@@ -35,8 +35,9 @@ export default function AppSettings({ settings }: Props) {
         app_name: settings.app_name || '',
         primary_color: settings.primary_color || '#2563eb',
         secondary_color: settings.secondary_color || '#64748b',
-        has_k12: settings.has_k12 ?? true,
-        has_college: settings.has_college ?? true,
+        // Use 1/0 integers so FormData serializes as '1'/'0' (Inertia v2 serializes boolean false as 'false' which Laravel rejects)
+        has_k12: settings.has_k12 ? 1 : 0,
+        has_college: settings.has_college ? 1 : 0,
         logo: null as File | null,
         favicon: null as File | null,
     });
@@ -134,8 +135,8 @@ export default function AppSettings({ settings }: Props) {
                                     <p className="text-sm text-muted-foreground">Senior High School / Junior High School tracks</p>
                                 </div>
                                 <Switch
-                                    checked={data.has_k12}
-                                    onCheckedChange={(checked) => setData('has_k12', checked)}
+                                    checked={Boolean(data.has_k12)}
+                                    onCheckedChange={(checked) => setData('has_k12', checked ? 1 : 0)}
                                 />
                             </div>
                             <div className="flex items-center justify-between rounded-lg border p-4">
@@ -144,11 +145,11 @@ export default function AppSettings({ settings }: Props) {
                                     <p className="text-sm text-muted-foreground">Tertiary / Higher Education programs</p>
                                 </div>
                                 <Switch
-                                    checked={data.has_college}
-                                    onCheckedChange={(checked) => setData('has_college', checked)}
+                                    checked={Boolean(data.has_college)}
+                                    onCheckedChange={(checked) => setData('has_college', checked ? 1 : 0)}
                                 />
                             </div>
-                            {!data.has_k12 && !data.has_college && (
+                            {!Boolean(data.has_k12) && !Boolean(data.has_college) && (
                                 <p className="text-sm text-destructive">At least one track must be enabled.</p>
                             )}
                         </CardContent>
