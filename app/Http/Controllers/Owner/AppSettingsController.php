@@ -48,9 +48,9 @@ class AppSettingsController extends Controller
         $settings->app_name = $validated['app_name'];
         $settings->primary_color = $validated['primary_color'];
         $settings->secondary_color = $validated['secondary_color'] ?? $settings->secondary_color;
-        // Explicitly cast to bool: '1' → true, '0'/null → false
-        $settings->has_k12 = (bool)(int)$request->input('has_k12', 1);
-        $settings->has_college = (bool)(int)$request->input('has_college', 1);
+        // Only '1' means true; any other value (including absent, '0', null) means false
+        $settings->has_k12 = $request->input('has_k12') === '1';
+        $settings->has_college = $request->input('has_college') === '1';
 
         if ($request->hasFile('logo')) {
             if ($settings->logo_path) {
