@@ -13,6 +13,13 @@ class AppSetting extends Model
         'favicon_path',
         'primary_color',
         'secondary_color',
+        'has_k12',
+        'has_college',
+    ];
+
+    protected $casts = [
+        'has_k12' => 'boolean',
+        'has_college' => 'boolean',
     ];
 
     /**
@@ -24,6 +31,8 @@ class AppSetting extends Model
             'app_name' => 'School Management System',
             'primary_color' => '#1d4ed8',
             'secondary_color' => '#64748b',
+            'has_k12' => true,
+            'has_college' => true,
         ]);
     }
 
