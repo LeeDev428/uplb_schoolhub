@@ -6,8 +6,25 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    // Faculty grouped by department category, first created first within each group
+    $faculty = \App\Models\Teacher::with('department')
+        ->where('is_active', true)
+        ->orderBy('created_at', 'asc')
+        ->get(['id', 'first_name', 'last_name', 'middle_name', 'suffix', 'specialization', 'photo_url', 'department_id', 'created_at'])
+        ->map(fn ($t) => [
+            'id'             => $t->id,
+            'full_name'      => $t->full_name,
+            'specialization' => $t->specialization,
+            'photo_url'      => $t->photo_url,
+            'department'     => $t->department?->name ?? 'General',
+        ])
+        ->groupBy('department')
+        ->map(fn ($group) => $group->values())
+        ->toArray();
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
+        'faculty'     => $faculty,
     ]);
 })->name('home');
 
