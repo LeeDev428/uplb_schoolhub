@@ -8,6 +8,7 @@ use App\Models\Section;
 use App\Models\Department;
 use App\Models\YearLevel;
 use App\Models\Teacher;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -116,18 +117,37 @@ class ClassController extends Controller
         $maleCount = Student::whereNull('deleted_at')->where('enrollment_status', 'enrolled')->where('gender', 'Male')->count();
         $femaleCount = Student::whereNull('deleted_at')->where('enrollment_status', 'enrolled')->where('gender', 'Female')->count();
 
+        // Active subjects with their assigned teachers, so the frontend can
+        // show which subjects belong to each section (filtered by dept+year_level)
+        $subjects = Subject::where('is_active', true)
+            ->with('teachers:id,first_name,last_name')
+            ->select('id', 'department_id', 'year_level_id', 'code', 'name', 'type', 'units')
+            ->orderBy('code')
+            ->get()
+            ->map(fn ($s) => [
+                'id'            => $s->id,
+                'department_id' => $s->department_id,
+                'year_level_id' => $s->year_level_id,
+                'code'          => $s->code,
+                'name'          => $s->name,
+                'type'          => $s->type,
+                'units'         => $s->units,
+                'teachers'      => $s->teachers->map(fn ($t) => "{$t->first_name} {$t->last_name}")->values()->toArray(),
+            ]);
+
         return Inertia::render('registrar/classes/index', [
             'unassignedStudents' => $unassignedStudents,
-            'sections' => $sections,
-            'departments' => $departments,
-            'yearLevels' => $yearLevels,
-            'teachers' => $teachers,
-            'stats' => [
-                'totalStudents' => $totalStudents,
-                'assignedCount' => $assignedCount,
-                'unassignedCount' => $unassignedCount,
-                'maleCount' => $maleCount,
-                'femaleCount' => $femaleCount,
+            'sections'           => $sections,
+            'departments'        => $departments,
+            'yearLevels'         => $yearLevels,
+            'teachers'           => $teachers,
+            'subjects'           => $subjects,
+            'stats'              => [
+                'totalStudents'  => $totalStudents,
+                'assignedCount'  => $assignedCount,
+                'unassignedCount'=> $unassignedCount,
+                'maleCount'      => $maleCount,
+                'femaleCount'    => $femaleCount,
             ],
             'filters' => $request->only(['search', 'classification', 'department_id', 'year_level_id', 'student_type']),
         ]);
