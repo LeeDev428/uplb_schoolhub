@@ -108,6 +108,15 @@ class StudentController extends Controller
             'stats' => $stats,
             'filters' => $request->only(['search', 'program', 'year_level', 'section']),
             'teacherDepartment' => $teacher?->department?->name ?? 'All Departments',
+            // Class list: all dept students split by gender A-Z
+            'classListMale' => (clone $query)
+                ->whereRaw("LOWER(gender) = 'male'")
+                ->orderBy('last_name')->orderBy('first_name')
+                ->get(['id','first_name','last_name','middle_name','suffix','lrn','gender','program','year_level','section','enrollment_status','student_photo_url']),
+            'classListFemale' => (clone $query)
+                ->whereRaw("LOWER(gender) = 'female'")
+                ->orderBy('last_name')->orderBy('first_name')
+                ->get(['id','first_name','last_name','middle_name','suffix','lrn','gender','program','year_level','section','enrollment_status','student_photo_url']),
         ]);
     }
 
