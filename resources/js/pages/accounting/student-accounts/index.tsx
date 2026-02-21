@@ -44,7 +44,7 @@ import { FilterBar } from '@/components/filters/filter-bar';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { ImportButton } from '@/components/import-button';
-import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard } from 'lucide-react';
+import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard, List } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
 interface Student {
@@ -127,9 +127,36 @@ interface Props {
         department_id?: string;
         classification?: string;
     };
+    classListMale: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        middle_name?: string | null;
+        suffix?: string | null;
+        lrn: string;
+        program?: string;
+        year_level?: string;
+        section?: string;
+        enrollment_status: string;
+        student_photo_url?: string | null;
+    }[];
+    classListFemale: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        middle_name?: string | null;
+        suffix?: string | null;
+        lrn: string;
+        program?: string;
+        year_level?: string;
+        section?: string;
+        enrollment_status: string;
+        student_photo_url?: string | null;
+    }[];
 }
 
-export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], classifications = [], yearLevels = [], filters }: Props) {
+export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], classifications = [], yearLevels = [], filters, classListMale = [], classListFemale = [] }: Props) {
+    const [viewMode, setViewMode] = useState<'accounts' | 'classlist'>('accounts');
     const [search, setSearch] = useState(filters.search || '');
     const [activeTab, setActiveTab] = useState(filters.status || 'overdue');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
@@ -472,13 +499,84 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                 </FilterBar>
 
                 {/* Tabs */}
-                <Tabs value={activeTab} onValueChange={handleTabChange}>
+                <Tabs value={viewMode === 'classlist' ? 'classlist' : activeTab} onValueChange={(v) => {
+                    if (v === 'classlist') { setViewMode('classlist'); }
+                    else { setViewMode('accounts'); handleTabChange(v); }
+                }}>
                     <TabsList>
                         <TabsTrigger value="overdue">Overdue</TabsTrigger>
                         <TabsTrigger value="partial">Partial</TabsTrigger>
                         <TabsTrigger value="paid">Paid</TabsTrigger>
                         <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
+                        <TabsTrigger value="classlist"><Users className="mr-1 h-4 w-4 inline" />Class List</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="classlist" className="mt-6">
+                        <div className="space-y-6">
+                            {/* Male */}
+                            <div className="rounded-lg border overflow-hidden">
+                                <div className="bg-sky-600 px-4 py-3 flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-white" />
+                                    <span className="font-semibold text-white">Male Students — {classListMale.length}</span>
+                                </div>
+                                <Table>
+                                    <TableHeader><TableRow>
+                                        <TableHead className="w-8">#</TableHead>
+                                        <TableHead>Name (Last, First)</TableHead>
+                                        <TableHead>Student No.</TableHead>
+                                        <TableHead>Program</TableHead>
+                                        <TableHead>Year / Section</TableHead>
+                                        <TableHead>Status</TableHead>
+                                    </TableRow></TableHeader>
+                                    <TableBody>
+                                        {classListMale.length === 0 ? (
+                                            <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No male students.</TableCell></TableRow>
+                                        ) : classListMale.map((s, i) => (
+                                            <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.visit(`/accounting/student-accounts/${s.id}`)}>
+                                                <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
+                                                <TableCell className="font-medium">{s.last_name}, {s.first_name}{s.middle_name ? ` ${s.middle_name}` : ''}{s.suffix ? ` ${s.suffix}` : ''}</TableCell>
+                                                <TableCell className="font-mono text-sm">{s.lrn}</TableCell>
+                                                <TableCell className="text-sm">{s.program || '—'}</TableCell>
+                                                <TableCell className="text-sm">{[s.year_level, s.section].filter(Boolean).join(' · ') || '—'}</TableCell>
+                                                <TableCell><Badge variant="outline">{s.enrollment_status}</Badge></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {/* Female */}
+                            <div className="rounded-lg border overflow-hidden">
+                                <div className="bg-pink-500 px-4 py-3 flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-white" />
+                                    <span className="font-semibold text-white">Female Students — {classListFemale.length}</span>
+                                </div>
+                                <Table>
+                                    <TableHeader><TableRow>
+                                        <TableHead className="w-8">#</TableHead>
+                                        <TableHead>Name (Last, First)</TableHead>
+                                        <TableHead>Student No.</TableHead>
+                                        <TableHead>Program</TableHead>
+                                        <TableHead>Year / Section</TableHead>
+                                        <TableHead>Status</TableHead>
+                                    </TableRow></TableHeader>
+                                    <TableBody>
+                                        {classListFemale.length === 0 ? (
+                                            <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No female students.</TableCell></TableRow>
+                                        ) : classListFemale.map((s, i) => (
+                                            <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.visit(`/accounting/student-accounts/${s.id}`)}>
+                                                <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
+                                                <TableCell className="font-medium">{s.last_name}, {s.first_name}{s.middle_name ? ` ${s.middle_name}` : ''}{s.suffix ? ` ${s.suffix}` : ''}</TableCell>
+                                                <TableCell className="font-mono text-sm">{s.lrn}</TableCell>
+                                                <TableCell className="text-sm">{s.program || '—'}</TableCell>
+                                                <TableCell className="text-sm">{[s.year_level, s.section].filter(Boolean).join(' · ') || '—'}</TableCell>
+                                                <TableCell><Badge variant="outline">{s.enrollment_status}</Badge></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+                    </TabsContent>
 
                     <TabsContent value={activeTab} className="mt-6">
                         {/* Table */}
