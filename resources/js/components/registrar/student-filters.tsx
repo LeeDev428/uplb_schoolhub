@@ -22,6 +22,7 @@ interface StudentFiltersProps {
         year_level?: string;
         enrollment_status?: string;
         requirements_status?: string;
+        needs_sectioning?: string;
     };
 }
 
@@ -30,7 +31,7 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
 
     const handleFilterChange = (key: string, value: string) => {
         router.get(
-            studentsIndex.url({ query: { ...filters, [key]: value } }),
+            studentsIndex.url({ query: { ...filters, [key]: value, search: localSearch } }),
             {},
             { preserveState: true, replace: true }
         );
@@ -51,24 +52,39 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
     };
 
     return (
-        <div className="space-y-3">
-            <form onSubmit={handleSearchSubmit} className="grid grid-cols-7 gap-3">
-                <div className="relative col-span-2">
+        <div className="space-y-2">
+            {/* Row 1: Search + Submit + Clear */}
+            <form onSubmit={handleSearchSubmit} className="flex gap-2">
+                <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         type="search"
                         placeholder="Search by name, email, or LRN"
-                        className="h-11 pl-10"
+                        className="h-10 pl-10"
                         value={localSearch}
                         onChange={(e) => setLocalSearch(e.target.value)}
                     />
                 </div>
+                <Button type="submit" className="h-10 px-5">
+                    Search
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleClearFilters}
+                    className="h-10"
+                >
+                    Clear
+                </Button>
+            </form>
 
+            {/* Row 2: Dropdown filters in a responsive grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
                 <Select
                     value={filters.type || 'all'}
                     onValueChange={(value) => handleFilterChange('type', value)}
                 >
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10">
                         <SelectValue placeholder="All Types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -83,7 +99,7 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
                     value={filters.program || 'all'}
                     onValueChange={(value) => handleFilterChange('program', value)}
                 >
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10">
                         <SelectValue placeholder="All Programs" />
                     </SelectTrigger>
                     <SelectContent>
@@ -100,7 +116,7 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
                     value={filters.year_level || 'all'}
                     onValueChange={(value) => handleFilterChange('year_level', value)}
                 >
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10">
                         <SelectValue placeholder="All Year Levels" />
                     </SelectTrigger>
                     <SelectContent>
@@ -113,26 +129,11 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
                     </SelectContent>
                 </Select>
 
-                <Button type="submit" className="h-11">
-                    Search
-                </Button>
-
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleClearFilters}
-                    className="h-11"
-                >
-                    Clear
-                </Button>
-            </form>
-
-            <div className="grid grid-cols-2 gap-2">
                 <Select
                     value={filters.enrollment_status || 'all'}
                     onValueChange={(value) => handleFilterChange('enrollment_status', value)}
                 >
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10">
                         <SelectValue placeholder="All Enrollment Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -150,7 +151,7 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
                     value={filters.requirements_status || 'all'}
                     onValueChange={(value) => handleFilterChange('requirements_status', value)}
                 >
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10">
                         <SelectValue placeholder="All Requirements Status" />
                     </SelectTrigger>
                     <SelectContent>
