@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Plus, CheckCircle2, Circle, Users, List, GraduationCap } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
@@ -121,8 +121,15 @@ interface Props {
     stats: Stats;
     programs: string[];
     yearLevels: string[];
-    filters: any;
-    departments: Department[];
+    filters: {
+        search?: string;
+        type?: string;
+        program?: string;
+        year_level?: string;
+        enrollment_status?: string;
+        requirements_status?: string;
+        needs_sectioning?: string;
+    };    departments: Department[];
     allPrograms: Program[];
     allYearLevels: YearLevelData[];
     sections: Section[];
@@ -255,7 +262,13 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                             <Users className="mr-2 h-4 w-4" />
                             {viewMode === 'classlist' ? 'Table View' : 'Class List'}
                         </Button>
-                        <Button variant="outline">Follow Up Sectioning</Button>
+                        <Button variant="outline"
+                            onClick={() => router.get('/registrar/students', { needs_sectioning: filters.needs_sectioning === '1' ? undefined : '1' })}
+                            className={filters.needs_sectioning === '1' ? 'border-primary text-primary bg-primary/5' : ''}
+                        >
+                            <UserCheck className="mr-2 h-4 w-4" />
+                            Follow Up Sectioning
+                        </Button>
                         <Button onClick={handleAddStudent}>
                             <Plus className="mr-2 h-4 w-4" />
                             Add New Student
@@ -331,6 +344,19 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                         label="Inactive"
                     />
                 </div>
+
+                {/* Follow Up Sectioning Banner */}
+                {filters.needs_sectioning === '1' && (
+                    <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+                        <div className="flex items-center gap-2">
+                            <UserCheck className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium text-primary">Follow Up Sectioning Mode — showing students without a section assigned</span>
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={() => router.get('/registrar/students')}>
+                            Exit
+                        </Button>
+                    </div>
+                )}
 
                 {/* Filters */}
                 <StudentFilters programs={programs} yearLevels={yearLevels} filters={filters} />
