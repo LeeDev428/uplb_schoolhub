@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CheckCircle, Clock, DollarSign, Download, FileText, RefreshCw, Users } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { AlertTriangle, CheckCircle, Clock, DollarSign, Download, FileText, RefreshCw, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface Stats {
@@ -32,6 +34,7 @@ interface DepartmentBalance {
 interface RecentPayment {
     id: number;
     student_name: string;
+    student_photo_url?: string | null;
     amount: number;
     method: string;
     or_number: string;
@@ -47,6 +50,8 @@ interface Props {
     averageCollectionTime: string;
     years: number[];
     selectedYear: number;
+    projectedRevenue?: number;
+    totalCollected?: number;
 }
 
 export default function MainDashboard({
@@ -58,6 +63,8 @@ export default function MainDashboard({
     averageCollectionTime,
     years,
     selectedYear,
+    projectedRevenue = 0,
+    totalCollected = 0,
 }: Props) {
     const [year, setYear] = useState(selectedYear.toString());
 
@@ -240,6 +247,52 @@ export default function MainDashboard({
                     </CardContent>
                 </Card>
 
+                {/* Projected Revenue Section */}
+                {projectedRevenue > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5 text-emerald-600" />
+                                Projected Revenue Report
+                            </CardTitle>
+                            <CardDescription>
+                                Collection progress against total projected fees
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="rounded-lg bg-emerald-50 p-4 text-center">
+                                    <p className="text-sm text-emerald-700 font-medium">Projected Total</p>
+                                    <p className="text-2xl font-bold text-emerald-700">{formatCurrency(projectedRevenue)}</p>
+                                </div>
+                                <div className="rounded-lg bg-blue-50 p-4 text-center">
+                                    <p className="text-sm text-blue-700 font-medium">Collected</p>
+                                    <p className="text-2xl font-bold text-blue-700">{formatCurrency(totalCollected)}</p>
+                                </div>
+                                <div className="rounded-lg bg-red-50 p-4 text-center">
+                                    <p className="text-sm text-red-700 font-medium">Outstanding</p>
+                                    <p className="text-2xl font-bold text-red-700">{formatCurrency(totalOutstanding)}</p>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm text-muted-foreground">
+                                    <span>Collection Rate</span>
+                                    <span className="font-semibold text-foreground">
+                                        {projectedRevenue > 0 ? ((totalCollected / projectedRevenue) * 100).toFixed(1) : 0}%
+                                    </span>
+                                </div>
+                                <Progress
+                                    value={projectedRevenue > 0 ? Math.min((totalCollected / projectedRevenue) * 100, 100) : 0}
+                                    className="h-3"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    {formatCurrency(totalCollected)} collected out of {formatCurrency(projectedRevenue)} projected
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Recent Payment Activities */}
                 <Card>
                     <CardHeader>
@@ -257,15 +310,12 @@ export default function MainDashboard({
                             ) : (
                                 (recentPayments || []).map((payment, index) => (
                                     <div key={index} className="flex items-center gap-4">
-                                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                                            payment.method === 'GCASH' ? 'bg-blue-100' :
-                                            payment.method === 'CASH' ? 'bg-green-100' : 'bg-purple-100'
-                                        }`}>
-                                            <DollarSign className={`h-5 w-5 ${
-                                                payment.method === 'GCASH' ? 'text-blue-600' :
-                                                payment.method === 'CASH' ? 'text-green-600' : 'text-purple-600'
-                                            }`} />
-                                        </div>
+                                        <Avatar className="h-10 w-10 flex-shrink-0">
+                                            <AvatarImage src={payment.student_photo_url ?? undefined} alt={payment.student_name} />
+                                            <AvatarFallback className={`text-white text-sm font-semibold ${payment.method === 'GCASH' ? 'bg-blue-600' : payment.method === 'CASH' ? 'bg-green-600' : 'bg-purple-600'}`}>
+                                                {payment.student_name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
                                         <div className="flex-1">
                                             <p className="font-medium">
                                                 <span className="text-blue-600">{payment.student_name}</span>
