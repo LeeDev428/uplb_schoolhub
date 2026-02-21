@@ -1,145 +1,332 @@
 import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import TeacherLayout from '@/layouts/teacher/teacher-layout';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { Pagination } from '@/components/ui/pagination';
-import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { BookOpen, GraduationCap, Users, ChevronDown, ChevronRight, Star } from 'lucide-react';
 import { useState } from 'react';
-import { router } from '@inertiajs/react';
+import type { BreadcrumbItem } from '@/types';
 
-interface Section {
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Classes', href: '/teacher/classes' },
+];
+
+interface SubjectItem {
     id: number;
-    name: string;
     code: string;
-    capacity: number;
-    school_year: string;
-    department?: { id: number; name: string; code: string } | null;
-    year_level?: { id: number; name: string } | null;
+    name: string;
+    type: string;
+    units: number | null;
+    i_teach: boolean;   // true if this teacher is a subject teacher for this subject
+    teachers: string[]; // all subject teachers assigned
 }
 
-interface Department {
+interface StudentItem {
+    id: number;
+    first_name: string;
+    last_name: string;
+    middle_name: string | null;
+    suffix: string | null;
+    lrn: string | null;
+    gender: string;
+    enrollment_status: string;
+}
+
+interface AdvisorySection {
     id: number;
     name: string;
+    code: string | null;
+    capacity: number | null;
+    room_number: string | null;
+    department: { id: number; name: string } | null;
+    year_level: { id: number; name: string } | null;
+    students_count: number;
+    students: StudentItem[];
+    subjects: SubjectItem[];
+}
+
+interface TeachingSubject {
+    id: number;
     code: string;
+    name: string;
+    type: string;
+    units: number | null;
+    department: string | null;
+    year_level: string | null;
+    student_count: number;
 }
 
 interface Props {
-    sections: {
-        data: Section[];
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        from: number;
-        to: number;
-        links: any[];
-    };
-    departments: Department[];
-    filters: {
-        search?: string;
-        department_id?: string;
-    };
+    advisorySections: AdvisorySection[];
+    teachingSubjects: TeachingSubject[];
 }
 
-export default function ClassesIndex({ sections, departments, filters }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
+const typeBadgeVariant: Record<string, any> = {
+    core: 'default', major: 'secondary', elective: 'outline', general: 'outline',
+};
 
-    const navigate = (params: Record<string, string>) => {
-        router.get('/teacher/classes', params, { preserveState: true, preserveScroll: true });
+export default function ClassesIndex({ advisorySections, teachingSubjects }: Props) {
+    const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+    const [activeTab, setActiveTab] = useState<Record<number, 'students' | 'subjects'>>({});
+
+    const toggleSection = (id: number) => {
+        setExpandedSections(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
     };
 
-    const handleSearchChange = (value: string) => {
-        setSearch(value);
-        navigate({ search: value, department_id: departmentId });
+    const getTab = (id: number) => activeTab[id] ?? 'students';
+    const setTab = (id: number, tab: 'students' | 'subjects') => {
+        setActiveTab(prev => ({ ...prev, [id]: tab }));
     };
 
-    const handleDepartmentChange = (value: string) => {
-        setDepartmentId(value);
-        navigate({ search, department_id: value });
-    };
-
-    const resetFilters = () => {
-        setSearch('');
-        setDepartmentId('all');
-        router.get('/teacher/classes');
+    const getStudentName = (s: StudentItem) => {
+        let name = `${s.last_name}, ${s.first_name}`;
+        if (s.middle_name) name += ` ${s.middle_name.charAt(0)}.`;
+        if (s.suffix && !['none', ''].includes(s.suffix.toLowerCase())) name += ` ${s.suffix}`;
+        return name;
     };
 
     return (
-        <TeacherLayout>
+        <TeacherLayout breadcrumbs={breadcrumbs}>
             <Head title="My Classes" />
 
             <div className="space-y-6 p-6">
-                <div>
-                    <h1 className="text-3xl font-bold">My Classes</h1>
-                    <p className="mt-1 text-sm text-gray-600">View sections and class rosters</p>
+                <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900">
+                        <GraduationCap className="h-6 w-6 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-foreground">My Classes</h1>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Your advisory section(s) and teaching subjects
+                        </p>
+                    </div>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Sections</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <FilterBar onReset={resetFilters} showReset={!!(search || departmentId !== 'all')}>
-                            <SearchBar value={search} onChange={handleSearchChange} placeholder="Search sections..." />
-                            <FilterDropdown
-                                label="Department"
-                                value={departmentId}
-                                onChange={handleDepartmentChange}
-                                options={departments.map((d) => ({ value: String(d.id), label: `${d.name} (${d.code})` }))}
-                                placeholder="All Departments"
-                            />
-                        </FilterBar>
+                {/* ─── Advisory Sections ─── */}
+                <div>
+                    <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+                        <Users className="h-5 w-5 text-primary" />
+                        Advisory / Homeroom Section(s)
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
+                            assigned by Registrar
+                        </span>
+                    </h2>
 
-                        <div className="mt-6 overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="p-3 text-left font-semibold">Section</th>
-                                        <th className="p-3 text-left font-semibold">Code</th>
-                                        <th className="p-3 text-left font-semibold">Department</th>
-                                        <th className="p-3 text-left font-semibold">Year Level</th>
-                                        <th className="p-3 text-center font-semibold">Capacity</th>
-                                        <th className="p-3 text-center font-semibold">School Year</th>
-                                        <th className="p-3 text-center font-semibold">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {sections.data.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="p-8 text-center text-gray-500">No sections found.</td>
-                                        </tr>
-                                    ) : (
-                                        sections.data.map((section) => (
-                                            <tr key={section.id} className="border-b hover:bg-gray-50">
-                                                <td className="p-3 font-medium">{section.name}</td>
-                                                <td className="p-3">
-                                                    <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">{section.code}</span>
-                                                </td>
-                                                <td className="p-3 text-sm">{section.department?.name || '-'}</td>
-                                                <td className="p-3 text-sm">{section.year_level?.name || '-'}</td>
-                                                <td className="p-3 text-center">{section.capacity}</td>
-                                                <td className="p-3 text-center text-sm">{section.school_year}</td>
-                                                <td className="p-3 text-center">
-                                                    <Link href={`/teacher/classes/${section.id}`}>
-                                                        <Button size="sm" variant="ghost">
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                    </Link>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                    {advisorySections.length === 0 ? (
+                        <Card>
+                            <CardContent className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
+                                <Users className="h-10 w-10 opacity-30" />
+                                <p className="text-sm">You have no advisory section assigned.</p>
+                                <p className="text-xs">The Registrar assigns advisory sections via the Classes page.</p>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <div className="space-y-3">
+                            {advisorySections.map(section => {
+                                const isExpanded = expandedSections.has(section.id);
+                                const tab = getTab(section.id);
+                                const iTeachCount = section.subjects.filter(s => s.i_teach).length;
+
+                                return (
+                                    <Card key={section.id} className="overflow-hidden">
+                                        {/* Section Header */}
+                                        <button
+                                            className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/40 transition-colors"
+                                            onClick={() => toggleSection(section.id)}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {isExpanded
+                                                    ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                                    : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                                                <div>
+                                                    <span className="font-semibold">{section.name}</span>
+                                                    {section.code && (
+                                                        <span className="ml-2 rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{section.code}</span>
+                                                    )}
+                                                    <span className="ml-2 text-sm text-muted-foreground">
+                                                        {section.department?.name} &bull; {section.year_level?.name}
+                                                        {section.room_number && ` &bull; Room ${section.room_number}`}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Badge variant="secondary">{section.students_count} students</Badge>
+                                                <Badge variant="outline">{section.subjects.length} subjects</Badge>
+                                                {iTeachCount > 0 && (
+                                                    <Badge variant="default" className="gap-1">
+                                                        <Star className="h-3 w-3" />
+                                                        You teach {iTeachCount}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </button>
+
+                                        {/* Expandable Content */}
+                                        {isExpanded && (
+                                            <div className="border-t">
+                                                {/* Sub-tabs */}
+                                                <div className="flex border-b bg-muted/20">
+                                                    <button
+                                                        onClick={() => setTab(section.id, 'students')}
+                                                        className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                                            tab === 'students'
+                                                                ? 'border-b-2 border-primary text-primary'
+                                                                : 'text-muted-foreground hover:text-foreground'
+                                                        }`}
+                                                    >
+                                                        <Users className="mr-1.5 inline h-3.5 w-3.5" />
+                                                        Students ({section.students_count})
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setTab(section.id, 'subjects')}
+                                                        className={`px-4 py-2 text-sm font-medium transition-colors ${
+                                                            tab === 'subjects'
+                                                                ? 'border-b-2 border-primary text-primary'
+                                                                : 'text-muted-foreground hover:text-foreground'
+                                                        }`}
+                                                    >
+                                                        <BookOpen className="mr-1.5 inline h-3.5 w-3.5" />
+                                                        Subjects ({section.subjects.length})
+                                                        {iTeachCount > 0 && (
+                                                            <span className="ml-1.5 rounded-full bg-primary/10 px-1.5 text-xs text-primary">
+                                                                {iTeachCount} yours
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
+
+                                                {/* Students Tab */}
+                                                {tab === 'students' && (
+                                                    <div className="divide-y">
+                                                        {section.students.length === 0 ? (
+                                                            <p className="p-4 text-center text-sm text-muted-foreground">No students assigned yet.</p>
+                                                        ) : (
+                                                            section.students.map((student, idx) => (
+                                                                <div key={student.id} className="flex items-center gap-3 px-4 py-2 hover:bg-muted/30">
+                                                                    <span className="w-6 text-xs text-muted-foreground">{idx + 1}</span>
+                                                                    <span className="flex-1 text-sm font-medium">{getStudentName(student)}</span>
+                                                                    {student.lrn && (
+                                                                        <span className="font-mono text-xs text-muted-foreground">{student.lrn}</span>
+                                                                    )}
+                                                                    <Badge variant="outline" className="text-xs">
+                                                                        {student.gender === 'Male' ? 'M' : 'F'}
+                                                                    </Badge>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Subjects Tab */}
+                                                {tab === 'subjects' && (
+                                                    <div className="divide-y">
+                                                        {section.subjects.length === 0 ? (
+                                                            <p className="p-4 text-center text-sm text-muted-foreground">
+                                                                No subjects linked to this dept/year level yet.
+                                                            </p>
+                                                        ) : (
+                                                            section.subjects.map(sub => (
+                                                                <div
+                                                                    key={sub.id}
+                                                                    className={`flex items-center gap-3 px-4 py-2.5 ${
+                                                                        sub.i_teach ? 'bg-primary/5' : 'hover:bg-muted/30'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-mono text-xs font-semibold text-muted-foreground">{sub.code}</span>
+                                                                            <span className="text-sm font-medium truncate">{sub.name}</span>
+                                                                            {sub.i_teach && (
+                                                                                <Badge variant="default" className="text-xs gap-1 py-0">
+                                                                                    <Star className="h-2.5 w-2.5" /> You teach
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="mt-0.5 text-xs text-muted-foreground">
+                                                                            {sub.teachers.length > 0
+                                                                                ? `Instructor(s): ${sub.teachers.join(', ')}`
+                                                                                : 'No instructor assigned'}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 shrink-0">
+                                                                        <Badge variant={typeBadgeVariant[sub.type] ?? 'outline'} className="text-xs">
+                                                                            {sub.type}
+                                                                        </Badge>
+                                                                        {sub.units && (
+                                                                            <span className="text-xs text-muted-foreground">{sub.units}u</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </Card>
+                                );
+                            })}
                         </div>
+                    )}
+                </div>
 
-                        <Pagination data={sections} />
-                    </CardContent>
-                </Card>
+                {/* ─── Teaching Subjects ─── */}
+                <div>
+                    <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        Teaching Subjects
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
+                            assigned by Owner / Registrar
+                        </span>
+                    </h2>
+
+                    {teachingSubjects.length === 0 ? (
+                        <Card>
+                            <CardContent className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
+                                <BookOpen className="h-10 w-10 opacity-30" />
+                                <p className="text-sm">No teaching subjects assigned yet.</p>
+                                <p className="text-xs">Owner or Registrar assigns subject teachers via the Subjects page.</p>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {teachingSubjects.map(sub => (
+                                <Card key={sub.id}>
+                                    <CardHeader className="pb-2 pt-4">
+                                        <div className="flex items-start justify-between">
+                                            <span className="font-mono text-xs font-bold text-muted-foreground">{sub.code}</span>
+                                            <Badge variant={typeBadgeVariant[sub.type] ?? 'outline'} className="text-xs">
+                                                {sub.type}
+                                            </Badge>
+                                        </div>
+                                        <CardTitle className="text-base leading-snug">{sub.name}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                        <div className="space-y-1 text-xs text-muted-foreground">
+                                            {sub.department && <p>{sub.department}{sub.year_level ? ` · ${sub.year_level}` : ''}</p>}
+                                            {sub.units && <p>{sub.units} unit{Number(sub.units) !== 1 ? 's' : ''}</p>}
+                                            <div className="flex items-center gap-1 pt-1">
+                                                <Users className="h-3 w-3" />
+                                                <span>{sub.student_count} enrolled student{sub.student_count !== 1 ? 's' : ''}</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            <Link
+                                                href={`/teacher/subjects/${sub.id}/students`}
+                                                className="text-xs text-primary hover:underline"
+                                            >
+                                                View students →
+                                            </Link>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </TeacherLayout>
     );
