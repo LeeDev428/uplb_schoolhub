@@ -9,7 +9,7 @@ import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { StudentPhoto } from '@/components/ui/student-photo';
 import TeacherLayout from '@/layouts/teacher/teacher-layout';
-import { Eye, GraduationCap, Users, BookOpen, Layers } from 'lucide-react';
+import { Eye, GraduationCap, Users, BookOpen, Layers, List } from 'lucide-react';
 
 interface Student {
     id: number;
@@ -58,6 +58,32 @@ interface Props {
         section?: string;
     };
     teacherDepartment: string;
+    classListMale: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        middle_name?: string | null;
+        suffix?: string | null;
+        lrn: string;
+        program?: string;
+        year_level?: string;
+        section?: string;
+        enrollment_status: string;
+        student_photo_url?: string | null;
+    }[];
+    classListFemale: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        middle_name?: string | null;
+        suffix?: string | null;
+        lrn: string;
+        program?: string;
+        year_level?: string;
+        section?: string;
+        enrollment_status: string;
+        student_photo_url?: string | null;
+    }[];
 }
 
 const getEnrollmentStatusBadge = (status: string) => {
@@ -87,8 +113,11 @@ export default function StudentsIndex({
     sections, 
     stats, 
     filters, 
-    teacherDepartment 
+    teacherDepartment,
+    classListMale,
+    classListFemale,
 }: Props) {
+    const [viewMode, setViewMode] = useState<'list' | 'classlist'>('list');
     const [search, setSearch] = useState(filters.search || '');
     const [program, setProgram] = useState(filters.program || 'all');
     const [yearLevel, setYearLevel] = useState(filters.year_level || 'all');
@@ -194,10 +223,83 @@ export default function StudentsIndex({
 
                 {/* Students Table */}
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Students List</CardTitle>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setViewMode(v => v === 'list' ? 'classlist' : 'list')}
+                        >
+                            {viewMode === 'classlist' ? <><List className="mr-1 h-4 w-4" />Table View</> : <><Users className="mr-1 h-4 w-4" />Class List</>}
+                        </Button>
                     </CardHeader>
                     <CardContent>
+                        {viewMode === 'classlist' ? (
+                            <div className="space-y-6">
+                                {/* Male */}
+                                <div className="rounded-lg border overflow-hidden">
+                                    <div className="bg-sky-600 px-4 py-3 flex items-center gap-2">
+                                        <Users className="h-5 w-5 text-white" />
+                                        <span className="font-semibold text-white">Male Students — {classListMale.length}</span>
+                                    </div>
+                                    <table className="w-full">
+                                        <thead><tr className="border-b bg-muted/50">
+                                            <th className="p-3 text-left text-sm font-medium w-8">#</th>
+                                            <th className="p-3 text-left text-sm font-medium">Name (Last, First)</th>
+                                            <th className="p-3 text-left text-sm font-medium">Student No.</th>
+                                            <th className="p-3 text-left text-sm font-medium">Program</th>
+                                            <th className="p-3 text-left text-sm font-medium">Year / Section</th>
+                                            <th className="p-3 text-left text-sm font-medium">Status</th>
+                                        </tr></thead>
+                                        <tbody>
+                                            {classListMale.length === 0 ? (
+                                                <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No male students.</td></tr>
+                                            ) : classListMale.map((s, i) => (
+                                                <tr key={s.id} className="border-b hover:bg-muted/50 cursor-pointer" onClick={() => router.visit(`/teacher/students/${s.id}`)}>
+                                                    <td className="p-3 text-sm text-muted-foreground">{i + 1}</td>
+                                                    <td className="p-3 font-medium">{s.last_name}, {s.first_name}{s.middle_name ? ` ${s.middle_name}` : ''}{s.suffix ? ` ${s.suffix}` : ''}</td>
+                                                    <td className="p-3 font-mono text-sm">{s.lrn}</td>
+                                                    <td className="p-3 text-sm">{s.program || '—'}</td>
+                                                    <td className="p-3 text-sm">{[s.year_level, s.section].filter(Boolean).join(' · ') || '—'}</td>
+                                                    <td className="p-3">{getEnrollmentStatusBadge(s.enrollment_status)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {/* Female */}
+                                <div className="rounded-lg border overflow-hidden">
+                                    <div className="bg-pink-500 px-4 py-3 flex items-center gap-2">
+                                        <Users className="h-5 w-5 text-white" />
+                                        <span className="font-semibold text-white">Female Students — {classListFemale.length}</span>
+                                    </div>
+                                    <table className="w-full">
+                                        <thead><tr className="border-b bg-muted/50">
+                                            <th className="p-3 text-left text-sm font-medium w-8">#</th>
+                                            <th className="p-3 text-left text-sm font-medium">Name (Last, First)</th>
+                                            <th className="p-3 text-left text-sm font-medium">Student No.</th>
+                                            <th className="p-3 text-left text-sm font-medium">Program</th>
+                                            <th className="p-3 text-left text-sm font-medium">Year / Section</th>
+                                            <th className="p-3 text-left text-sm font-medium">Status</th>
+                                        </tr></thead>
+                                        <tbody>
+                                            {classListFemale.length === 0 ? (
+                                                <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No female students.</td></tr>
+                                            ) : classListFemale.map((s, i) => (
+                                                <tr key={s.id} className="border-b hover:bg-muted/50 cursor-pointer" onClick={() => router.visit(`/teacher/students/${s.id}`)}>
+                                                    <td className="p-3 text-sm text-muted-foreground">{i + 1}</td>
+                                                    <td className="p-3 font-medium">{s.last_name}, {s.first_name}{s.middle_name ? ` ${s.middle_name}` : ''}{s.suffix ? ` ${s.suffix}` : ''}</td>
+                                                    <td className="p-3 font-mono text-sm">{s.lrn}</td>
+                                                    <td className="p-3 text-sm">{s.program || '—'}</td>
+                                                    <td className="p-3 text-sm">{[s.year_level, s.section].filter(Boolean).join(' · ') || '—'}</td>
+                                                    <td className="p-3">{getEnrollmentStatusBadge(s.enrollment_status)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ) : (<>
                         <FilterBar onReset={resetFilters} showReset={hasActiveFilters}>
                             <SearchBar 
                                 value={search} 
@@ -290,6 +392,7 @@ export default function StudentsIndex({
                         </div>
 
                         <Pagination data={students} />
+                        </>)}
                     </CardContent>
                 </Card>
             </div>
