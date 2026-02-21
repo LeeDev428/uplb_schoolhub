@@ -561,6 +561,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                 programs={allPrograms}
                 yearLevels={allYearLevels}
                 sections={sections}
+                schoolYear={activeSchoolYear}
             />
         </RegistrarLayout>
     );
