@@ -12,6 +12,7 @@ import {
     Grid3x3,
     Megaphone,
     Settings,
+    UserSquare2,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -89,6 +90,11 @@ const mainNavItems: NavItem[] = [
         title: 'User Management',
         href: '/owner/users',
         icon: Users,
+    },
+    {
+        title: 'Students',
+        href: '/owner/students',
+        icon: UserSquare2,
     },
     {
         title: 'Announcements',
