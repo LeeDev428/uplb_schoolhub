@@ -115,6 +115,17 @@ class StudentController extends Controller
             'allPrograms' => $allPrograms,
             'allYearLevels' => $allYearLevels,
             'sections' => $sections,
+            // Class list: all students split by gender sorted A-Z
+            'classListMale' => Student::whereNull('deleted_at')
+                ->select('id','first_name','last_name','middle_name','suffix','lrn','gender','program','year_level','section','enrollment_status','student_photo_url')
+                ->whereRaw("LOWER(gender) = 'male'")
+                ->orderBy('last_name')->orderBy('first_name')
+                ->get(),
+            'classListFemale' => Student::whereNull('deleted_at')
+                ->select('id','first_name','last_name','middle_name','suffix','lrn','gender','program','year_level','section','enrollment_status','student_photo_url')
+                ->whereRaw("LOWER(gender) = 'female'")
+                ->orderBy('last_name')->orderBy('first_name')
+                ->get(),
         ]);
     }
 
