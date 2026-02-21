@@ -10,9 +10,11 @@ use App\Models\FeeItem;
 use App\Models\FeeItemAssignment;
 use App\Models\Program;
 use App\Models\Section;
+use App\Models\Student;
 use App\Models\YearLevel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -158,6 +160,28 @@ class FeeManagementController extends Controller
         // Get unique document categories for dropdown
         $documentCategories = DocumentFeeItem::distinct()->pluck('category')->filter()->values();
 
+        // Student counts grouped for projected revenue calculation
+        $studentCounts = DB::table('students')
+            ->leftJoin('departments', 'departments.id', '=', 'students.department_id')
+            ->select([
+                'students.school_year',
+                DB::raw("COALESCE(departments.classification, '') as classification"),
+                'students.department_id',
+                'students.year_level_id',
+                DB::raw('COUNT(*) as count'),
+            ])
+            ->whereNull('students.deleted_at')
+            ->where('students.enrollment_status', 'enrolled')
+            ->groupBy('students.school_year', 'departments.classification', 'students.department_id', 'students.year_level_id')
+            ->get();
+
+        $studentSchoolYears = DB::table('students')
+            ->whereNull('deleted_at')
+            ->whereNotNull('school_year')
+            ->distinct()
+            ->orderBy('school_year', 'desc')
+            ->pluck('school_year');
+
         return Inertia::render('accounting/fee-management/index', [
             'categories' => $categories,
             'totals' => $totals,
@@ -168,6 +192,8 @@ class FeeManagementController extends Controller
             'documentFees' => $documentFees,
             'documentCategories' => $documentCategories,
             'tab' => $tab,
+            'studentCounts' => $studentCounts,
+            'studentSchoolYears' => $studentSchoolYears,
         ]);
     }
 
