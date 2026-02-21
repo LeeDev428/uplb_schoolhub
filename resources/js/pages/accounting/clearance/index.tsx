@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pagination } from '@/components/ui/pagination';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Select,
     SelectContent,
@@ -103,7 +104,7 @@ interface Props {
 
 export default function ClearanceIndex({ students, programs, yearLevels, departments = [], classifications = [], stats, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || 'all');
+    const [status, setStatus] = useState(filters.status || 'pending');
     const [program, setProgram] = useState(filters.program || 'all');
     const [yearLevel, setYearLevel] = useState(filters.year_level || 'all');
     const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
@@ -239,6 +240,22 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                     </p>
                 </div>
 
+                {/* Pending / Cleared Tabs */}
+                <Tabs value={status} onValueChange={(v) => { setStatus(v); handleFilterChange('status', v); }}>
+                    <TabsList className="grid w-full max-w-sm grid-cols-2">
+                        <TabsTrigger value="pending" className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Pending
+                            <Badge variant="secondary" className="ml-1 bg-orange-100 text-orange-700">{stats.pending}</Badge>
+                        </TabsTrigger>
+                        <TabsTrigger value="cleared" className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Cleared
+                            <Badge variant="secondary" className="ml-1 bg-green-100 text-green-700">{stats.cleared}</Badge>
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+
                 {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-3">
                     <Card>
@@ -286,16 +303,6 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                     />
                                 </div>
                             </div>
-                            <Select value={status} onValueChange={(v) => { setStatus(v); handleFilterChange('status', v); }}>
-                                <SelectTrigger className="w-[150px]">
-                                    <SelectValue placeholder="Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="cleared">Cleared</SelectItem>
-                                </SelectContent>
-                            </Select>
                             <Select value={program} onValueChange={(v) => { setProgram(v); handleFilterChange('program', v); }}>
                                 <SelectTrigger className="w-[150px]">
                                     <SelectValue placeholder="Program" />
