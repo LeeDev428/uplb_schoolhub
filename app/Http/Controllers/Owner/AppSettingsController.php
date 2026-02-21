@@ -47,8 +47,9 @@ class AppSettingsController extends Controller
         $settings->app_name = $validated['app_name'];
         $settings->primary_color = $validated['primary_color'];
         $settings->secondary_color = $validated['secondary_color'] ?? $settings->secondary_color;
-        $settings->has_k12 = $validated['has_k12'] ?? $settings->has_k12;
-        $settings->has_college = $validated['has_college'] ?? $settings->has_college;
+        // Use $request->boolean() to reliably convert '0'/'1' FormData strings to PHP bool
+        $settings->has_k12 = $request->boolean('has_k12', true);
+        $settings->has_college = $request->boolean('has_college', true);
 
         if ($request->hasFile('logo')) {
             if ($settings->logo_path) {
