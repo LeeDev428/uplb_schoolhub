@@ -282,6 +282,24 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         ? yearLevels.filter((yl) => yl.department_id === parseInt(form.data.department_id))
         : [];
 
+    // Dynamic period options based on classification
+    const isK12 = form.data.classification === 'K-12';
+    const periodLabel = isK12 ? 'Quarter' : 'Semester';
+    const periodOptions = isK12
+        ? [
+            { value: 'none', label: 'None' },
+            { value: 'q1', label: 'Q1 - 1st Quarter' },
+            { value: 'q2', label: 'Q2 - 2nd Quarter' },
+            { value: 'q3', label: 'Q3 - 3rd Quarter' },
+            { value: 'q4', label: 'Q4 - 4th Quarter' },
+          ]
+        : [
+            { value: 'none', label: 'None' },
+            { value: '1', label: '1st Semester' },
+            { value: '2', label: '2nd Semester' },
+            { value: 'summer', label: 'Summer' },
+          ];
+
     return (
         <OwnerLayout>
             <Head title="Subjects" />
@@ -510,6 +528,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                             form.setData('classification', value);
                                             form.setData('department_id', '');
                                             form.setData('year_level_id', '');
+                                            form.setData('semester', 'none');
                                         }}
                                     >
                                         <SelectTrigger>
@@ -625,7 +644,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="semester">Semester</Label>
+                                    <Label htmlFor="semester">{periodLabel}</Label>
                                     <Select
                                         value={form.data.semester}
                                         onValueChange={(value) => form.setData('semester', value)}
@@ -634,10 +653,11 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                             <SelectValue placeholder="Select..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="none">None</SelectItem>
-                                            <SelectItem value="1">1st Semester</SelectItem>
-                                            <SelectItem value="2">2nd Semester</SelectItem>
-                                            <SelectItem value="summer">Summer</SelectItem>
+                                            {periodOptions.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
