@@ -13,6 +13,7 @@ use App\Models\StudentFee;
 use App\Models\StudentPayment;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -29,37 +30,53 @@ class ReportsController extends Controller
         $totalExpected = StudentFee::sum('total_amount');
         $totalBalance = StudentFee::sum('balance');
 
-        // Fee Income Report — real data from StudentFee & StudentPayment
-        $categoryFieldMap = [
-            'registration' => ['field' => 'registration_fee', 'payment_for' => 'registration'],
-            'tuition'      => ['field' => 'tuition_fee',      'payment_for' => 'tuition'],
-            'misc'         => ['field' => 'misc_fee',         'payment_for' => 'misc'],
-            'books'        => ['field' => 'books_fee',        'payment_for' => 'books'],
-        ];
+        // ── Pre-compute enrolled student counts for dynamic availed calculation ──
+        $totalEnrolled = Student::where('enrollment_status', 'enrolled')
+            ->whereNull('deleted_at')->count();
 
+        // Count enrolled students grouped by (department_id, year_level_id)
+        $enrolledByGroup = DB::table('students')
+            ->whereNull('deleted_at')
+            ->where('enrollment_status', 'enrolled')
+            ->select(
+                DB::raw('COALESCE(department_id, 0) as dept_id'),
+                DB::raw('COALESCE(year_level_id, 0) as yl_id'),
+                DB::raw('COUNT(*) as cnt')
+            )
+            ->groupBy('department_id', 'year_level_id')
+            ->get()
+            ->mapWithKeys(fn ($r) => ["{$r->dept_id}_{$r->yl_id}" => (int) $r->cnt]);
+
+        // Helper: compute availed count for a fee item
+        $getAvailed = function (FeeItem $item) use ($totalEnrolled, $enrolledByGroup): int {
+            // If manually set in fee-management, use that value
+            if ((int) $item->students_availed > 0) {
+                return (int) $item->students_availed;
+            }
+            // Specific scope with department + year level
+            if ($item->assignment_scope === 'specific' && $item->department_id && $item->year_level_id) {
+                return $enrolledByGroup["{$item->department_id}_{$item->year_level_id}"] ?? 0;
+            }
+            // Specific scope with only department
+            if ($item->assignment_scope === 'specific' && $item->department_id) {
+                return $enrolledByGroup
+                    ->filter(fn ($v, $k) => str_starts_with($k, "{$item->department_id}_"))
+                    ->sum();
+            }
+            // 'all' scope or no specific constraints → all enrolled students
+            return $totalEnrolled;
+        };
+
+        // Fee Income Report
         $feeReport = FeeCategory::where('is_active', true)
             ->with(['items' => fn ($q) => $q->where('is_active', true)->orderBy('name')])
             ->orderBy('sort_order')->orderBy('name')
             ->get()
-            ->map(function ($cat) use ($categoryFieldMap) {
-                $catLower = strtolower($cat->name);
-                $mapping  = null;
-                foreach ($categoryFieldMap as $key => $map) {
-                    if (str_contains($catLower, $key)) { $mapping = $map; break; }
-                }
-                $dbField  = $mapping['field']      ?? 'other_fees';
-                $payFor   = $mapping['payment_for'] ?? 'other';
-
-                $studentsAssigned = StudentFee::where($dbField, '>', 0)->count();
-                $totalAssigned    = (float) StudentFee::sum($dbField);
-                $totalCollected   = (float) StudentPayment::where('payment_for', $payFor)->sum('amount');
-
-                $items = $cat->items->map(function ($item) use ($studentsAssigned) {
-                    $selling = (float) $item->selling_price;
-                    $profit  = $selling - (float) ($item->cost_price ?? 0);
-                    $availed = (int) $item->students_availed > 0
-                        ? (int) $item->students_availed
-                        : $studentsAssigned;
+            ->map(function ($cat) use ($getAvailed) {
+                $items = $cat->items->map(function ($item) use ($getAvailed) {
+                    $selling  = (float) $item->selling_price;
+                    $profit   = $selling - (float) ($item->cost_price ?? 0);
+                    $availed  = $getAvailed($item);
                     return [
                         'name'             => $item->name,
                         'selling_price'    => round($selling, 2),
@@ -70,10 +87,25 @@ class ReportsController extends Controller
                     ];
                 })->values();
 
+                // Collected = sum of payments tagged to this category by OR lookup in student_payments
+                // We use the category name as a loose match on payment_for
+                $catLower   = strtolower($cat->name);
+                $paymentFor = match (true) {
+                    str_contains($catLower, 'registration') => 'registration',
+                    str_contains($catLower, 'tuition')      => 'tuition',
+                    str_contains($catLower, 'misc')         => 'misc',
+                    str_contains($catLower, 'book')         => 'books',
+                    default                                 => null,
+                };
+
+                $totalCollected = $paymentFor
+                    ? (float) StudentPayment::where('payment_for', $paymentFor)->sum('amount')
+                    : 0.0;
+
                 return [
                     'category'        => $cat->name,
                     'items'           => $items,
-                    'total_assigned'  => round($totalAssigned, 2),
+                    'total_assigned'  => round($items->sum('total_revenue'), 2),
                     'total_collected' => round($totalCollected, 2),
                     'total_revenue'   => round($items->sum('total_revenue'), 2),
                     'total_income'    => round($items->sum('total_income'), 2),
