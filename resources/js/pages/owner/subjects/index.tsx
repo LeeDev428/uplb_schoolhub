@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
@@ -73,7 +73,26 @@ interface Props {
     };
 }
 
+interface AppSettingsData {
+    has_k12?: boolean;
+    has_college?: boolean;
+    [key: string]: unknown;
+}
+
 export default function SubjectsIndex({ subjects, departments, yearLevels, filters }: Props) {
+    const { props } = usePage();
+    const appSettings = props.appSettings as AppSettingsData | undefined;
+    const hasK12 = appSettings?.has_k12 !== false;
+    const hasCollege = appSettings?.has_college !== false;
+
+    // Available classification options based on app settings
+    const classificationOptions = [
+        ...(hasK12 ? [{ value: 'K-12', label: 'K-12' }] : []),
+        ...(hasCollege ? [{ value: 'College', label: 'College' }] : []),
+    ];
+
+    // Smart default: use the first available classification
+    const defaultClassification = (hasK12 ? 'K-12' : hasCollege ? 'College' : 'K-12') as 'K-12' | 'College';
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -89,7 +108,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         code: '',
         name: '',
         description: '',
-        classification: 'K-12' as 'K-12' | 'College',
+        classification: defaultClassification,
         units: '',
         hours_per_week: '',
         type: 'core' as 'core' | 'major' | 'elective' | 'general',
@@ -170,6 +189,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
 
     const openCreateModal = () => {
         form.reset();
+        form.setData('classification', defaultClassification);
         setEditingSubject(null);
         setIsModalOpen(true);
     };
@@ -203,8 +223,8 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
             classification: form.data.classification,
             department_id: form.data.department_id,
             type: form.data.type,
-            units: form.data.units || 3.0,
-            hours_per_week: form.data.hours_per_week || null,
+            units: form.data.units !== '' ? form.data.units : null,
+            hours_per_week: form.data.hours_per_week !== '' ? form.data.hours_per_week : null,
             year_level_id: form.data.year_level_id || '',
             semester: form.data.semester === 'none' ? '' : form.data.semester,
             is_active: form.data.is_active,
@@ -496,8 +516,11 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="K-12">K-12</SelectItem>
-                                            <SelectItem value="College">College</SelectItem>
+                                            {classificationOptions.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
