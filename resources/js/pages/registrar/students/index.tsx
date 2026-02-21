@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
-import { Plus, CheckCircle2, Circle, Users, List } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, CheckCircle2, Circle, Users, List, GraduationCap } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
@@ -149,6 +149,22 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [viewMode, setViewMode] = useState<'list' | 'classlist'>('list');
 
+    // ── Global Active School Year ───────────────────────────────────────────────────
+    const defaultSyStart = new Date().getMonth() < 5 ? new Date().getFullYear() - 1 : new Date().getFullYear();
+    const [syStart, setSyStart] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('registrar_sy_start');
+            return stored ? parseInt(stored) : defaultSyStart;
+        }
+        return defaultSyStart;
+    });
+    const syEnd = syStart + 1;
+    const activeSchoolYear = `${syStart}-${syEnd}`;
+
+    useEffect(() => {
+        localStorage.setItem('registrar_sy_start', syStart.toString());
+    }, [syStart]);
+
     const handleAddStudent = () => {
         setEditingStudent(undefined);
         setModalMode('create');
@@ -245,6 +261,29 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                             Add New Student
                         </Button>
                     </div>
+                </div>
+
+                {/* ── Active School Year Banner ─────────────────────────────── */}
+                <div className="flex items-center gap-3 rounded-lg border bg-primary/5 px-4 py-3">
+                    <GraduationCap className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-sm font-semibold text-primary">Active School Year:</span>
+                    <div className="flex items-center gap-1.5">
+                        <input
+                            type="number"
+                            value={syStart}
+                            onChange={e => setSyStart(Number(e.target.value))}
+                            min={2000} max={2099}
+                            className="w-[4.5rem] rounded border border-input bg-background px-2 py-1 text-center text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
+                        />
+                        <span className="text-muted-foreground font-medium">–</span>
+                        <input
+                            type="number"
+                            value={syEnd}
+                            readOnly
+                            className="w-[4.5rem] rounded border border-input bg-muted px-2 py-1 text-center text-sm font-bold text-muted-foreground"
+                        />
+                    </div>
+                    <span className="text-xs text-muted-foreground ml-1">New students will be assigned to <strong>{activeSchoolYear}</strong> automatically.</span>
                 </div>
 
                 {/* Statistics Cards */}
