@@ -66,6 +66,13 @@ class StudentController extends Controller
             $query->where('requirements_status', $request->requirements_status);
         }
 
+        // Follow Up Sectioning: students without a section assigned
+        if ($request->input('needs_sectioning') === '1') {
+            $query->where(function ($q) {
+                $q->whereNull('section')->orWhere('section', '');
+            });
+        }
+
         // Get paginated students with requirements and enrollmentClearance
         $students = $query->with(['requirements.requirement', 'enrollmentClearance'])->latest()->paginate(10)->withQueryString();
 
@@ -109,7 +116,7 @@ class StudentController extends Controller
             'stats' => $stats,
             'programs' => $programs,
             'yearLevels' => $yearLevels,
-            'filters' => $request->only(['search', 'type', 'program', 'year_level', 'enrollment_status', 'requirements_status']),
+            'filters' => $request->only(['search', 'type', 'program', 'year_level', 'enrollment_status', 'requirements_status', 'needs_sectioning']),
             // Academic structure data for Add/Edit form
             'departments' => $departments,
             'allPrograms' => $allPrograms,
