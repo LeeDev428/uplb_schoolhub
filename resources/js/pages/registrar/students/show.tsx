@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { 
     ArrowLeft, 
@@ -25,6 +25,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
@@ -169,7 +176,30 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
     const [showEditModal, setShowEditModal] = useState(false);
     const [showEnrollmentHistoryModal, setShowEnrollmentHistoryModal] = useState(false);
     const [activeTab, setActiveTab] = useState('requirements');
-    
+    const [histSyFilter, setHistSyFilter] = useState<string>('all');
+
+    // Unique school years from enrollment history + current student school year
+    const historySchoolYears = useMemo(() => {
+        const set = new Set<string>();
+        if (student.school_year) set.add(student.school_year);
+        enrollmentHistories.forEach(eh => { if (eh.school_year) set.add(eh.school_year); });
+        return Array.from(set).sort().reverse();
+    }, [student.school_year, enrollmentHistories]);
+
+    // Filter action logs by selected school year (Aug [start] – Jul [end])
+    const filteredActionLogs = useMemo(() => {
+        if (histSyFilter === 'all') return actionLogs;
+        const [startStr, endStr] = histSyFilter.split('-');
+        const startYear = parseInt(startStr);
+        const endYear = parseInt(endStr);
+        const from = new Date(`${startYear}-08-01T00:00:00`);
+        const to = new Date(`${endYear}-07-31T23:59:59`);
+        return actionLogs.filter(log => {
+            const d = new Date(log.created_at);
+            return d >= from && d <= to;
+        });
+    }, [actionLogs, histSyFilter]);
+
     // Notes dialog state
     const [showNotesDialog, setShowNotesDialog] = useState(false);
     const [pendingRequirementUpdate, setPendingRequirementUpdate] = useState<{id: number; status: string} | null>(null);
@@ -556,7 +586,24 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
 
                     {/* Transaction History Tab */}
                     <TabsContent value="history" className="space-y-6">
-                        <UpdateHistory logs={actionLogs} />
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">Transaction History</h3>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">School Year:</span>
+                                <Select value={histSyFilter} onValueChange={setHistSyFilter}>
+                                    <SelectTrigger className="w-[160px]">
+                                        <SelectValue placeholder="All School Years" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All School Years</SelectItem>
+                                        {historySchoolYears.map(sy => (
+                                            <SelectItem key={sy} value={sy}>{sy}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <UpdateHistory logs={filteredActionLogs} />
                     </TabsContent>
                 </Tabs>
             </div>
