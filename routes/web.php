@@ -107,6 +107,9 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
         'index', 'store', 'update', 'destroy'
     ]);
 
+    // Student List
+    Route::get('students', [App\Http\Controllers\Owner\StudentListController::class, 'index'])->name('students');
+
     // Announcements
     Route::resource('announcements', \App\Http\Controllers\Owner\AnnouncementController::class)->only([
         'index', 'store', 'update', 'destroy'
@@ -173,6 +176,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::get('classes', [App\Http\Controllers\Registrar\ClassController::class, 'index'])->name('classes');
     Route::post('classes/assign', [App\Http\Controllers\Registrar\ClassController::class, 'assignStudents'])->name('classes.assign');
     Route::delete('classes/remove/{student}', [App\Http\Controllers\Registrar\ClassController::class, 'removeStudent'])->name('classes.remove');
+    Route::post('classes/sections/{section}/assign-teacher', [App\Http\Controllers\Registrar\ClassController::class, 'assignTeacher'])->name('classes.sections.assign-teacher');
 
     Route::get('reports', [App\Http\Controllers\Registrar\ReportsController::class, 'index'])->name('reports');
 
