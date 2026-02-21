@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Plus, CheckCircle2, Circle } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Users, List } from 'lucide-react';
 import { useState } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
@@ -126,15 +126,28 @@ interface Props {
     allPrograms: Program[];
     allYearLevels: YearLevelData[];
     sections: Section[];
-    flash?: {
-        success?: string;
-    };
+    flash?: { success?: string };
+    classListMale: Array<{
+        id: number; first_name: string; last_name: string;
+        middle_name: string | null; suffix: string | null;
+        lrn: string; gender: string; program: string | null;
+        year_level: string | null; section: string | null;
+        enrollment_status: string; student_photo_url: string | null;
+    }>;
+    classListFemale: Array<{
+        id: number; first_name: string; last_name: string;
+        middle_name: string | null; suffix: string | null;
+        lrn: string; gender: string; program: string | null;
+        year_level: string | null; section: string | null;
+        enrollment_status: string; student_photo_url: string | null;
+    }>;
 }
 
-export default function StudentsIndex({ students, stats, programs, yearLevels, filters, departments, allPrograms, allYearLevels, sections, flash }: Props) {
+export default function StudentsIndex({ students, stats, programs, yearLevels, filters, departments, allPrograms, allYearLevels, sections, flash, classListMale, classListFemale }: Props) {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState<Student | undefined>();
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [viewMode, setViewMode] = useState<'list' | 'classlist'>('list');
 
     const handleAddStudent = () => {
         setEditingStudent(undefined);
@@ -219,6 +232,13 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                         </p>
                     </div>
                     <div className="flex space-x-3">
+                        <Button
+                            variant={viewMode === 'classlist' ? 'default' : 'outline'}
+                            onClick={() => setViewMode(viewMode === 'list' ? 'classlist' : 'list')}
+                        >
+                            <Users className="mr-2 h-4 w-4" />
+                            {viewMode === 'classlist' ? 'Table View' : 'Class List'}
+                        </Button>
                         <Button variant="outline">Follow Up Sectioning</Button>
                         <Button onClick={handleAddStudent}>
                             <Plus className="mr-2 h-4 w-4" />
@@ -276,8 +296,82 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                 {/* Filters */}
                 <StudentFilters programs={programs} yearLevels={yearLevels} filters={filters} />
 
-                {/* Student Table */}
-                <div className="rounded-lg border bg-card">
+                {viewMode === 'classlist' ? (
+                    /* ── Class List: Male / Female split A-Z ── */
+                    <div className="space-y-6">
+                        {/* Male */}
+                        <div className="rounded-lg border overflow-hidden">
+                            <div className="bg-sky-600 px-4 py-3 flex items-center gap-2">
+                                <Users className="h-5 w-5 text-white" />
+                                <span className="font-semibold text-white">Male Students — {classListMale.length}</span>
+                            </div>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-8">#</TableHead>
+                                        <TableHead>Name (Last, First)</TableHead>
+                                        <TableHead>Student No.</TableHead>
+                                        <TableHead>Program</TableHead>
+                                        <TableHead>Year / Section</TableHead>
+                                        <TableHead>Status</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {classListMale.length === 0 ? (
+                                        <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No male students.</TableCell></TableRow>
+                                    ) : classListMale.map((s, i) => (
+                                        <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.visit(`/registrar/students/${s.id}`)}>
+                                            <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
+                                            <TableCell className="font-medium">
+                                                {s.last_name}, {s.first_name}{s.middle_name ? ` ${s.middle_name}` : ''}{s.suffix ? ` ${s.suffix}` : ''}
+                                            </TableCell>
+                                            <TableCell className="font-mono text-sm">{s.lrn}</TableCell>
+                                            <TableCell className="text-sm">{s.program || '—'}</TableCell>
+                                            <TableCell className="text-sm">{[s.year_level, s.section].filter(Boolean).join(' · ') || '—'}</TableCell>
+                                            <TableCell><Badge className={getEnrollmentStatusColor(s.enrollment_status)}>{formatStatus(s.enrollment_status)}</Badge></TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        {/* Female */}
+                        <div className="rounded-lg border overflow-hidden">
+                            <div className="bg-pink-500 px-4 py-3 flex items-center gap-2">
+                                <Users className="h-5 w-5 text-white" />
+                                <span className="font-semibold text-white">Female Students — {classListFemale.length}</span>
+                            </div>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-8">#</TableHead>
+                                        <TableHead>Name (Last, First)</TableHead>
+                                        <TableHead>Student No.</TableHead>
+                                        <TableHead>Program</TableHead>
+                                        <TableHead>Year / Section</TableHead>
+                                        <TableHead>Status</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {classListFemale.length === 0 ? (
+                                        <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No female students.</TableCell></TableRow>
+                                    ) : classListFemale.map((s, i) => (
+                                        <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.visit(`/registrar/students/${s.id}`)}>
+                                            <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
+                                            <TableCell className="font-medium">
+                                                {s.last_name}, {s.first_name}{s.middle_name ? ` ${s.middle_name}` : ''}{s.suffix ? ` ${s.suffix}` : ''}
+                                            </TableCell>
+                                            <TableCell className="font-mono text-sm">{s.lrn}</TableCell>
+                                            <TableCell className="text-sm">{s.program || '—'}</TableCell>
+                                            <TableCell className="text-sm">{[s.year_level, s.section].filter(Boolean).join(' · ') || '—'}</TableCell>
+                                            <TableCell><Badge className={getEnrollmentStatusColor(s.enrollment_status)}>{formatStatus(s.enrollment_status)}</Badge></TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="rounded-lg border bg-card">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -414,7 +508,8 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                             </div>
                         </div>
                     )}
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Student Form Modal */}
