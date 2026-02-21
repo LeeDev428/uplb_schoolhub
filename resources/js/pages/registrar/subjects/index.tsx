@@ -2,7 +2,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { Plus, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Pencil, Trash2, BookOpen, UserPlus, GraduationCap } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -57,6 +57,14 @@ interface Subject {
     is_active: boolean;
     department: Department;
     year_level: YearLevel | null;
+    teachers?: TeacherSummary[];
+}
+
+interface TeacherSummary {
+    id: number;
+    full_name: string;
+    department: string | null;
+    specialization: string | null;
 }
 
 interface Props {
@@ -72,6 +80,7 @@ interface Props {
     };
     departments: Department[];
     yearLevels: YearLevel[];
+    teachers: TeacherSummary[];
     filters: {
         search?: string;
         classification?: string;
@@ -81,11 +90,14 @@ interface Props {
     };
 }
 
-export default function SubjectsIndex({ subjects, departments, yearLevels, filters }: Props) {
+export default function SubjectsIndex({ subjects, departments, yearLevels, teachers, filters }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [subjectToDelete, setSubjectToDelete] = useState<Subject | null>(null);
+    const [teacherDialogOpen, setTeacherDialogOpen] = useState(false);
+    const [subjectForTeacher, setSubjectForTeacher] = useState<Subject | null>(null);
+    const [selectedTeacherIds, setSelectedTeacherIds] = useState<number[]>([]);
     const [search, setSearch] = useState(filters.search || '');
     const [classification, setClassification] = useState(filters.classification || 'all');
     const [selectedDepartment, setSelectedDepartment] = useState(filters.department_id || 'all');
@@ -240,6 +252,30 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
         setDeleteDialogOpen(true);
     };
 
+    const openTeacherAssignment = (subject: Subject) => {
+        setSubjectForTeacher(subject);
+        setSelectedTeacherIds((subject.teachers ?? []).map((t) => t.id));
+        setTeacherDialogOpen(true);
+    };
+
+    const handleAssignTeachers = () => {
+        if (!subjectForTeacher) return;
+        router.post(`/registrar/subjects/${subjectForTeacher.id}/assign-teachers`, {
+            teacher_ids: selectedTeacherIds,
+        }, {
+            onSuccess: () => {
+                setTeacherDialogOpen(false);
+                setSubjectForTeacher(null);
+            },
+        });
+    };
+
+    const toggleTeacher = (teacherId: number) => {
+        setSelectedTeacherIds((prev) =>
+            prev.includes(teacherId) ? prev.filter((id) => id !== teacherId) : [...prev, teacherId]
+        );
+    };
+
     const handleDelete = () => {
         if (subjectToDelete) {
             router.delete(`/registrar/subjects/${subjectToDelete.id}`, {
@@ -354,6 +390,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                         <th className="p-3 text-left text-sm font-semibold">Classification</th>
                                         <th className="p-3 text-left text-sm font-semibold">Type</th>
                                         <th className="p-3 text-left text-sm font-semibold">Units</th>
+                                        <th className="p-3 text-left text-sm font-semibold">Teacher(s)</th>
                                         <th className="p-3 text-left text-sm font-semibold">Status</th>
                                         <th className="p-3 text-left text-sm font-semibold">Actions</th>
                                     </tr>
@@ -361,7 +398,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                 <tbody>
                                     {subjects.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={9} className="p-8 text-center text-muted-foreground">
                                                 No subjects found
                                             </td>
                                         </tr>
@@ -400,12 +437,31 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, filte
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
+                                                    {(subject.teachers ?? []).length === 0 ? (
+                                                        <span className="text-xs text-muted-foreground italic">Unassigned</span>
+                                                    ) : (
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {(subject.teachers ?? []).map((t) => (
+                                                                <span key={t.id} className="text-sm">{t.full_name}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3">
                                                     <Badge variant={subject.is_active ? 'default' : 'secondary'}>
                                                         {subject.is_active ? 'Active' : 'Inactive'}
                                                     </Badge>
                                                 </td>
                                                 <td className="p-3">
                                                     <div className="flex gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => openTeacherAssignment(subject)}
+                                                            title="Assign Teachers"
+                                                        >
+                                                            <UserPlus className="h-4 w-4 text-primary" />
+                                                        </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
