@@ -16,12 +16,12 @@ class SubjectController extends Controller
         $user = Auth::user();
         $teacher = $user->teacher;
         
-        $query = Subject::with(['department', 'yearLevel'])
+        $query = Subject::with(['department', 'yearLevel', 'teachers:id,first_name,last_name'])
             ->where('is_active', true);
 
-        // Filter by teacher's department
-        if ($teacher && $teacher->department_id) {
-            $query->where('department_id', $teacher->department_id);
+        // Filter by subjects assigned to this teacher via pivot
+        if ($teacher) {
+            $query->whereHas('teachers', fn($q) => $q->where('teachers.id', $teacher->id));
         }
 
         // Search filter
@@ -49,6 +49,7 @@ class SubjectController extends Controller
         return Inertia::render('teacher/subjects/index', [
             'subjects' => $subjects,
             'filters' => $request->only(['search', 'type', 'classification']),
+            'teacherId' => $teacher?->id,
         ]);
     }
 
