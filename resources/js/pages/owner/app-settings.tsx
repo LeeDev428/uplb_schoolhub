@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Upload, Save, Palette, Globe, Image, GraduationCap } from 'lucide-react';
@@ -31,16 +31,16 @@ interface Props {
 }
 
 export default function AppSettings({ settings }: Props) {
-    const { data, setData, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         app_name: settings.app_name || '',
         primary_color: settings.primary_color || '#2563eb',
         secondary_color: settings.secondary_color || '#64748b',
         has_k12: settings.has_k12 ?? true,
         has_college: settings.has_college ?? true,
+        logo: null as File | null,
+        favicon: null as File | null,
     });
 
-    const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [faviconFile, setFaviconFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(settings.logo_url);
     const [faviconPreview, setFaviconPreview] = useState<string | null>(settings.favicon_url);
 
@@ -55,34 +55,20 @@ export default function AppSettings({ settings }: Props) {
         reader.onload = (ev) => {
             if (type === 'logo') {
                 setLogoPreview(ev.target?.result as string);
-                setLogoFile(file);
             } else {
                 setFaviconPreview(ev.target?.result as string);
-                setFaviconFile(file);
             }
         };
         reader.readAsDataURL(file);
+        setData(type, file);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        const formData = new FormData();
-        formData.append('app_name', data.app_name);
-        formData.append('primary_color', data.primary_color);
-        formData.append('secondary_color', data.secondary_color);
-        formData.append('has_k12', data.has_k12 ? '1' : '0');
-        formData.append('has_college', data.has_college ? '1' : '0');
-        if (logoFile) formData.append('logo', logoFile);
-        if (faviconFile) formData.append('favicon', faviconFile);
-        formData.append('_method', 'POST');
-
-        router.post('/owner/app-settings', formData as any, {
+        post('/owner/app-settings', {
             forceFormData: true,
             onSuccess: () => {
                 toast.success('App settings saved successfully');
-                setLogoFile(null);
-                setFaviconFile(null);
             },
             onError: () => {
                 toast.error('Failed to save settings');
