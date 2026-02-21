@@ -115,6 +115,7 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::resource('subjects', \App\Http\Controllers\Owner\SubjectController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
+    Route::post('subjects/{subject}/assign-teachers', [\App\Http\Controllers\Owner\SubjectController::class, 'assignTeachers'])->name('subjects.assign-teachers');
     Route::resource('schedules', \App\Http\Controllers\Owner\ScheduleController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
