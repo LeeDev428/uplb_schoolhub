@@ -190,6 +190,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::resource('subjects', \App\Http\Controllers\Registrar\RegistrarSubjectController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
+    Route::post('subjects/{subject}/assign-teachers', [\App\Http\Controllers\Registrar\RegistrarSubjectController::class, 'assignTeachers'])->name('registrar.subjects.assign-teachers');
 
     Route::get('classes', [App\Http\Controllers\Registrar\ClassController::class, 'index'])->name('classes');
     Route::post('classes/assign', [App\Http\Controllers\Registrar\ClassController::class, 'assignStudents'])->name('classes.assign');
