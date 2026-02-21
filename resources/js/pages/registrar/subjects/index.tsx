@@ -719,6 +719,56 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                 onConfirm={handleDelete}
                 variant="danger"
             />
+
+            {/* Teacher Assignment Dialog */}
+            <Dialog open={teacherDialogOpen} onOpenChange={setTeacherDialogOpen}>
+                <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <GraduationCap className="h-5 w-5" />
+                            Assign Teachers — {subjectForTeacher?.code}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <p className="text-sm text-muted-foreground">Select one or more teachers to assign to this subject.</p>
+                        {teachers.length === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-4">No active teachers found.</p>
+                        ) : (
+                            <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+                                {teachers.map((teacher) => (
+                                    <label
+                                        key={teacher.id}
+                                        className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                                            selectedTeacherIds.includes(teacher.id)
+                                                ? 'border-primary bg-primary/5'
+                                                : 'hover:bg-muted/50'
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedTeacherIds.includes(teacher.id)}
+                                            onChange={() => toggleTeacher(teacher.id)}
+                                            className="h-4 w-4 rounded"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-sm">{teacher.full_name}</p>
+                                            {teacher.department && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {teacher.department}{teacher.specialization ? ` · ${teacher.specialization}` : ''}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setTeacherDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAssignTeachers}>Save Assignment</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </RegistrarLayout>
     );
 }
