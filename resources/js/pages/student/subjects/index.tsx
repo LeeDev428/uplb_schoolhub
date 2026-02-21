@@ -30,6 +30,12 @@ interface YearLevel {
     department_id: number;
 }
 
+interface TeacherMin {
+    id: number;
+    first_name: string;
+    last_name: string;
+}
+
 interface Subject {
     id: number;
     code: string;
@@ -42,6 +48,7 @@ interface Subject {
     is_active: boolean;
     department: Department;
     year_level: YearLevel | null;
+    teachers?: TeacherMin[];
 }
 
 interface Props {
@@ -148,12 +155,13 @@ export default function SubjectsIndex({ subjects, filters }: Props) {
                                         <th className="p-3 text-left text-sm font-semibold">Type</th>
                                         <th className="p-3 text-left text-sm font-semibold">Units</th>
                                         <th className="p-3 text-left text-sm font-semibold">Hours/Week</th>
+                                        <th className="p-3 text-left text-sm font-semibold">Instructor(s)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {subjects.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={6} className="p-8 text-center text-muted-foreground">
                                                 No subjects found
                                             </td>
                                         </tr>
@@ -187,6 +195,19 @@ export default function SubjectsIndex({ subjects, filters }: Props) {
                                                     <span className="text-sm">
                                                         {subject.hours_per_week ? `${subject.hours_per_week} hrs` : '-'}
                                                     </span>
+                                                </td>
+                                                <td className="p-3">
+                                                    {subject.teachers && subject.teachers.length > 0 ? (
+                                                        <div className="flex flex-col gap-0.5">
+                                                            {subject.teachers.map(t => (
+                                                                <span key={t.id} className="text-sm">
+                                                                    {t.first_name} {t.last_name}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm text-muted-foreground">TBA</span>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
