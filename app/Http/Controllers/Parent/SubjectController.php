@@ -31,7 +31,7 @@ class SubjectController extends Controller
             }
         }
 
-        $query = Subject::with(['department', 'yearLevel'])
+        $query = Subject::with(['department', 'yearLevel', 'teachers:id,first_name,last_name'])
             ->where('is_active', true);
 
         // Filter by children's departments
