@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Upload, Save, Palette, Globe, Image, GraduationCap } from 'lucide-react';
@@ -35,12 +35,26 @@ export default function AppSettings({ settings }: Props) {
         app_name: settings.app_name || '',
         primary_color: settings.primary_color || '#2563eb',
         secondary_color: settings.secondary_color || '#64748b',
-        // Use explicit strings '1'/'0' so FormData always includes the field (integer 0 can be skipped by some FormData serializers)
-        has_k12: settings.has_k12 ? '1' : '0',
-        has_college: settings.has_college ? '1' : '0',
         logo: null as File | null,
         favicon: null as File | null,
     });
+
+    // Separate state for academic structure — saved via plain JSON PATCH (no FormData)
+    const [hasK12, setHasK12] = useState<boolean>(settings.has_k12);
+    const [hasCollege, setHasCollege] = useState<boolean>(settings.has_college);
+    const [academicSaving, setAcademicSaving] = useState(false);
+
+    const handleAcademicToggle = (field: 'has_k12' | 'has_college', value: boolean) => {
+        const next = { has_k12: hasK12, has_college: hasCollege, [field]: value };
+        if (field === 'has_k12') setHasK12(value);
+        else setHasCollege(value);
+        setAcademicSaving(true);
+        router.patch('/owner/app-settings/academic-structure', next, {
+            preserveScroll: true,
+            onSuccess: () => { toast.success('Academic structure saved'); setAcademicSaving(false); },
+            onError: () => { toast.error('Failed to save'); setAcademicSaving(false); },
+        });
+    };
 
     const [logoPreview, setLogoPreview] = useState<string | null>(settings.logo_url);
     const [faviconPreview, setFaviconPreview] = useState<string | null>(settings.favicon_url);
@@ -135,8 +149,9 @@ export default function AppSettings({ settings }: Props) {
                                     <p className="text-sm text-muted-foreground">Senior High School / Junior High School tracks</p>
                                 </div>
                                 <Switch
-                                    checked={data.has_k12 === '1'}
-                                    onCheckedChange={(checked) => setData('has_k12', checked ? '1' : '0')}
+                                    checked={hasK12}
+                                    disabled={academicSaving}
+                                    onCheckedChange={(checked) => handleAcademicToggle('has_k12', checked)}
                                 />
                             </div>
                             <div className="flex items-center justify-between rounded-lg border p-4">
@@ -145,11 +160,12 @@ export default function AppSettings({ settings }: Props) {
                                     <p className="text-sm text-muted-foreground">Tertiary / Higher Education programs</p>
                                 </div>
                                 <Switch
-                                    checked={data.has_college === '1'}
-                                    onCheckedChange={(checked) => setData('has_college', checked ? '1' : '0')}
+                                    checked={hasCollege}
+                                    disabled={academicSaving}
+                                    onCheckedChange={(checked) => handleAcademicToggle('has_college', checked)}
                                 />
                             </div>
-                            {data.has_k12 !== '1' && data.has_college !== '1' && (
+                            {!hasK12 && !hasCollege && (
                                 <p className="text-sm text-destructive">At least one track must be enabled.</p>
                             )}
                         </CardContent>
