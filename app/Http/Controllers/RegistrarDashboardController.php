@@ -10,34 +10,58 @@ use Illuminate\Support\Facades\DB;
 
 class RegistrarDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Get enrollment statistics
+        // Determine current academic year as default (Aug-Jul cycle)
+        $month = (int) date('n');
+        $year  = (int) date('Y');
+        $syStart    = $month < 8 ? $year - 1 : $year;
+        $currentSY  = $syStart . '-' . ($syStart + 1);
+        $selectedSY = $request->input('school_year', $currentSY);
+
+        // All distinct school years for the filter dropdown
+        $schoolYears = Student::select('school_year')
+            ->whereNotNull('school_year')
+            ->where('school_year', '!=', '')
+            ->distinct()
+            ->orderByDesc('school_year')
+            ->pluck('school_year')
+            ->toArray();
+
+        // Ensure the current/selected SY is always in the list
+        if (!in_array($selectedSY, $schoolYears)) {
+            array_unshift($schoolYears, $selectedSY);
+        }
+
+        // Base query scope for selected school year
+        $syBase = fn($q) => $q->where('school_year', $selectedSY);
+
+        // Get enrollment statistics (filtered by school year)
         $stats = [
-            'activeStudents' => Student::count(),
-            'officiallyEnrolled' => Student::where('enrollment_status', 'enrolled')->count(),
-            'registrarPending' => Student::where('enrollment_status', 'pending-registrar')->count(),
-            'accountingPending' => Student::where('enrollment_status', 'pending-accounting')->count(),
-            'notEnrolled' => Student::where('enrollment_status', 'not-enrolled')->count(),
-            'graduated' => Student::where('enrollment_status', 'graduated')->count(),
+            'activeStudents'    => Student::where('school_year', $selectedSY)->count(),
+            'officiallyEnrolled'=> Student::where('school_year', $selectedSY)->where('enrollment_status', 'enrolled')->count(),
+            'registrarPending'  => Student::where('school_year', $selectedSY)->where('enrollment_status', 'pending-registrar')->count(),
+            'accountingPending' => Student::where('school_year', $selectedSY)->where('enrollment_status', 'pending-accounting')->count(),
+            'notEnrolled'       => Student::where('school_year', $selectedSY)->where('enrollment_status', 'not-enrolled')->count(),
+            'graduated'         => Student::where('school_year', $selectedSY)->where('enrollment_status', 'graduated')->count(),
         ];
 
         // Total Students card data
-        $totalStudents = Student::count();
-        $completedClearance = Student::whereHas('enrollmentClearance', function ($q) {
+        $totalStudents = Student::where('school_year', $selectedSY)->count();
+        $completedClearance = Student::where('school_year', $selectedSY)->whereHas('enrollmentClearance', function ($q) {
             $q->where('requirements_complete', true)
               ->where('registrar_clearance', true)
               ->where('accounting_clearance', true);
         })->count();
         $pendingClearance = $totalStudents - $completedClearance;
 
-        // Pending Requirements - students with incomplete requirements
-        $pendingRequirements = Student::whereHas('requirements', function ($q) {
+        // Pending Requirements - students with incomplete requirements (in this SY)
+        $pendingRequirements = Student::where('school_year', $selectedSY)->whereHas('requirements', function ($q) {
             $q->whereIn('status', ['pending', 'submitted']);
         })->count();
 
-        // Complete Submissions - students with all requirements approved
-        $completeSubmissions = Student::whereHas('requirements', function ($q) {
+        // Complete Submissions - students with all requirements approved (in this SY)
+        $completeSubmissions = Student::where('school_year', $selectedSY)->whereHas('requirements', function ($q) {
             $q->where('status', 'approved');
         })->whereDoesntHave('requirements', function ($q) {
             $q->where('status', '!=', 'approved');
@@ -100,6 +124,8 @@ class RegistrarDashboardController extends Controller
             ],
             'recentActivity' => $recentActivity,
             'requirementsStatus' => $requirementsStatus,
+            'schoolYears' => $schoolYears,
+            'selectedSchoolYear' => $selectedSY,
         ]);
     }
 
