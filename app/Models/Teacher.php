@@ -63,4 +63,12 @@ class Teacher extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Get subjects assigned to this teacher.
+     */
+    public function subjects(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'subject_teacher');
+    }
 }
