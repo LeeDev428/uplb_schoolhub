@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Users, UserCheck, UserMinus, ArrowRight, ChevronDown, ChevronRight,
-    X, GraduationCap,
+    X, GraduationCap, UserCog,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -52,6 +52,11 @@ interface Student {
     enrollment_status: string;
 }
 
+interface Teacher {
+    id: number;
+    name: string;
+}
+
 interface SectionData {
     id: number;
     name: string;
@@ -64,6 +69,8 @@ interface SectionData {
     year_level: YearLevel;
     students_count: number;
     assigned_students: Student[];
+    teacher_id?: number | null;
+    teacher?: Teacher | null;
 }
 
 interface Props {
@@ -71,6 +78,7 @@ interface Props {
     sections: SectionData[];
     departments: Department[];
     yearLevels: YearLevel[];
+    teachers: Teacher[];
     stats: {
         totalStudents: number;
         assignedCount: number;
@@ -92,6 +100,7 @@ export default function RegistrarClassesIndex({
     sections,
     departments,
     yearLevels,
+    teachers = [],
     stats,
     filters,
 }: Props) {
@@ -535,6 +544,32 @@ export default function RegistrarClassesIndex({
                                                     </Badge>
                                                 </div>
                                             </button>
+
+                                            {/* Teacher Assignment */}
+                                            <div className="border-t px-3 py-2 bg-muted/30 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                <UserCog className="h-4 w-4 text-muted-foreground shrink-0" />
+                                                <span className="text-xs text-muted-foreground shrink-0">Adviser:</span>
+                                                <Select
+                                                    value={section.teacher_id?.toString() ?? 'none'}
+                                                    onValueChange={(val) => {
+                                                        router.post(
+                                                            `/registrar/classes/sections/${section.id}/assign-teacher`,
+                                                            { teacher_id: val === 'none' ? null : val },
+                                                            { preserveScroll: true },
+                                                        );
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="h-7 text-xs w-56">
+                                                        <SelectValue placeholder="Assign adviser..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="none">No Adviser</SelectItem>
+                                                        {teachers.map((t) => (
+                                                            <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
 
                                             {/* Expanded Student List */}
                                             {expandedSections.has(section.id) && (
