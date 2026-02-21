@@ -65,6 +65,7 @@ interface StudentFormModalProps {
     programs: Program[];
     yearLevels: YearLevelData[];
     sections: Section[];
+    schoolYear?: string;
 }
 
 export function StudentFormModal({
@@ -76,6 +77,7 @@ export function StudentFormModal({
     programs,
     yearLevels,
     sections,
+    schoolYear,
 }: StudentFormModalProps) {
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
     const [selectedProgramId, setSelectedProgramId] = useState<string>('');
@@ -125,7 +127,7 @@ export function StudentFormModal({
         city_municipality: student?.city_municipality || '',
         zip_code: student?.zip_code || '',
         student_type: student?.student_type || 'new',
-        school_year: student?.school_year || '',
+        school_year: student?.school_year || schoolYear || '',
         department_id: student?.department_id?.toString() || '',
         program: student?.program || '',
         year_level: student?.year_level || '',
@@ -142,6 +144,14 @@ export function StudentFormModal({
         student_photo: null as File | null,
         remarks: student?.remarks || '',
     });
+
+    // Sync global school year into form when modal opens for creating a new student
+    useEffect(() => {
+        if (open && mode === 'create' && schoolYear) {
+            setData('school_year', schoolYear);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, mode, schoolYear]);
 
     // Filter programs based on selected department
     const filteredPrograms = useMemo(() => {
@@ -410,6 +420,8 @@ export function StudentFormModal({
                         )}
                         
                         <div className="grid gap-4 md:grid-cols-2">
+                            {/* School year: hidden in create mode (auto from global banner); visible in edit mode */}
+                            {mode === 'edit' ? (
                             <div className="space-y-2">
                                 <Label htmlFor="school_year">School Year *</Label>
                                 <Input
@@ -423,6 +435,14 @@ export function StudentFormModal({
                                     <p className="text-xs text-red-500">{errors.school_year}</p>
                                 )}
                             </div>
+                            ) : (
+                            <div className="space-y-2">
+                                <Label className="text-muted-foreground">School Year</Label>
+                                <div className="flex h-9 items-center rounded-md border bg-muted px-3 text-sm font-semibold">
+                                    {data.school_year || 'Not set — set the Active School Year on the students list page'}
+                                </div>
+                            </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label htmlFor="department">Department *</Label>
