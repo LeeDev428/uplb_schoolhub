@@ -50,8 +50,8 @@ const formatStatus = (s: string) =>
 
 function GenderTable({ title, students, color }: { title: string; students: Student[]; color: string }) {
     return (
-        <Card>
-            <CardHeader className={`${color} rounded-t-lg`}>
+        <Card className="overflow-hidden">
+            <CardHeader className={`${color} py-3`}>
                 <CardTitle className="flex items-center gap-2 text-white">
                     <Users className="h-5 w-5" />
                     {title} — {students.length} student{students.length !== 1 ? 's' : ''}
