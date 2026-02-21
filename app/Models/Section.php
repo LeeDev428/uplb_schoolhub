@@ -12,6 +12,7 @@ class Section extends Model
         'department_id',
         'year_level_id',
         'strand_id',
+        'teacher_id',
         'name',
         'code',
         'capacity',
@@ -23,6 +24,14 @@ class Section extends Model
         'is_active' => 'boolean',
         'capacity' => 'integer',
     ];
+
+    /**
+     * Teacher (adviser/homeroom) assigned to this section
+     */
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(Teacher::class);
+    }
 
     /**
      * Department this section belongs to
