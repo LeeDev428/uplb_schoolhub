@@ -1,6 +1,8 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { DashboardCard } from '@/components/registrar/dashboard-card';
 import { RecentActivity } from '@/components/registrar/recent-activity';
@@ -46,9 +48,15 @@ interface Props {
     cards: Cards;
     recentActivity: Activity[];
     requirementsStatus: RequirementsStatusData;
+    schoolYears: string[];
+    selectedSchoolYear: string;
 }
 
-export default function Dashboard({ stats, cards, recentActivity, requirementsStatus }: Props) {
+export default function Dashboard({ stats, cards, recentActivity, requirementsStatus, schoolYears = [], selectedSchoolYear }: Props) {
+    const handleSYChange = (sy: string) => {
+        router.get('/registrar/dashboard', { school_year: sy }, { preserveState: false });
+    };
+
     return (
         <RegistrarLayout>
             <Head title="Dashboard" />
@@ -58,6 +66,19 @@ export default function Dashboard({ stats, cards, recentActivity, requirementsSt
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold">Dashboard</h1>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-muted-foreground">School Year:</span>
+                        <Select value={selectedSchoolYear} onValueChange={handleSYChange}>
+                            <SelectTrigger className="w-[160px]">
+                                <SelectValue placeholder="Select SY" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {(schoolYears || []).map(sy => (
+                                    <SelectItem key={sy} value={sy}>{sy}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
