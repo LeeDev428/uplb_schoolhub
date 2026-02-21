@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subject;
 use App\Models\Department;
 use App\Models\YearLevel;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,7 +14,7 @@ class RegistrarSubjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Subject::with(['department', 'yearLevel']);
+        $query = Subject::with(['department', 'yearLevel', 'teachers:id,first_name,last_name']);
 
         // Search filter
         if ($request->filled('search')) {
@@ -59,12 +60,37 @@ class RegistrarSubjectController extends Controller
             ->orderBy('level_number')
             ->get();
 
+        $teachers = Teacher::where('is_active', true)
+            ->with('department:id,name')
+            ->select('id', 'first_name', 'last_name', 'department_id', 'specialization')
+            ->orderBy('last_name')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'full_name' => trim("{$t->first_name} {$t->last_name}"),
+                'department' => $t->department?->name,
+                'specialization' => $t->specialization,
+            ]);
+
         return Inertia::render('registrar/subjects/index', [
             'subjects' => $subjects,
             'departments' => $departments,
             'yearLevels' => $yearLevels,
+            'teachers' => $teachers,
             'filters' => $request->only(['search', 'classification', 'department_id', 'type', 'status']),
         ]);
+    }
+
+    public function assignTeachers(Request $request, Subject $subject)
+    {
+        $request->validate([
+            'teacher_ids' => 'nullable|array',
+            'teacher_ids.*' => 'exists:teachers,id',
+        ]);
+
+        $subject->teachers()->sync($request->input('teacher_ids', []));
+
+        return redirect()->back()->with('success', 'Teachers assigned successfully.');
     }
 
     public function store(Request $request)
