@@ -35,9 +35,9 @@ export default function AppSettings({ settings }: Props) {
         app_name: settings.app_name || '',
         primary_color: settings.primary_color || '#2563eb',
         secondary_color: settings.secondary_color || '#64748b',
-        // Use 1/0 integers so FormData serializes as '1'/'0' (Inertia v2 serializes boolean false as 'false' which Laravel rejects)
-        has_k12: settings.has_k12 ? 1 : 0,
-        has_college: settings.has_college ? 1 : 0,
+        // Use explicit strings '1'/'0' so FormData always includes the field (integer 0 can be skipped by some FormData serializers)
+        has_k12: settings.has_k12 ? '1' : '0',
+        has_college: settings.has_college ? '1' : '0',
         logo: null as File | null,
         favicon: null as File | null,
     });
@@ -135,8 +135,8 @@ export default function AppSettings({ settings }: Props) {
                                     <p className="text-sm text-muted-foreground">Senior High School / Junior High School tracks</p>
                                 </div>
                                 <Switch
-                                    checked={Boolean(data.has_k12)}
-                                    onCheckedChange={(checked) => setData('has_k12', checked ? 1 : 0)}
+                                    checked={data.has_k12 === '1'}
+                                    onCheckedChange={(checked) => setData('has_k12', checked ? '1' : '0')}
                                 />
                             </div>
                             <div className="flex items-center justify-between rounded-lg border p-4">
@@ -145,11 +145,11 @@ export default function AppSettings({ settings }: Props) {
                                     <p className="text-sm text-muted-foreground">Tertiary / Higher Education programs</p>
                                 </div>
                                 <Switch
-                                    checked={Boolean(data.has_college)}
-                                    onCheckedChange={(checked) => setData('has_college', checked ? 1 : 0)}
+                                    checked={data.has_college === '1'}
+                                    onCheckedChange={(checked) => setData('has_college', checked ? '1' : '0')}
                                 />
                             </div>
-                            {!Boolean(data.has_k12) && !Boolean(data.has_college) && (
+                            {data.has_k12 !== '1' && data.has_college !== '1' && (
                                 <p className="text-sm text-destructive">At least one track must be enabled.</p>
                             )}
                         </CardContent>
