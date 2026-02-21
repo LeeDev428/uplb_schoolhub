@@ -165,4 +165,19 @@ class SubjectController extends Controller
 
         return redirect()->back()->with('success', 'Subject deleted successfully.');
     }
+
+    /**
+     * Assign / sync teachers to a subject.
+     */
+    public function assignTeachers(Request $request, Subject $subject)
+    {
+        $request->validate([
+            'teacher_ids'   => 'array',
+            'teacher_ids.*' => 'exists:teachers,id',
+        ]);
+
+        $subject->teachers()->sync($request->input('teacher_ids', []));
+
+        return redirect()->back()->with('success', 'Teachers assigned successfully.');
+    }
 }
