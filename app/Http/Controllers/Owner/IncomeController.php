@@ -61,7 +61,7 @@ class IncomeController extends Controller
         ];
 
         // Recent transactions today
-        $recent = StudentPayment::with('student:id,first_name,last_name')
+        $recent = StudentPayment::with('student:id,first_name,last_name,middle_name,suffix')
             ->whereDate('payment_date', $today)
             ->orderByDesc('created_at')
             ->take(10)
@@ -123,7 +123,7 @@ class IncomeController extends Controller
         }
 
         // Top paying students
-        $topStudents = StudentPayment::with('student:id,first_name,last_name')
+        $topStudents = StudentPayment::with('student:id,first_name,last_name,middle_name,suffix')
             ->selectRaw('student_id, SUM(amount) as total')
             ->groupBy('student_id')
             ->orderByDesc('total')
