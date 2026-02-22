@@ -275,7 +275,7 @@ export default function OwnerReports({ summary, school_year, feeReport = [], doc
                 <div className="space-y-4">
                     <div className="flex items-center gap-2">
                         <DollarSign className="h-5 w-5 text-green-600" />
-                        <h2 className="text-xl font-bold">Fee Income Overview</h2>
+                        <h2 className="text-xl font-bold">Projected Fee Income Overview</h2>
                     </div>
 
                     {/* General Fee Income */}
