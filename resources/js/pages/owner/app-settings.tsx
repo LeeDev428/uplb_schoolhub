@@ -139,6 +139,8 @@ export default function AppSettings({ settings }: Props) {
     const [alumniTitle, setAlumniTitle]       = useState(settings.alumni_section_title ?? '');
     const [alumniSubtitle, setAlumniSubtitle] = useState(settings.alumni_section_subtitle ?? '');
     const [alumniItems, setAlumniItems]       = useState<AlumniItem[]>(settings.alumni_items ?? []);
+    const [alumniPhotoFiles, setAlumniPhotoFiles]             = useState<Record<number, File>>({});
+    const [alumniPhotoLocalPreviews, setAlumniPhotoLocalPreviews] = useState<Record<number, string>>({});
 
     const [footerTagline, setFooterTagline]   = useState(settings.footer_tagline ?? '');
     const [footerAddress, setFooterAddress]   = useState(settings.footer_address ?? '');
@@ -203,9 +205,53 @@ export default function AppSettings({ settings }: Props) {
         setAlumniSaving(true);
         router.post('/owner/app-settings/alumni', { alumni: JSON.stringify(alumniItems) }, {
             preserveScroll: true,
-            onSuccess: () => { toast.success('Alumni saved'); setAlumniSaving(false); },
-            onError:   () => { toast.error('Failed');          setAlumniSaving(false); },
+            onSuccess: () => {
+                const pending = Object.entries(alumniPhotoFiles);
+                if (pending.length === 0) {
+                    toast.success('Alumni saved');
+                    setAlumniSaving(false);
+                    return;
+                }
+                // Upload photos sequentially
+                let remaining = pending.length;
+                pending.forEach(([idxStr, file]) => {
+                    const fd = new FormData();
+                    fd.append('photo', file);
+                    fd.append('index', idxStr);
+                    router.post('/owner/app-settings/alumni-photo', fd, {
+                        forceFormData: true,
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            remaining--;
+                            if (remaining === 0) {
+                                toast.success('Alumni saved with photos');
+                                setAlumniPhotoFiles({});
+                                setAlumniPhotoLocalPreviews({});
+                                setAlumniSaving(false);
+                            }
+                        },
+                        onError: () => {
+                            remaining--;
+                            if (remaining === 0) {
+                                toast.error('Some photos failed to upload');
+                                setAlumniSaving(false);
+                            }
+                        },
+                    });
+                });
+            },
+            onError: () => { toast.error('Failed'); setAlumniSaving(false); },
         });
+    };
+
+    const handleAlumniPhotoSelect = (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setAlumniPhotoFiles(prev => ({ ...prev, [i]: file }));
+        const reader = new FileReader();
+        reader.onload = ev => setAlumniPhotoLocalPreviews(prev => ({ ...prev, [i]: ev.target?.result as string }));
+        reader.readAsDataURL(file);
+        e.target.value = '';
     };
 
     const handleNavSave = () => {
@@ -521,7 +567,28 @@ export default function AppSettings({ settings }: Props) {
                                                 <span className="text-xs font-medium">Entry #{i + 1}</span>
                                             </div>
                                             <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
-                                                onClick={() => setAlumniItems(p => p.filter((_, idx) => idx !== i))}>
+                                                onClick={() => {
+                                                    setAlumniItems(p => p.filter((_, idx) => idx !== i));
+                                                    // Re-index photo state: shift entries above i down by 1
+                                                    setAlumniPhotoFiles(prev => {
+                                                        const next: Record<number, File> = {};
+                                                        Object.entries(prev).forEach(([k, v]) => {
+                                                            const ki = parseInt(k);
+                                                            if (ki < i) next[ki] = v;
+                                                            else if (ki > i) next[ki - 1] = v;
+                                                        });
+                                                        return next;
+                                                    });
+                                                    setAlumniPhotoLocalPreviews(prev => {
+                                                        const next: Record<number, string> = {};
+                                                        Object.entries(prev).forEach(([k, v]) => {
+                                                            const ki = parseInt(k);
+                                                            if (ki < i) next[ki] = v;
+                                                            else if (ki > i) next[ki - 1] = v;
+                                                        });
+                                                        return next;
+                                                    });
+                                                }}>
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -539,12 +606,40 @@ export default function AppSettings({ settings }: Props) {
                                                 <Input value={item.description} onChange={e => setAlumniItems(p => p.map((x, idx) => idx === i ? { ...x, description: e.target.value } : x))} placeholder="Engineer, CPA…" maxLength={300} />
                                             </div>
                                         </div>
-                                        {item.photo_url && (
-                                            <div className="flex items-center gap-3">
-                                                <img src={item.photo_url} alt={item.name} className="h-12 w-12 rounded-full object-cover border" />
-                                                <p className="text-xs text-muted-foreground">Save first to update photo via the photo endpoint.</p>
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative group cursor-pointer" onClick={() => document.getElementById(`alumni-photo-${i}`)?.click()}>
+                                                <Avatar className="h-14 w-14">
+                                                    <AvatarImage
+                                                        src={alumniPhotoLocalPreviews[i] ?? item.photo_url ?? undefined}
+                                                        alt={item.name}
+                                                        className="object-cover"
+                                                    />
+                                                    <AvatarFallback className="text-lg">
+                                                        {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Camera className="h-4 w-4 text-white" />
+                                                </div>
                                             </div>
-                                        )}
+                                            <div>
+                                                <Button type="button" variant="outline" size="sm"
+                                                    onClick={() => document.getElementById(`alumni-photo-${i}`)?.click()}>
+                                                    <Upload className="mr-2 h-3 w-3" />
+                                                    {alumniPhotoLocalPreviews[i] ? 'Change Photo' : (item.photo_url ? 'Replace Photo' : 'Upload Photo')}
+                                                </Button>
+                                                {alumniPhotoLocalPreviews[i] && (
+                                                    <p className="text-xs text-amber-600 mt-1">Photo staged — will upload when you save.</p>
+                                                )}
+                                            </div>
+                                            <input
+                                                id={`alumni-photo-${i}`}
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp"
+                                                className="hidden"
+                                                onChange={e => handleAlumniPhotoSelect(i, e)}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </CardContent>
