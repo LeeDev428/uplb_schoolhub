@@ -435,11 +435,11 @@ export default function Welcome({ canRegister, faculty = {} }: Props) {
                             <Button size="lg" className="min-w-48 bg-white font-semibold hover:bg-white/90" style={{ color: primary }} asChild>
                                 <Link href={login()}>Access Portal</Link>
                             </Button>
-                            {canRegister && (
+                            {/* {canRegister && (
                                 <Button size="lg" variant="outline" className="min-w-48 border-white/50 text-white hover:bg-white/20" asChild>
                                     <Link href={register()}>Get Started Today</Link>
                                 </Button>
-                            )}
+                            )} */}
                         </div>
                     </div>
                 </section>
