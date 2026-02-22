@@ -469,7 +469,7 @@ export default function Dashboard({ student, stats, enrollmentClearance, payment
                                 { href: '/student/promissory-notes', label: 'Promissory Notes',   desc: 'Manage your payment agreements',  icon: Receipt,     color: 'text-amber-600',  bg: 'bg-amber-50' },
                                 { href: '/student/online-payments',  label: 'Online Payments',    desc: 'Submit and track fee payments',   icon: CreditCard,  color: 'text-green-600',  bg: 'bg-green-50' },
                                 { href: '/student/requirements',     label: 'Requirements',       desc: 'Upload and track requirements',   icon: CheckCircle, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                                { href: '/student/grades',           label: 'Grades',             desc: 'View your academic grades',       icon: GraduationCap, color: 'text-pink-600', bg: 'bg-pink-50' },
+                                { href: '/student/subjects',         label: 'Subjects',           desc: 'View your enrolled subjects',     icon: GraduationCap, color: 'text-pink-600', bg: 'bg-pink-50' },
                                 { href: '/student/profile',          label: 'My Profile',         desc: 'Manage your student profile',     icon: ArrowRight,  color: 'text-gray-600',   bg: 'bg-gray-50' },
                             ].map(link => (
                                 <Link
