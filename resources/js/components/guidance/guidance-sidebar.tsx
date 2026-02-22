@@ -48,6 +48,11 @@ export function GuidanceSidebar() {
             href: '/guidance/records',
             icon: ClipboardList,
         },
+        {
+            title: 'Students',
+            href: '/guidance/students',
+            icon: GraduationCap,
+        },
     ];
 
     return (
