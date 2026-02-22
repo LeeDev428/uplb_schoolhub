@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import GuidanceLayout from '@/layouts/guidance/guidance-layout';
-import { ClipboardList, AlertTriangle, Clock, CheckCircle, ChevronRight, FilePlus, Users, BarChart3 } from 'lucide-react';
+import { ClipboardList, AlertTriangle, Clock, CheckCircle, ChevronRight, Users } from 'lucide-react';
 
 interface GuidanceRecordSummary {
     id: number;
@@ -43,10 +43,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const QUICK_LINKS = [
-    { href: '/guidance/records',        label: 'All Records',    desc: 'View and manage all counseling records', icon: ClipboardList, color: 'text-blue-600',   bg: 'bg-blue-50' },
-    { href: '/guidance/records/create', label: 'Add Record',     desc: 'Create a new counseling record',         icon: FilePlus,      color: 'text-green-600',  bg: 'bg-green-50' },
-    { href: '/guidance/students',       label: 'Students',       desc: 'Browse student profiles and history',    icon: Users,         color: 'text-purple-600', bg: 'bg-purple-50' },
-    { href: '/guidance/reports',        label: 'Reports',        desc: 'View guidance statistics and analytics', icon: BarChart3,     color: 'text-amber-600',  bg: 'bg-amber-50' },
+    { href: '/guidance/records',  label: 'All Records', desc: 'View and manage all counseling records', icon: ClipboardList, color: 'text-blue-600',   bg: 'bg-blue-50' },
+    { href: '/guidance/students', label: 'Students',    desc: 'Browse student profiles and records',    icon: Users,         color: 'text-purple-600', bg: 'bg-purple-50' },
 ];
 
 export default function GuidanceDashboard({ counselorName, stats, severityBreakdown, typeBreakdown, recentRecords }: Props) {
