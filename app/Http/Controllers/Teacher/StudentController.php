@@ -92,29 +92,26 @@ class StudentController extends Controller
 
         $students = $query->paginate(20)->withQueryString();
 
-        // Get filter options from students in teacher's department
-        $filterQuery = Student::query();
-        if ($departmentId) {
-            $filterQuery->where('department_id', $departmentId);
-        }
-        
-        $programs = $filterQuery->clone()->select('program')
+        // Get filter options from the same scoped pool (clone before pagination)
+        $poolQuery = clone $query;
+
+        $programs = (clone $poolQuery)->select('program')
             ->whereNotNull('program')
             ->where('program', '!=', '')
             ->distinct()
             ->pluck('program')
             ->sort()
             ->values();
-            
-        $yearLevels = $filterQuery->clone()->select('year_level')
+
+        $yearLevels = (clone $poolQuery)->select('year_level')
             ->whereNotNull('year_level')
             ->where('year_level', '!=', '')
             ->distinct()
             ->pluck('year_level')
             ->sort()
             ->values();
-            
-        $sections = $filterQuery->clone()->select('section')
+
+        $sections = (clone $poolQuery)->select('section')
             ->whereNotNull('section')
             ->where('section', '!=', '')
             ->distinct()
@@ -122,29 +119,27 @@ class StudentController extends Controller
             ->sort()
             ->values();
 
-        // Get stats
+        // Stats from scoped base (no search/filter)
+        $baseTotal = (clone $poolQuery)->count();
         $stats = [
-            'total' => $filterQuery->clone()->count(),
-            'enrolled' => $filterQuery->clone()->where('enrollment_status', 'enrolled')->count(),
+            'total'    => $baseTotal,
+            'enrolled' => (clone $poolQuery)->where('enrollment_status', 'enrolled')->count(),
             'programs' => $programs->count(),
             'sections' => $sections->count(),
         ];
 
         return Inertia::render('teacher/students/index', [
-            'students' => $students,
-            'programs' => $programs,
-            'yearLevels' => $yearLevels,
-            'sections' => $sections,
-            'stats' => $stats,
-            'filters' => $request->only(['search', 'program', 'year_level', 'section']),
-            'teacherDepartment' => $teacher?->department?->name ?? 'All Departments',
-            // Class list: all dept students split by gender A-Z
-            'classListMale' => (clone $query)
-                ->whereRaw("LOWER(gender) = 'male'")
+            'students'         => $students,
+            'programs'         => $programs,
+            'yearLevels'       => $yearLevels,
+            'sections'         => $sections,
+            'stats'            => $stats,
+            'filters'          => $request->only(['search', 'program', 'year_level', 'section']),
+            'teacherDepartment' => $teacher?->department?->name ?? 'My Students',
+            'classListMale'    => (clone $poolQuery)->whereRaw("LOWER(gender) = 'male'")
                 ->orderBy('last_name')->orderBy('first_name')
                 ->get(['id','first_name','last_name','middle_name','suffix','lrn','gender','program','year_level','section','enrollment_status','student_photo_url']),
-            'classListFemale' => (clone $query)
-                ->whereRaw("LOWER(gender) = 'female'")
+            'classListFemale'  => (clone $poolQuery)->whereRaw("LOWER(gender) = 'female'")
                 ->orderBy('last_name')->orderBy('first_name')
                 ->get(['id','first_name','last_name','middle_name','suffix','lrn','gender','program','year_level','section','enrollment_status','student_photo_url']),
         ]);
