@@ -398,6 +398,8 @@ Route::prefix('guidance')->name('guidance.')->middleware(['auth', 'verified', 'r
     Route::resource('records', App\Http\Controllers\Guidance\RecordController::class)->only([
         'index', 'store', 'update', 'destroy'
     ]);
+    Route::get('students', [App\Http\Controllers\Guidance\StudentController::class, 'index'])->name('students.index');
+    Route::get('students/{student}', [App\Http\Controllers\Guidance\StudentController::class, 'show'])->name('students.show');
 });
 
 // Librarian Portal Routes
@@ -422,6 +424,8 @@ Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:
     Route::get('dashboard', [App\Http\Controllers\Parent\DashboardController::class, 'index'])->name('dashboard');
     Route::get('subjects', [App\Http\Controllers\Parent\SubjectController::class, 'index'])->name('subjects');
     Route::get('schedules', [App\Http\Controllers\Parent\ScheduleController::class, 'index'])->name('schedules');
+    Route::get('fees', [App\Http\Controllers\Parent\FeesController::class, 'index'])->name('fees.index');
+    Route::get('requirements', [App\Http\Controllers\Parent\RequirementController::class, 'index'])->name('requirements.index');
 });
 
 // Clinic Portal Routes
