@@ -22,13 +22,18 @@ class StudentClearanceController extends Controller
             ->orderBy('last_name')
             ->orderBy('first_name');
 
-        // Filter by clearance status
-        if ($request->filled('status') && $request->status !== 'all') {
-            if ($request->status === 'pending') {
+        // Filter by clearance status — default to 'pending'
+        $status = $request->filled('status') ? $request->status : 'pending';
+
+        if ($status !== 'all') {
+            if ($status === 'pending') {
                 $query->whereHas('enrollmentClearance', function ($q) {
-                    $q->where('accounting_clearance', false);
+                    $q->where(function ($q2) {
+                        $q2->where('accounting_clearance', false)
+                           ->orWhereNull('accounting_clearance');
+                    });
                 });
-            } elseif ($request->status === 'cleared') {
+            } elseif ($status === 'cleared') {
                 $query->whereHas('enrollmentClearance', function ($q) {
                     $q->where('accounting_clearance', true);
                 });
@@ -120,7 +125,10 @@ class StudentClearanceController extends Controller
             'departments' => $departments,
             'classifications' => $classifications,
             'stats' => $stats,
-            'filters' => $request->only(['search', 'status', 'program', 'year_level', 'department_id', 'classification']),
+            'filters' => array_merge(
+                $request->only(['search', 'program', 'year_level', 'department_id', 'classification']),
+                ['status' => $status]
+            ),
         ]);
     }
 
