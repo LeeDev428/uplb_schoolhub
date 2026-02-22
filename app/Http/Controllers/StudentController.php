@@ -74,7 +74,7 @@ class StudentController extends Controller
         }
 
         // Get paginated students with requirements and enrollmentClearance
-        $students = $query->with(['requirements.requirement', 'enrollmentClearance'])->latest()->paginate(10)->withQueryString();
+        $students = $query->with(['requirements.requirement', 'enrollmentClearance', 'user'])->latest()->paginate(10)->withQueryString();
 
         // Compute dynamic requirements status for each student
         $students->getCollection()->transform(function ($student) {
@@ -84,6 +84,7 @@ class StudentController extends Controller
             
             $student->requirements_percentage = $percentage;
             $student->requirements_status = $percentage === 100 ? 'complete' : ($percentage > 0 ? 'pending' : 'incomplete');
+            $student->email_verified = $student->user && $student->user->email_verified_at !== null;
             
             return $student;
         });
