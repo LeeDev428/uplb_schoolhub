@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Program;
 use App\Models\YearLevel;
 use App\Models\Section;
+use App\Models\AppSetting;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,17 +19,21 @@ class ScheduleController extends Controller
     public function index(Request $request)
     {
         $classification = $request->input('classification', 'all');
+        $appSettings    = AppSetting::current();
         $query = Schedule::with(['department', 'program', 'yearLevel', 'section', 'teacher']);
 
-        // Get departments based on classification
+        // Get departments filtered by app settings and optional classification filter
         $departmentsQuery = Department::query()->orderBy('name');
-        if ($classification !== 'all') {
-            $departmentsQuery->where('classification', $classification);
-            $departmentIds = $departmentsQuery->pluck('id')->toArray();
+        if (!$appSettings->has_k12)     $departmentsQuery->where('classification', '!=', 'K-12');
+        if (!$appSettings->has_college) $departmentsQuery->where('classification', '!=', 'College');
+        if ($classification !== 'all')  $departmentsQuery->where('classification', $classification);
+        $departments   = $departmentsQuery->get();
+        $departmentIds = $departments->pluck('id')->toArray();
+
+        // Scope the schedule list by the allowed departments
+        if (!empty($departmentIds)) {
             $query->whereIn('department_id', $departmentIds);
         }
-        $departments = $departmentsQuery->get();
-        $departmentIds = $departments->pluck('id')->toArray();
 
         // Filters
         if ($request->filled('search')) {
@@ -46,18 +51,11 @@ class ScheduleController extends Controller
 
         $schedules = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        // Filter related data by classification if selected
-        $programsQuery = Program::with('department')->orderBy('name');
-        $yearLevelsQuery = YearLevel::with('department')->orderBy('level_number');
-        $sectionsQuery = Section::with(['department', 'yearLevel'])->orderBy('name');
-        $teachersQuery = Teacher::where('is_active', true)->orderBy('last_name');
-
-        if ($classification !== 'all') {
-            $programsQuery->whereIn('department_id', $departmentIds);
-            $yearLevelsQuery->whereIn('department_id', $departmentIds);
-            $sectionsQuery->whereIn('department_id', $departmentIds);
-            $teachersQuery->whereIn('department_id', $departmentIds);
-        }
+        // Cascade related data to allowed departments only
+        $programsQuery   = Program::with('department')->whereIn('department_id', $departmentIds)->orderBy('name');
+        $yearLevelsQuery = YearLevel::with('department')->whereIn('department_id', $departmentIds)->orderBy('level_number');
+        $sectionsQuery   = Section::with(['department', 'yearLevel'])->whereIn('department_id', $departmentIds)->orderBy('name');
+        $teachersQuery   = Teacher::where('is_active', true)->whereIn('department_id', $departmentIds)->orderBy('last_name');
 
         return Inertia::render('owner/schedules/index', [
             'schedules' => $schedules,
