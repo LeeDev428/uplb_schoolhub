@@ -13,7 +13,11 @@ import {
     UserX,
     GraduationCap,
     Calendar,
-    Plus
+    Plus,
+    MailCheck,
+    MailWarning,
+    RotateCcw,
+    MailOpen,
 } from 'lucide-react';
 import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,6 +29,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -163,6 +168,7 @@ interface Student {
 interface Props {
     student: Student;
     requirementsCompletion: number;
+    emailVerified: boolean;
     enrollmentClearance?: EnrollmentClearance;
     departments: Department[];
     programs: Program[];
@@ -172,7 +178,7 @@ interface Props {
     enrollmentHistories: EnrollmentHistory[];
 }
 
-export default function StudentShow({ student, requirementsCompletion, enrollmentClearance, departments, programs, yearLevels, sections, actionLogs = [], enrollmentHistories = [] }: Props) {
+export default function StudentShow({ student, requirementsCompletion, emailVerified, enrollmentClearance, departments, programs, yearLevels, sections, actionLogs = [], enrollmentHistories = [] }: Props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showEnrollmentHistoryModal, setShowEnrollmentHistoryModal] = useState(false);
     const [activeTab, setActiveTab] = useState('requirements');
@@ -204,6 +210,30 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
     const [showNotesDialog, setShowNotesDialog] = useState(false);
     const [pendingRequirementUpdate, setPendingRequirementUpdate] = useState<{id: number; status: string} | null>(null);
     const [notes, setNotes] = useState('');
+
+    // Email verification / edit state
+    const [showEditEmailDialog, setShowEditEmailDialog] = useState(false);
+    const [editEmail, setEditEmail] = useState(student.email);
+    const [editEmailSaving, setEditEmailSaving] = useState(false);
+    const [resendingVerification, setResendingVerification] = useState(false);
+
+    const handleResendVerification = () => {
+        setResendingVerification(true);
+        router.post(`/registrar/students/${student.id}/resend-verification`, {}, {
+            preserveScroll: true,
+            onSuccess: () => { toast.success('Verification email resent.'); setResendingVerification(false); },
+            onError:   () => { toast.error('Failed to resend verification email.'); setResendingVerification(false); },
+        });
+    };
+
+    const handleEditEmailSave = () => {
+        setEditEmailSaving(true);
+        router.patch(`/registrar/students/${student.id}/email`, { email: editEmail }, {
+            preserveScroll: true,
+            onSuccess: () => { toast.success('Email updated and verification email sent.'); setShowEditEmailDialog(false); setEditEmailSaving(false); },
+            onError:   (e) => { toast.error(Object.values(e).flat().join(' ') || 'Failed to update email.'); setEditEmailSaving(false); },
+        });
+    };
     
 
 
@@ -363,6 +393,31 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                                     <span>Student No.: {student.lrn}</span>
                                     <span>•</span>
                                     <Badge>{student.student_type}</Badge>
+                                    <span>•</span>
+                                    {emailVerified ? (
+                                        <span className="inline-flex items-center gap-1.5 text-green-600 font-medium">
+                                            <MailCheck className="h-4 w-4" /> Email Verified
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1.5 text-amber-600 font-medium">
+                                            <MailWarning className="h-4 w-4" /> Email Not Verified
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm text-muted-foreground">{student.email}</span>
+                                    <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1.5"
+                                        onClick={() => { setEditEmail(student.email); setShowEditEmailDialog(true); }}>
+                                        <MailOpen className="h-3.5 w-3.5" /> Edit Email
+                                    </Button>
+                                    {!emailVerified && (
+                                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50"
+                                            disabled={resendingVerification}
+                                            onClick={handleResendVerification}>
+                                            <RotateCcw className="h-3.5 w-3.5" />
+                                            {resendingVerification ? 'Sending…' : 'Resend Verification'}
+                                        </Button>
+                                    )}
                                 </div>
                                 <div className="mt-4 grid grid-cols-3 gap-4">
                                     <div>
@@ -384,6 +439,36 @@ export default function StudentShow({ student, requirementsCompletion, enrollmen
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Edit Email Dialog */}
+                <Dialog open={showEditEmailDialog} onOpenChange={setShowEditEmailDialog}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Edit Student Email</DialogTitle>
+                            <DialogDescription>
+                                Update the email address for this student. A new verification email will be sent automatically.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-email">Email Address</Label>
+                                <Input
+                                    id="edit-email"
+                                    type="email"
+                                    value={editEmail}
+                                    onChange={e => setEditEmail(e.target.value)}
+                                    placeholder="student@email.com"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setShowEditEmailDialog(false)}>Cancel</Button>
+                            <Button onClick={handleEditEmailSave} disabled={editEmailSaving || !editEmail}>
+                                {editEmailSaving ? 'Saving…' : 'Save & Send Verification'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Tabs Section */}
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
