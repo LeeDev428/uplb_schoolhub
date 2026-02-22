@@ -26,6 +26,8 @@ class Teacher extends Model
         'zip_code',
         'department_id',
         'specialization',
+        'bio',
+        'show_on_landing',
         'employment_status',
         'hire_date',
         'photo_url',
