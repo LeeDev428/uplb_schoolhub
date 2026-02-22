@@ -339,19 +339,6 @@ class AccountingDashboardController extends Controller
             $periodEnd   = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
         }
 
-        // Get all students for the dropdown
-        $students = Student::select('id', 'first_name', 'last_name', 'lrn', 'student_photo_url')
-            ->orderBy('last_name')
-            ->get()
-            ->map(function ($s) {
-                return [
-                    'id' => $s->id,
-                    'full_name' => $s->full_name,
-                    'lrn' => $s->lrn,
-                    'student_photo_url' => $s->student_photo_url,
-                ];
-            });
-
         // Build scoped student IDs
         $studentQ = Student::select('id');
         if ($classification) {
