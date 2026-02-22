@@ -15,7 +15,9 @@ class ProfileController extends Controller
 {
     private function getTeacher(): Teacher
     {
-        return Teacher::where('user_id', Auth::id())->firstOrFail();
+        $teacher = Teacher::find(Auth::user()->teacher_id);
+        abort_unless($teacher, 404, 'Teacher profile not found.');
+        return $teacher;
     }
 
     public function index(): Response
