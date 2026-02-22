@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Section;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -12,25 +13,54 @@ use Inertia\Inertia;
 class StudentController extends Controller
 {
     /**
-     * Display a listing of students associated with the teacher's classes.
-     * Shows students from sections where the teacher teaches.
+     * Display students related to this teacher:
+     * 1. Students in advisory sections (where teacher_id = this teacher)
+     * 2. Students in same dept/year_level as subjects this teacher teaches
      */
     public function index(Request $request)
     {
         $user = Auth::user();
         $teacher = $user->teacher;
 
-        // Get the teacher's department sections
-        $departmentId = $teacher?->department_id;
-        
-        // Build query for students
+        // Collect all section IDs where teacher is adviser
+        $advisorySectionIds = Section::where('teacher_id', $teacher?->id)
+            ->where('is_active', true)
+            ->pluck('id')
+            ->toArray();
+
+        // Collect dept+year_level combos from subject assignments
+        $teachingSubjects = Subject::whereHas('teachers', fn ($q) => $q->where('teachers.id', $teacher?->id))
+            ->where('is_active', true)
+            ->get(['department_id', 'year_level_id']);
+
+        // Build student query scoped to this teacher's student pool
         $query = Student::with(['department:id,name,classification'])
             ->orderBy('last_name')
-            ->orderBy('first_name');
-        
-        // Filter by teacher's department
-        if ($departmentId) {
-            $query->where('department_id', $departmentId);
+            ->orderBy('first_name')
+            ->where(function ($q) use ($advisorySectionIds, $teachingSubjects) {
+                // Students in advisory sections
+                if (!empty($advisorySectionIds)) {
+                    $q->orWhereIn('section_id', $advisorySectionIds);
+                }
+                // Students matching teaching-subject dept/year_level
+                foreach ($teachingSubjects as $subject) {
+                    $q->orWhere(function ($inner) use ($subject) {
+                        $inner->where('department_id', $subject->department_id);
+                        if ($subject->year_level_id) {
+                            $inner->where('year_level_id', $subject->year_level_id);
+                        }
+                    });
+                }
+                // Fallback: if teacher has no assignments yet, show same dept
+            });
+
+        // If teacher has no assignments at all, scope by department (graceful fallback)
+        $hasAssignments = !empty($advisorySectionIds) || $teachingSubjects->isNotEmpty();
+        if (!$hasAssignments && $teacher?->department_id) {
+            $query = Student::with(['department:id,name,classification'])
+                ->where('department_id', $teacher->department_id)
+                ->orderBy('last_name')
+                ->orderBy('first_name');
         }
 
         // Search filter
