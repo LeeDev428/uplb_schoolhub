@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Parent;
 use App\Http\Controllers\Controller;
 use App\Models\Schedule;
 use App\Models\Student;
-use App\Models\Program;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -17,16 +16,13 @@ class ScheduleController extends Controller
         $user = Auth::user();
         $parent = $user->parent;
         
-        // Get department IDs from all children's programs
+        // Get department IDs from all children
         $departmentIds = [];
         if ($parent) {
-            $children = Student::where('parent_id', $parent->id)->get();
+            $children = $parent->students()->get(['id', 'department_id']);
             foreach ($children as $child) {
-                if ($child->program) {
-                    $program = Program::where('name', $child->program)->first();
-                    if ($program && !in_array($program->department_id, $departmentIds)) {
-                        $departmentIds[] = $program->department_id;
-                    }
+                if ($child->department_id && !in_array($child->department_id, $departmentIds)) {
+                    $departmentIds[] = $child->department_id;
                 }
             }
         }
