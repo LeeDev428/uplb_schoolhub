@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { AlertTriangle, CheckCircle, Clock, FileText, GraduationCap, CreditCard, XCircle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, FileText, GraduationCap, CreditCard, XCircle, ArrowRight, BookOpen, CalendarDays, ChevronRight, Receipt } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -453,6 +453,43 @@ export default function Dashboard({ student, stats, enrollmentClearance, payment
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Quick Links */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Quick Access</CardTitle>
+                        <CardDescription>Navigate to your student portal sections</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            {[
+                                { href: '/student/quizzes',          label: 'Quizzes',           desc: 'Take and review quizzes',         icon: BookOpen,    color: 'text-purple-600', bg: 'bg-purple-50' },
+                                { href: '/student/document-requests',label: 'Document Requests',  desc: 'Request official documents',      icon: FileText,    color: 'text-blue-600',   bg: 'bg-blue-50' },
+                                { href: '/student/schedules',        label: 'My Schedule',        desc: 'View your class timetable',       icon: CalendarDays,color: 'text-teal-600',   bg: 'bg-teal-50' },
+                                { href: '/student/promissory-notes', label: 'Promissory Notes',   desc: 'Manage your payment agreements',  icon: Receipt,     color: 'text-amber-600',  bg: 'bg-amber-50' },
+                                { href: '/student/online-payments',  label: 'Online Payments',    desc: 'Submit and track fee payments',   icon: CreditCard,  color: 'text-green-600',  bg: 'bg-green-50' },
+                                { href: '/student/requirements',     label: 'Requirements',       desc: 'Upload and track requirements',   icon: CheckCircle, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                                { href: '/student/grades',           label: 'Grades',             desc: 'View your academic grades',       icon: GraduationCap, color: 'text-pink-600', bg: 'bg-pink-50' },
+                                { href: '/student/profile',          label: 'My Profile',         desc: 'Manage your student profile',     icon: ArrowRight,  color: 'text-gray-600',   bg: 'bg-gray-50' },
+                            ].map(link => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className="flex items-center gap-3 rounded-xl border p-3 transition-all hover:shadow-sm hover:border-primary/30 group"
+                                >
+                                    <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${link.bg}`}>
+                                        <link.icon className={`h-4 w-4 ${link.color}`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-sm group-hover:text-primary">{link.label}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{link.desc}</p>
+                                    </div>
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </Link>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </StudentLayout>
     );
