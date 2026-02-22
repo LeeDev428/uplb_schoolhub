@@ -149,6 +149,10 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::put('students/{student}/clearance', [App\Http\Controllers\StudentController::class, 'updateClearance'])->name('students.clearance.update');
     Route::put('students/{student}/drop', [App\Http\Controllers\StudentController::class, 'dropStudent'])->name('students.drop');
 
+    // Email verification management by registrar
+    Route::post('students/{student}/resend-verification', [App\Http\Controllers\StudentController::class, 'resendVerification'])->name('students.resend-verification');
+    Route::patch('students/{student}/email', [App\Http\Controllers\StudentController::class, 'updateEmail'])->name('students.update-email');
+
     // Requirements Tracking (view student requirements status)
     Route::get('requirements', [App\Http\Controllers\RequirementTrackingController::class, 'index'])->name('requirements.index');
     Route::get('requirements/export', [App\Http\Controllers\RequirementTrackingController::class, 'export'])->name('requirements.export');
