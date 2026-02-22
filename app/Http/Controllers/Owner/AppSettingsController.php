@@ -39,6 +39,10 @@ class AppSettingsController extends Controller
                 'message_author'            => $settings->message_author,
                 'message_author_title'      => $settings->message_author_title,
                 'message_author_photo_url'  => $settings->message_author_photo_url,
+                'features_section_title'    => $settings->features_section_title,
+                'features_section_subtitle' => $settings->features_section_subtitle,
+                'features_show'             => (bool) ($settings->features_show ?? true),
+                'features_items'            => $settings->features_items ?? [],
                 'alumni_section_title'      => $settings->alumni_section_title,
                 'alumni_section_subtitle'   => $settings->alumni_section_subtitle,
                 'alumni_items'              => $settings->alumni_items_with_urls,
@@ -110,7 +114,7 @@ class AppSettingsController extends Controller
             'hero_title'               => 'nullable|string|max:200',
             'hero_subtitle'            => 'nullable|string|max:400',
             'hero_new_images.*'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'hero_remove_indices'      => 'nullable|string', // JSON array of indices to remove
+            'hero_remove_indices'      => 'nullable|string',
             'faculty_section_title'    => 'nullable|string|max:200',
             'faculty_section_subtitle' => 'nullable|string|max:400',
             'message_title'            => 'nullable|string|max:200',
@@ -120,6 +124,10 @@ class AppSettingsController extends Controller
             'message_author_photo'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'alumni_section_title'     => 'nullable|string|max:200',
             'alumni_section_subtitle'  => 'nullable|string|max:400',
+            'features_section_title'   => 'nullable|string|max:200',
+            'features_section_subtitle'=> 'nullable|string|max:400',
+            'features_show'            => 'nullable|boolean',
+            'features_items'           => 'nullable|string',
             'footer_tagline'           => 'nullable|string|max:300',
             'footer_address'           => 'nullable|string|max:300',
             'footer_phone'             => 'nullable|string|max:50',
@@ -144,6 +152,14 @@ class AppSettingsController extends Controller
         $settings->footer_phone            = $request->input('footer_phone');
         $settings->footer_email            = $request->input('footer_email');
         $settings->footer_facebook         = $request->input('footer_facebook');
+
+        // Features section
+        $settings->features_section_title    = $request->input('features_section_title');
+        $settings->features_section_subtitle = $request->input('features_section_subtitle');
+        $settings->features_show             = $request->boolean('features_show', true);
+        if ($request->filled('features_items')) {
+            $settings->features_items = json_decode($request->input('features_items'), true) ?? [];
+        }
 
         // Handle hero images (remove then add)
         $heroImages = $settings->hero_images ?? [];
