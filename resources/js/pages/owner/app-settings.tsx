@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -200,7 +201,7 @@ export default function AppSettings({ settings }: Props) {
 
     const handleAlumniSave = () => {
         setAlumniSaving(true);
-        router.post('/owner/app-settings/alumni', { alumni: alumniItems }, {
+        router.post('/owner/app-settings/alumni', { alumni: JSON.stringify(alumniItems) }, {
             preserveScroll: true,
             onSuccess: () => { toast.success('Alumni saved'); setAlumniSaving(false); },
             onError:   () => { toast.error('Failed');          setAlumniSaving(false); },
@@ -209,7 +210,7 @@ export default function AppSettings({ settings }: Props) {
 
     const handleNavSave = () => {
         setNavSaving(true);
-        router.post('/owner/app-settings/nav-links', { nav_links: navLinks }, {
+        router.post('/owner/app-settings/nav-links', { nav_links: JSON.stringify(navLinks) }, {
             preserveScroll: true,
             onSuccess: () => { toast.success('Nav links saved'); setNavSaving(false); },
             onError:   () => { toast.error('Failed');             setNavSaving(false); },
