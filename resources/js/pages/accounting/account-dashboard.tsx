@@ -68,6 +68,10 @@ interface Transaction {
 }
 
 interface Stats {
+    total_transactions: number;
+    fee_transactions: number;
+    document_transactions: number;
+    collection_rate: number;
     total_fees_processed: number;
     total_document_processed: number;
     total_amount_processed: number;
@@ -301,8 +305,55 @@ export default function AccountDashboard({
                     </CardContent>
                 </Card>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Stats Cards — 8 cards in 2 rows of 4 */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Row 1: Counts */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <CreditCard className="h-6 w-6 text-blue-600" />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats?.total_transactions ?? 0}</div>
+                            <p className="text-sm text-muted-foreground">Total Transactions</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
+                                <DollarSign className="h-6 w-6 text-green-600" />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats?.fee_transactions ?? 0}</div>
+                            <p className="text-sm text-muted-foreground">Fee Transactions</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                                <FileText className="h-6 w-6 text-purple-600" />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stats?.document_transactions ?? 0}</div>
+                            <p className="text-sm text-muted-foreground">Document Transactions</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <div className="h-12 w-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                                <TrendingUp className="h-6 w-6 text-yellow-600" />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-yellow-600">{stats?.collection_rate ?? 0}%</div>
+                            <p className="text-sm text-muted-foreground">Collection Rate</p>
+                        </CardContent>
+                    </Card>
+
+                    {/* Row 2: Amounts */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -316,8 +367,8 @@ export default function AccountDashboard({
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-                                <FileText className="h-6 w-6 text-green-600" />
+                            <div className="h-12 w-12 rounded-lg bg-violet-100 flex items-center justify-center">
+                                <FileText className="h-6 w-6 text-violet-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -338,8 +389,8 @@ export default function AccountDashboard({
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <div className="h-12 w-12 rounded-lg bg-pink-100 flex items-center justify-center">
-                                <TrendingUp className="h-6 w-6 text-pink-600" />
+                            <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center">
+                                <TrendingUp className="h-6 w-6 text-orange-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
