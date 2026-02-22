@@ -228,12 +228,12 @@ export default function Welcome({ canRegister, faculty = {} }: Props) {
                                         <ChevronRight className="ml-2 h-4 w-4" />
                                     </Link>
                                 </Button>
-                                <a href="#features">
+                                {/* <a href="#features">
                                     <Button size="lg" variant={heroImages.length > 0 ? 'outline' : 'outline'}
                                         className={`min-w-48 ${heroImages.length > 0 ? 'border-white/50 text-white hover:bg-white/20' : ''}`}>
                                         Learn More
                                     </Button>
-                                </a>
+                                </a> */}
                             </div>
 
                             {/* Image dots */}
