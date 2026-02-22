@@ -419,9 +419,7 @@ Route::prefix('parent')->name('parent.')->middleware(['auth', 'verified', 'role:
     registerSettingsRoutes();
     registerAnnouncementsRoute();
     
-    Route::get('dashboard', function () {
-        return Inertia::render('parent/dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\Parent\DashboardController::class, 'index'])->name('dashboard');
     Route::get('subjects', [App\Http\Controllers\Parent\SubjectController::class, 'index'])->name('subjects');
     Route::get('schedules', [App\Http\Controllers\Parent\ScheduleController::class, 'index'])->name('schedules');
 });
