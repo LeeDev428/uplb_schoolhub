@@ -88,6 +88,11 @@ class HandleInertiaRequests extends Middleware
                 'alumni_section_title'      => $settings->alumni_section_title,
                 'alumni_section_subtitle'   => $settings->alumni_section_subtitle,
                 'alumni_items'              => $settings->alumni_items_with_urls ?? [],
+                // Features section
+                'features_section_title'    => $settings->features_section_title,
+                'features_section_subtitle' => $settings->features_section_subtitle,
+                'features_show'             => (bool) ($settings->features_show ?? true),
+                'features_items'            => $settings->features_items ?? [],
                 'footer_tagline'            => $settings->footer_tagline,
                 'footer_address'            => $settings->footer_address,
                 'footer_phone'              => $settings->footer_phone,
