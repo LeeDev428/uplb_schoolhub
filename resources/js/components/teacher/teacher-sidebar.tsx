@@ -8,6 +8,7 @@ import {
     Megaphone,
     Users,
     FileQuestion,
+    UserCircle,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -79,6 +80,11 @@ export function TeacherSidebar() {
             title: 'Attendance',
             href: '/teacher/attendance',
             icon: Calendar,
+        },
+        {
+            title: 'My Profile',
+            href: '/teacher/profile',
+            icon: UserCircle,
         },
     ];
 
