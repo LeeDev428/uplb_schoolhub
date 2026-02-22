@@ -16,19 +16,36 @@ class DashboardController extends Controller
 
         $stats = [
             'totalRecords' => GuidanceRecord::count(),
-            'openCases' => GuidanceRecord::where('status', 'open')->count(),
-            'inProgress' => GuidanceRecord::where('status', 'in-progress')->count(),
-            'resolved' => GuidanceRecord::where('status', 'resolved')->count(),
+            'openCases'    => GuidanceRecord::where('status', 'open')->count(),
+            'inProgress'   => GuidanceRecord::where('status', 'in-progress')->count(),
+            'resolved'     => GuidanceRecord::where('status', 'resolved')->count(),
         ];
+
+        // Severity breakdown
+        $severityBreakdown = GuidanceRecord::selectRaw('severity, COUNT(*) as count')
+            ->groupBy('severity')
+            ->pluck('count', 'severity')
+            ->toArray();
+
+        // Type breakdown (top 5)
+        $typeBreakdown = GuidanceRecord::selectRaw('record_type, COUNT(*) as count')
+            ->groupBy('record_type')
+            ->orderByDesc('count')
+            ->take(5)
+            ->pluck('count', 'record_type')
+            ->toArray();
 
         $recentRecords = GuidanceRecord::with(['student:id,first_name,last_name,lrn', 'counselor:id,name'])
             ->latest()
-            ->take(5)
+            ->take(8)
             ->get();
 
         return Inertia::render('guidance/dashboard', [
-            'stats' => $stats,
-            'recentRecords' => $recentRecords,
+            'counselorName'     => $user->name,
+            'stats'             => $stats,
+            'severityBreakdown' => $severityBreakdown,
+            'typeBreakdown'     => $typeBreakdown,
+            'recentRecords'     => $recentRecords,
         ]);
     }
 }
