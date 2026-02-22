@@ -6,7 +6,6 @@ import {
     FileText,
     LayoutGrid,
     Megaphone,
-    TrendingUp,
     Users,
 } from 'lucide-react';
 import {
@@ -45,11 +44,6 @@ export function ParentSidebar() {
             badge: announcementCount || undefined,
         },
         {
-            title: 'My Children',
-            href: '/parent/children',
-            icon: Users,
-        },
-        {
             title: 'Subjects',
             href: '/parent/subjects',
             icon: BookOpen,
@@ -57,16 +51,6 @@ export function ParentSidebar() {
         {
             title: 'Schedules',
             href: '/parent/schedules',
-            icon: Calendar,
-        },
-        {
-            title: 'Grades',
-            href: '/parent/grades',
-            icon: TrendingUp,
-        },
-        {
-            title: 'Attendance',
-            href: '/parent/attendance',
             icon: Calendar,
         },
         {
