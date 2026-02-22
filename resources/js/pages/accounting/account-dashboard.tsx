@@ -166,7 +166,7 @@ export default function AccountDashboard({
                 <div className="flex items-center justify-between">
                     <PageHeader
                         title="Account Dashboard"
-                        description={student ? `Account Dashboard: ${student.full_name}` : 'Select a student to view their account'}
+                        description={student ? `Viewing account: ${student.full_name}` : `All students · ${months?.find(m => m.value === parseInt(month))?.label ?? ''} ${year}`}
                     />
                     <div className="flex gap-2">
                         <ExportButton
