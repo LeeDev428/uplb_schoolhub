@@ -126,10 +126,6 @@ const DEFAULT_NAV: NavLink[] = [
     { label: 'Contact', href: '#contact' },
 ];
 
-function getInitials(name: string) {
-    return name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase();
-}
-
 export default function Welcome({ canRegister, faculty = {} }: Props) {
     const { appSettings } = usePage<{ appSettings?: AppSettings }>().props;
 
