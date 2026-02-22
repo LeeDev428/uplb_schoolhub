@@ -303,9 +303,13 @@ class AccountingDashboardController extends Controller
         $dailyCollections = [];
         $paymentSummary = ['cash' => 0, 'gcash' => 0, 'bank' => 0];
         $stats = [
-            'total_fees_processed' => 0,
+            'total_transactions'       => 0,
+            'fee_transactions'         => 0,
+            'document_transactions'    => 0,
+            'collection_rate'          => 0,
+            'total_fees_processed'     => 0,
             'total_document_processed' => 0,
-            'total_amount_processed' => 0,
+            'total_amount_processed'   => 0,
             'overall_amount_processed' => 0,
         ];
 
@@ -364,12 +368,26 @@ class AccountingDashboardController extends Controller
                 // Stats
                 $totalFees = $payments->sum('amount');
                 $totalDocs = $documents->sum('fee');
-                
+                $feeTransactionsCount = $payments->count();
+                $docTransactionsCount = $documents->count();
+                $totalAmountProcessed = (float) ($totalFees + $totalDocs);
+                $overallAmountProcessed = (float) StudentPayment::where('student_id', $studentId)->sum('amount');
+
+                // Collection rate: period paid vs student's total fees
+                $studentTotalFees = (float) ($student->fees ?? collect())->sum('total_amount');
+                $collectionRate = $studentTotalFees > 0
+                    ? min(round(($totalAmountProcessed / $studentTotalFees) * 100, 1), 100)
+                    : ($totalAmountProcessed > 0 ? 100 : 0);
+
                 $stats = [
-                    'total_fees_processed' => (float) $totalFees,
+                    'total_transactions'       => $feeTransactionsCount + $docTransactionsCount,
+                    'fee_transactions'         => $feeTransactionsCount,
+                    'document_transactions'    => $docTransactionsCount,
+                    'collection_rate'          => $collectionRate,
+                    'total_fees_processed'     => (float) $totalFees,
                     'total_document_processed' => (float) $totalDocs,
-                    'total_amount_processed' => (float) ($totalFees + $totalDocs),
-                    'overall_amount_processed' => (float) StudentPayment::where('student_id', $studentId)->sum('amount'),
+                    'total_amount_processed'   => $totalAmountProcessed,
+                    'overall_amount_processed' => $overallAmountProcessed,
                 ];
 
                 // Payment summary by mode
