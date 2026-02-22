@@ -262,4 +262,12 @@ class Student extends Model
     {
         return $this->subjectsQuery()->get();
     }
+
+    /**
+     * Get all guidance records for this student.
+     */
+    public function guidanceRecords()
+    {
+        return $this->hasMany(GuidanceRecord::class);
+    }
 }
