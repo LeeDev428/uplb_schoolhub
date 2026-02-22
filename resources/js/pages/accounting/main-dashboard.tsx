@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { AlertTriangle, CheckCircle, Clock, DollarSign, Download, FileText, RefreshCw, TrendingUp, Users } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, DollarSign, Download, FileText, RefreshCw, TrendingUp, Users, XCircle, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 
 interface Stats {
@@ -83,6 +83,10 @@ export default function MainDashboard({
     // Find max amount for chart scaling
     const maxAmount = Math.max(...(monthlyCollections?.map(m => m.amount) || [1]), 1);
 
+    const totalStudents = stats?.total_students ?? 0;
+    const collectionRate = projectedRevenue > 0 ? ((totalCollected / projectedRevenue) * 100).toFixed(1) : '0.0';
+    const fullyPaidRate = totalStudents > 0 ? ((stats?.fully_paid ?? 0) / totalStudents * 100).toFixed(1) : '0.0';
+
     return (
         <AccountingLayout>
             <Head title="Main Dashboard" />
@@ -106,63 +110,117 @@ export default function MainDashboard({
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="border-l-4 border-l-blue-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-3xl font-bold">{stats?.total_students ?? 0}</CardTitle>
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                <Users className="h-5 w-5 text-blue-600" />
+                            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+                            <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+                                <Users className="h-4 w-4 text-blue-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-blue-600 font-medium">Total Students</p>
+                            <div className="text-3xl font-bold">{totalStudents}</div>
+                            <p className="text-xs text-muted-foreground mt-1">{fullyPaidRate}% fully paid</p>
+                            <Progress value={parseFloat(fullyPaidRate)} className="mt-2 h-1.5" />
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-l-4 border-l-green-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-3xl font-bold">{stats?.fully_paid ?? 0}</CardTitle>
-                            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                                <CheckCircle className="h-5 w-5 text-green-600" />
+                            <CardTitle className="text-sm font-medium">Fully Paid</CardTitle>
+                            <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-green-600 font-medium">Fully Paid</p>
+                            <div className="text-3xl font-bold text-green-600">{stats?.fully_paid ?? 0}</div>
+                            <p className="text-xs text-muted-foreground mt-1">of {totalStudents} enrolled students</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-l-4 border-l-yellow-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-3xl font-bold">{stats?.partial_payment ?? 0}</CardTitle>
-                            <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                                <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                            <CardTitle className="text-sm font-medium">Partial Payment</CardTitle>
+                            <div className="h-9 w-9 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <AlertTriangle className="h-4 w-4 text-yellow-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-yellow-600 font-medium">Partial Payment</p>
+                            <div className="text-3xl font-bold text-yellow-600">{stats?.partial_payment ?? 0}</div>
+                            <p className="text-xs text-muted-foreground mt-1">Needs follow-up</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-l-4 border-l-red-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-3xl font-bold">{stats?.overdue ?? 0}</CardTitle>
-                            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                                <Clock className="h-5 w-5 text-red-600" />
+                            <CardTitle className="text-sm font-medium">Overdue / Unpaid</CardTitle>
+                            <div className="h-9 w-9 rounded-full bg-red-100 flex items-center justify-center">
+                                <XCircle className="h-4 w-4 text-red-600" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-red-600 font-medium">Overdue</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-3xl font-bold">{stats?.document_payments ?? 0}</CardTitle>
-                            <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                <FileText className="h-5 w-5 text-purple-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-purple-600 font-medium">Document Payments</p>
+                            <div className="text-3xl font-bold text-red-600">{stats?.overdue ?? 0}</div>
+                            <p className="text-xs text-muted-foreground mt-1">Overdue accounts</p>
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Revenue Overview */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Card className="border-l-4 border-l-emerald-500">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Total Projected Revenue</p>
+                                    <p className="text-2xl font-bold text-emerald-700">{formatCurrency(projectedRevenue)}</p>
+                                </div>
+                                <BarChart3 className="h-8 w-8 text-emerald-400" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-blue-500">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Total Collected</p>
+                                    <p className="text-2xl font-bold text-blue-700">{formatCurrency(totalCollected)}</p>
+                                </div>
+                                <TrendingUp className="h-8 w-8 text-blue-400" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-red-500">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Outstanding Balance</p>
+                                    <p className="text-2xl font-bold text-red-700">{formatCurrency(totalOutstanding)}</p>
+                                </div>
+                                <DollarSign className="h-8 w-8 text-red-400" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Collection Rate Progress */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5 text-emerald-600" />
+                            Collection Progress — {selectedYear}
+                        </CardTitle>
+                        <CardDescription>
+                            Overall collection rate against total projected revenue
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex justify-between text-sm mb-2">
+                            <span className="text-muted-foreground">Collection Rate</span>
+                            <span className="font-semibold">{collectionRate}%</span>
+                        </div>
+                        <Progress value={Math.min(parseFloat(collectionRate), 100)} className="h-3" />
+                        <p className="text-xs text-muted-foreground mt-2">
+                            {formatCurrency(totalCollected)} collected out of {formatCurrency(projectedRevenue)} projected
+                        </p>
+                    </CardContent>
+                </Card>
 
                 {/* Monthly Collection Chart */}
                 <Card>
@@ -247,51 +305,7 @@ export default function MainDashboard({
                     </CardContent>
                 </Card>
 
-                {/* Projected Revenue Section */}
-                {projectedRevenue > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-emerald-600" />
-                                Projected Revenue Report
-                            </CardTitle>
-                            <CardDescription>
-                                Collection progress against total projected fees
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="rounded-lg bg-emerald-50 p-4 text-center">
-                                    <p className="text-sm text-emerald-700 font-medium">Projected Total</p>
-                                    <p className="text-2xl font-bold text-emerald-700">{formatCurrency(projectedRevenue)}</p>
-                                </div>
-                                <div className="rounded-lg bg-blue-50 p-4 text-center">
-                                    <p className="text-sm text-blue-700 font-medium">Collected</p>
-                                    <p className="text-2xl font-bold text-blue-700">{formatCurrency(totalCollected)}</p>
-                                </div>
-                                <div className="rounded-lg bg-red-50 p-4 text-center">
-                                    <p className="text-sm text-red-700 font-medium">Outstanding</p>
-                                    <p className="text-2xl font-bold text-red-700">{formatCurrency(totalOutstanding)}</p>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm text-muted-foreground">
-                                    <span>Collection Rate</span>
-                                    <span className="font-semibold text-foreground">
-                                        {projectedRevenue > 0 ? ((totalCollected / projectedRevenue) * 100).toFixed(1) : 0}%
-                                    </span>
-                                </div>
-                                <Progress
-                                    value={projectedRevenue > 0 ? Math.min((totalCollected / projectedRevenue) * 100, 100) : 0}
-                                    className="h-3"
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    {formatCurrency(totalCollected)} collected out of {formatCurrency(projectedRevenue)} projected
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                {/* Projected Revenue Section - removed, now shown in top cards */}
 
                 {/* Recent Payment Activities */}
                 <Card>
