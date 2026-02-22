@@ -99,6 +99,10 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::get('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'index'])->name('app-settings');
     Route::post('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'update'])->name('app-settings.update');
     Route::patch('app-settings/academic-structure', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateAcademicStructure'])->name('app-settings.academic-structure');
+    Route::post('app-settings/landing-page', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateLandingPage'])->name('app-settings.landing-page');
+    Route::post('app-settings/alumni', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateAlumni'])->name('app-settings.alumni');
+    Route::post('app-settings/alumni-photo', [App\Http\Controllers\Owner\AppSettingsController::class, 'uploadAlumniPhoto'])->name('app-settings.alumni-photo');
+    Route::post('app-settings/nav-links', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateNavLinks'])->name('app-settings.nav-links');
 
     // Academic Structure Management
     Route::resource('departments', \App\Http\Controllers\Owner\DepartmentController::class)->only([
@@ -370,6 +374,12 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('schedules', [App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedules');
     Route::get('grades', [App\Http\Controllers\Teacher\GradeController::class, 'index'])->name('grades.index');
     Route::get('attendance', [App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendance.index');
+
+    // Teacher Profile
+    Route::get('profile', [App\Http\Controllers\Teacher\ProfileController::class, 'index'])->name('profile');
+    Route::patch('profile', [App\Http\Controllers\Teacher\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('profile/photo', [App\Http\Controllers\Teacher\ProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::delete('profile/photo', [App\Http\Controllers\Teacher\ProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
     
     // Quizzes
     Route::resource('quizzes', App\Http\Controllers\Teacher\QuizController::class);
