@@ -86,3 +86,5 @@ class AppSetting extends Model
             $item['photo_url'] = isset($item['photo_path']) ? Storage::url($item['photo_path']) : null;
             return $item;
         }, $this->alumni_items);
+    }
+}
