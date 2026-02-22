@@ -28,13 +28,12 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Load children via direct FK (parent_id on students)
-        $children = Student::where('parent_id', $parent->id)
+        // Load children via pivot (parent_student table)
+        $children = $parent->students()
             ->with([
                 'department:id,name',
                 'section:id,name,room_number',
                 'section.yearLevel:id,name',
-                'program:id,name',
                 'requirements',
             ])
             ->get()
