@@ -155,7 +155,7 @@ class StudentController extends Controller
 
             // Generate random username and create User account for student
             $username = $this->generateUniqueUsername($student);
-            User::create([
+            $studentUser = User::create([
                 'name' => $student->first_name . ' ' . $student->last_name,
                 'email' => $student->email,
                 'username' => $username,
@@ -163,6 +163,13 @@ class StudentController extends Controller
                 'role' => User::ROLE_STUDENT,
                 'student_id' => $student->id,
             ]);
+
+            // Send email verification with login credentials
+            try {
+                $studentUser->sendEmailVerificationNotification();
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to send student verification email: ' . $e->getMessage());
+            }
 
             // Automatically create parent/guardian record and user account
             if ($student->guardian_email) {
@@ -225,13 +232,86 @@ class StudentController extends Controller
         ]);
 
         // Create user account for parent (email-only login)
-        User::create([
+        $parentUser = User::create([
             'name' => $firstName . ' ' . $lastName,
             'email' => $student->guardian_email,
             'password' => Hash::make('password'),
             'role' => User::ROLE_PARENT,
             'parent_id' => $parent->id,
         ]);
+
+        // Send email verification with login credentials
+        try {
+            $parentUser->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to send parent verification email: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Resend email verification notification for a student's account.
+     */
+    public function resendVerification(Student $student)
+    {
+        $user = User::where('student_id', $student->id)->first();
+
+        if (!$user) {
+            return back()->withErrors(['error' => 'No user account found for this student.']);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return back()->with('info', 'This email is already verified.');
+        }
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to send notification: ' . $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Verification email resent to ' . $user->email);
+    }
+
+    /**
+     * Update a student's email (and linked user email) then resend verification.
+     */
+    public function updateEmail(Request $request, Student $student)
+    {
+        $request->validate([
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('students', 'email')->ignore($student->id),
+                \Illuminate\Validation\Rule::unique('users', 'email'),
+            ],
+        ]);
+
+        $student->update(['email' => $request->email]);
+
+        $user = User::where('student_id', $student->id)->first();
+        if ($user) {
+            $user->update([
+                'email' => $request->email,
+                'email_verified_at' => null,
+            ]);
+
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to resend email after update: ' . $e->getMessage());
+            }
+        }
+
+        // Also update parent user if guardian email matches
+        $parentUser = User::where('email', $student->getOriginal('email'))
+            ->where('role', User::ROLE_PARENT)
+            ->first();
+        if ($parentUser && $parentUser->email !== $request->email) {
+            // Only update the parent's guardian email on the student record; parent has separate email
+        }
+
+        return back()->with('success', 'Email updated and verification sent to ' . $request->email . '.');
     }
 
     /**
