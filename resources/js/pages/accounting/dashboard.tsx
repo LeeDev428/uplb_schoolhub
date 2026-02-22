@@ -1,7 +1,9 @@
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -20,6 +22,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { BadgeDollarSign, TrendingUp, Users, Wallet, CalendarDays, CheckCircle, AlertTriangle, XCircle, BarChart3 } from 'lucide-react';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+
+interface FilterOption {
+    value: string;
+    label: string;
+}
 
 interface Stats {
     total_students: number;
@@ -76,6 +85,17 @@ interface Props {
     selectedYear: number;
     months: { value: number; label: string }[];
     years: number[];
+    departments: FilterOption[];
+    programs: FilterOption[];
+    yearLevels: FilterOption[];
+    sections: FilterOption[];
+    filters: {
+        classification?: string;
+        department_id?: string;
+        program?: string;
+        year_level?: string;
+        section?: string;
+    };
 }
 
 const formatCurrency = (amount: number) =>
@@ -90,9 +110,36 @@ export default function AccountingDashboard({
     selectedYear,
     months = [],
     years = [],
+    departments = [],
+    programs = [],
+    yearLevels = [],
+    sections = [],
+    filters = {},
 }: Props) {
+    const [classification, setClassification] = useState(filters.classification || '');
+    const [departmentId, setDepartmentId]     = useState(filters.department_id || '');
+    const [program, setProgram]               = useState(filters.program || '');
+    const [yearLevel, setYearLevel]           = useState(filters.year_level || '');
+    const [section, setSection]               = useState(filters.section || '');
+
     const handleFilterChange = (month: number, year: number) => {
-        router.get('/accounting/dashboard', { month, year }, { preserveState: true, preserveScroll: true });
+        router.get('/accounting/dashboard', {
+            month, year,
+            classification: classification || undefined,
+            department_id:  departmentId || undefined,
+            program:        program || undefined,
+            year_level:     yearLevel || undefined,
+            section:        section || undefined,
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleReset = () => {
+        setClassification('');
+        setDepartmentId('');
+        setProgram('');
+        setYearLevel('');
+        setSection('');
+        router.get('/accounting/dashboard', { month: selectedMonth, year: selectedYear });
     };
 
     const monthTotal = dailyIncome.reduce((sum, d) => sum + d.total, 0);
@@ -110,6 +157,54 @@ export default function AccountingDashboard({
                     title="Accounting Dashboard"
                     description="Monitor student payments and fee collections"
                 />
+
+                {/* Demographic Filters */}
+                <FilterBar onReset={handleReset}>
+                    <FilterDropdown
+                        label="Classification"
+                        value={classification || 'all'}
+                        options={[{ value: 'K-12', label: 'K-12' }, { value: 'College', label: 'College' }]}
+                        onChange={v => setClassification(v === 'all' ? '' : v)}
+                        placeholder="All Classifications"
+                    />
+                    <FilterDropdown
+                        label="Department"
+                        value={departmentId || 'all'}
+                        options={departments}
+                        onChange={v => setDepartmentId(v === 'all' ? '' : v)}
+                        placeholder="All Departments"
+                    />
+                    <FilterDropdown
+                        label="Program"
+                        value={program || 'all'}
+                        options={programs}
+                        onChange={v => setProgram(v === 'all' ? '' : v)}
+                        placeholder="All Programs"
+                    />
+                    <FilterDropdown
+                        label="Year Level"
+                        value={yearLevel || 'all'}
+                        options={yearLevels}
+                        onChange={v => setYearLevel(v === 'all' ? '' : v)}
+                        placeholder="All Year Levels"
+                    />
+                    <FilterDropdown
+                        label="Section"
+                        value={section || 'all'}
+                        options={sections}
+                        onChange={v => setSection(v === 'all' ? '' : v)}
+                        placeholder="All Sections"
+                    />
+                    <div className="flex items-end">
+                        <Button
+                            size="sm"
+                            onClick={() => handleFilterChange(selectedMonth, selectedYear)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            Apply Filters
+                        </Button>
+                    </div>
+                </FilterBar>
 
                 {/* Stats Grid */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
