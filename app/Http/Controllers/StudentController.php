@@ -343,7 +343,8 @@ class StudentController extends Controller
             'requirements.requirement.category', 
             'enrollmentClearance',
             'actionLogs.performer',
-            'enrollmentHistories.enrolledBy'
+            'enrollmentHistories.enrolledBy',
+            'user',
         ]);
         
         // Auto-assign requirements if none exist for this student
@@ -383,6 +384,7 @@ class StudentController extends Controller
         return Inertia::render('registrar/students/show', [
             'student' => $student,
             'requirementsCompletion' => $requirementsPercentage,
+            'emailVerified' => $student->user && $student->user->email_verified_at !== null,
             'enrollmentClearance' => $student->enrollmentClearance,
             'actionLogs' => $student->actionLogs->sortByDesc('created_at')->values(),
             'enrollmentHistories' => $student->enrollmentHistories->sortByDesc('school_year')->values(),
