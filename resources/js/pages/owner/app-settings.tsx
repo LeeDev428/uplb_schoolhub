@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,6 +22,30 @@ import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'App Settings', href: '/owner/app-settings' },
+];
+
+interface FeatureItem {
+    icon_name: string;
+    title: string;
+    description: string;
+}
+
+const SECTION_ANCHORS = [
+    { value: '#home',     label: 'Home (#home)' },
+    { value: '#features', label: 'Features (#features)' },
+    { value: '#faculty',  label: 'Faculty (#faculty)' },
+    { value: '#message',  label: 'Message (#message)' },
+    { value: '#alumni',   label: 'Alumni (#alumni)' },
+    { value: '#contact',  label: 'Contact (#contact)' },
+    { value: '/login',    label: 'Login (/login)' },
+    { value: '_custom',   label: 'Custom URL...' },
+];
+
+const ICON_NAMES = [
+    'Users','TrendingUp','BookOpen','CheckCircle','Shield','GraduationCap',
+    'BarChart2','Bell','Briefcase','Calendar','ClipboardList','CreditCard',
+    'FileText','Globe','Heart','Home','Key','Layers','LifeBuoy','Lock',
+    'Mail','PieChart','Settings','Star','Zap',
 ];
 
 interface AlumniItem {
@@ -65,6 +90,11 @@ interface AppSettingsData {
     footer_email: string | null;
     footer_facebook: string | null;
     nav_links: NavLink[];
+    // Features section
+    features_section_title: string | null;
+    features_section_subtitle: string | null;
+    features_show: boolean;
+    features_items: FeatureItem[];
 }
 
 interface Props {
@@ -149,6 +179,22 @@ export default function AppSettings({ settings }: Props) {
     const [footerFacebook, setFooterFacebook] = useState(settings.footer_facebook ?? '');
 
     const [navLinks, setNavLinks]     = useState<NavLink[]>(settings.nav_links ?? []);
+
+    // Features section
+    const [featuresShow, setFeaturesShow]           = useState<boolean>(settings.features_show !== false);
+    const [featuresTitle, setFeaturesTitle]         = useState(settings.features_section_title ?? '');
+    const [featuresSubtitle, setFeaturesSubtitle]   = useState(settings.features_section_subtitle ?? '');
+    const [featuresItems, setFeaturesItems]         = useState<FeatureItem[]>(
+        settings.features_items?.length ? settings.features_items : [
+            { icon_name: 'Users',         title: 'Student Management',    description: 'Comprehensive student records, enrollment tracking.' },
+            { icon_name: 'TrendingUp',    title: 'Financial Dashboard',   description: 'Real-time financial insights and analytics.' },
+            { icon_name: 'BookOpen',      title: 'Document Management',   description: 'Centralized document storage and workflows.' },
+            { icon_name: 'CheckCircle',   title: 'Requirements Tracking', description: 'Monitor deadlines and compliance status.' },
+            { icon_name: 'Shield',        title: 'Role-Based Access',     description: 'Secure multi-level access control.' },
+            { icon_name: 'GraduationCap', title: 'Academic Analytics',    description: 'Detailed reports for data-informed decisions.' },
+        ]
+    );
+
     const [landingSaving, setLandingSaving] = useState(false);
     const [alumniSaving, setAlumniSaving]   = useState(false);
     const [navSaving, setNavSaving]         = useState(false);
@@ -192,6 +238,10 @@ export default function AppSettings({ settings }: Props) {
         fd.append('footer_phone', footerPhone);
         fd.append('footer_email', footerEmail);
         fd.append('footer_facebook', footerFacebook);
+        fd.append('features_show', featuresShow ? '1' : '0');
+        fd.append('features_section_title', featuresTitle);
+        fd.append('features_section_subtitle', featuresSubtitle);
+        fd.append('features_items', JSON.stringify(featuresItems));
 
         setLandingSaving(true);
         router.post('/owner/app-settings/landing-page', fd, {
@@ -414,6 +464,76 @@ export default function AppSettings({ settings }: Props) {
                                     <input ref={heroInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleHeroAdd} />
                                 </div>
                             </CardContent>
+                        </Card>
+
+                        {/* Features */}
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle className="flex items-center gap-2"><Layout className="h-5 w-5" /> Features Section</CardTitle>
+                                        <CardDescription className="mt-1">"Everything you need" section on the landing page</CardDescription>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Label htmlFor="features-show" className="text-sm">Show section</Label>
+                                        <Switch id="features-show" checked={featuresShow} onCheckedChange={setFeaturesShow} />
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            {featuresShow && (
+                                <CardContent className="space-y-4">
+                                    <div className="grid gap-2">
+                                        <Label>Section Title</Label>
+                                        <Input value={featuresTitle} onChange={e => setFeaturesTitle(e.target.value)} placeholder="Everything you need" maxLength={200} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Section Subtitle</Label>
+                                        <Textarea value={featuresSubtitle} onChange={e => setFeaturesSubtitle(e.target.value)} placeholder="Powerful tools designed to simplify administration…" rows={2} maxLength={400} />
+                                    </div>
+                                    <Separator />
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm font-medium">Feature Cards</p>
+                                        <Button type="button" variant="outline" size="sm"
+                                            onClick={() => setFeaturesItems(p => [...p, { icon_name: 'Star', title: '', description: '' }])}>
+                                            <Plus className="mr-2 h-4 w-4" /> Add Feature
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {featuresItems.map((item, i) => (
+                                            <div key={i} className="rounded-lg border p-4 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-xs font-semibold text-muted-foreground">Feature {i + 1}</p>
+                                                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                                                        onClick={() => setFeaturesItems(p => p.filter((_, idx) => idx !== i))}>
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
+                                                <div className="grid gap-3 sm:grid-cols-3">
+                                                    <div className="grid gap-1">
+                                                        <Label className="text-xs">Icon</Label>
+                                                        <Select value={item.icon_name} onValueChange={v => setFeaturesItems(p => p.map((x, idx) => idx === i ? { ...x, icon_name: v } : x))}>
+                                                            <SelectTrigger className="h-9 text-xs">
+                                                                <SelectValue placeholder="Select icon" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {ICON_NAMES.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="grid gap-1">
+                                                        <Label className="text-xs">Title</Label>
+                                                        <Input value={item.title} onChange={e => setFeaturesItems(p => p.map((x, idx) => idx === i ? { ...x, title: e.target.value } : x))} placeholder="Feature title" maxLength={100} className="h-9 text-sm" />
+                                                    </div>
+                                                    <div className="grid gap-1">
+                                                        <Label className="text-xs">Description</Label>
+                                                        <Input value={item.description} onChange={e => setFeaturesItems(p => p.map((x, idx) => idx === i ? { ...x, description: e.target.value } : x))} placeholder="Brief description…" maxLength={300} className="h-9 text-sm" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            )}
                         </Card>
 
                         {/* Faculty */}
@@ -679,7 +799,32 @@ export default function AppSettings({ settings }: Props) {
                                             </div>
                                             <div className="grid gap-1">
                                                 <Label className="text-xs">URL / Anchor</Label>
-                                                <Input value={link.href} onChange={e => setNavLinks(p => p.map((x, idx) => idx === i ? { ...x, href: e.target.value } : x))} placeholder="#about" maxLength={200} />
+                                                <Select
+                                                    value={SECTION_ANCHORS.some(a => a.value === link.href) ? link.href : '_custom'}
+                                                    onValueChange={v => {
+                                                        if (v !== '_custom') {
+                                                            setNavLinks(p => p.map((x, idx) => idx === i ? { ...x, href: v } : x));
+                                                        } else {
+                                                            setNavLinks(p => p.map((x, idx) => idx === i ? { ...x, href: '' } : x));
+                                                        }
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="h-9 text-sm">
+                                                        <SelectValue placeholder="Select section…" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {SECTION_ANCHORS.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                                {(!SECTION_ANCHORS.some(a => a.value !== '_custom' && a.value === link.href)) && (
+                                                    <Input
+                                                        value={link.href}
+                                                        onChange={e => setNavLinks(p => p.map((x, idx) => idx === i ? { ...x, href: e.target.value } : x))}
+                                                        placeholder="/custom-path or #anchor"
+                                                        maxLength={200}
+                                                        className="mt-1 h-9 text-sm"
+                                                    />
+                                                )}
                                             </div>
                                         </div>
                                         <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0"
