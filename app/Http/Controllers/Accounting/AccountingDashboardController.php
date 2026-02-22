@@ -143,16 +143,34 @@ class AccountingDashboardController extends Controller
      */
     public function mainDashboard(Request $request): Response
     {
-        $selectedMonth = (int) $request->get('month', date('n'));
-        $selectedYear = (int) $request->get('year', date('Y'));
+        $selectedMonth  = (int) $request->get('month', date('n'));
+        $selectedYear   = (int) $request->get('year', date('Y'));
 
-        // Get stats
-        $totalStudents = Student::count();
-        $fullyPaid = StudentFee::where('balance', '<=', 0)->count();
-        $partialPaid = StudentFee::where('total_paid', '>', 0)->where('balance', '>', 0)->count();
-        $unpaid = StudentFee::where('total_paid', 0)->where('balance', '>', 0)->count();
-        $totalCollectibles = StudentFee::where('balance', '>', 0)->sum('balance');
-        $totalCollectedToday = StudentPayment::whereDate('payment_date', today())->sum('amount');
+        // Demographic filters
+        $classification = $request->get('classification');
+        $departmentId   = $request->get('department_id');
+        $program        = $request->get('program');
+        $yearLevel      = $request->get('year_level');
+        $section        = $request->get('section');
+
+        // Build scoped student IDs
+        $studentQ = Student::select('id');
+        if ($classification) {
+            $studentQ->whereHas('department', fn($q) => $q->where('classification', $classification));
+        }
+        if ($departmentId) $studentQ->where('department_id', $departmentId);
+        if ($program)      $studentQ->where('program', $program);
+        if ($yearLevel)    $studentQ->where('year_level', $yearLevel);
+        if ($section)      $studentQ->where('section', $section);
+        $filteredIds = $studentQ->pluck('id');
+
+        // Get stats scoped to filtered students
+        $totalStudents       = $filteredIds->count();
+        $fullyPaid           = StudentFee::whereIn('student_id', $filteredIds)->where('balance', '<=', 0)->count();
+        $partialPaid         = StudentFee::whereIn('student_id', $filteredIds)->where('total_paid', '>', 0)->where('balance', '>', 0)->count();
+        $unpaid              = StudentFee::whereIn('student_id', $filteredIds)->where('total_paid', 0)->where('balance', '>', 0)->count();
+        $totalCollectibles   = StudentFee::whereIn('student_id', $filteredIds)->where('balance', '>', 0)->sum('balance');
+        $totalCollectedToday = StudentPayment::whereIn('student_id', $filteredIds)->whereDate('payment_date', today())->sum('amount');
 
         $stats = [
             'total_students' => $totalStudents,
@@ -165,6 +183,7 @@ class AccountingDashboardController extends Controller
 
         // Recent payments with student and recorded_by info
         $recentPayments = StudentPayment::with(['student', 'recordedBy'])
+            ->whereIn('student_id', $filteredIds)
             ->latest('payment_date')
             ->latest('created_at')
             ->take(10)
@@ -189,6 +208,7 @@ class AccountingDashboardController extends Controller
 
         // Top pending payments
         $pendingPayments = StudentFee::with(['student'])
+            ->whereIn('student_id', $filteredIds)
             ->where('balance', '>', 0)
             ->orderBy('balance', 'desc')
             ->take(10)
@@ -217,7 +237,7 @@ class AccountingDashboardController extends Controller
         $dailyIncome = [];
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $date = Carbon::create($selectedYear, $selectedMonth, $day);
-            $dayPayments = StudentPayment::whereDate('payment_date', $date)->get();
+            $dayPayments = StudentPayment::whereIn('student_id', $filteredIds)->whereDate('payment_date', $date)->get();
             $total = $dayPayments->sum('amount');
 
             $avgHour = null;
@@ -264,26 +284,60 @@ class AccountingDashboardController extends Controller
             $years = [(int) date('Y')];
         }
 
+        // Filter options
+        $departments = Department::orderBy('name')->get()->map(fn($d) => ['value' => (string) $d->id, 'label' => $d->name]);
+        $programs    = Student::whereNotNull('program')->where('program', '!=', '')->distinct()->orderBy('program')->pluck('program')->map(fn($v) => ['value' => $v, 'label' => $v]);
+        $yearLevels  = Student::whereNotNull('year_level')->where('year_level', '!=', '')->distinct()->orderBy('year_level')->pluck('year_level')->map(fn($v) => ['value' => $v, 'label' => $v]);
+        $sections    = Student::whereNotNull('section')->where('section', '!=', '')->distinct()->orderBy('section')->pluck('section')->map(fn($v) => ['value' => $v, 'label' => $v]);
+
         return Inertia::render('accounting/dashboard', [
-            'stats' => $stats,
-            'recentPayments' => $recentPayments,
+            'stats'           => $stats,
+            'recentPayments'  => $recentPayments,
             'pendingPayments' => $pendingPayments,
-            'dailyIncome' => $dailyIncome,
-            'selectedMonth' => $selectedMonth,
-            'selectedYear' => $selectedYear,
-            'months' => $months,
-            'years' => $years,
+            'dailyIncome'     => $dailyIncome,
+            'selectedMonth'   => $selectedMonth,
+            'selectedYear'    => $selectedYear,
+            'months'          => $months,
+            'years'           => $years,
+            'departments'     => $departments,
+            'programs'        => $programs,
+            'yearLevels'      => $yearLevels,
+            'sections'        => $sections,
+            'filters'         => [
+                'classification' => $classification,
+                'department_id'  => $departmentId,
+                'program'        => $program,
+                'year_level'     => $yearLevel,
+                'section'        => $section,
+            ],
         ]);
     }
 
     /**
-     * Display the account dashboard (per-student detail view).
+     * Display the account dashboard (aggregate stats with demographic + date filters).
      */
     public function accountDashboard(Request $request): Response
     {
-        $selectedMonth = $request->get('month', date('m'));
-        $selectedYear = $request->get('year', date('Y'));
-        $studentId = $request->get('student_id');
+        // Demographic filters
+        $classification = $request->get('classification');
+        $departmentId   = $request->get('department_id');
+        $program        = $request->get('program');
+        $yearLevel      = $request->get('year_level');
+        $section        = $request->get('section');
+
+        // Date range (fallback to current month)
+        $dateFrom      = $request->get('date_from');
+        $dateTo        = $request->get('date_to');
+        $selectedMonth = (int) $request->get('month', date('n'));
+        $selectedYear  = (int) $request->get('year', date('Y'));
+
+        if ($dateFrom && $dateTo) {
+            $periodStart = Carbon::parse($dateFrom)->startOfDay();
+            $periodEnd   = Carbon::parse($dateTo)->endOfDay();
+        } else {
+            $periodStart = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth();
+            $periodEnd   = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
+        }
 
         // Get all students for the dropdown
         $students = Student::select('id', 'first_name', 'last_name', 'lrn', 'student_photo_url')
@@ -298,54 +352,61 @@ class AccountingDashboardController extends Controller
                 ];
             });
 
-        $student = null;
+        // Build scoped student IDs
+        $studentQ = Student::select('id');
+        if ($classification) {
+            $studentQ->whereHas('department', fn($q) => $q->where('classification', $classification));
+        }
+        if ($departmentId) $studentQ->where('department_id', $departmentId);
+        if ($program)      $studentQ->where('program', $program);
+        if ($yearLevel)    $studentQ->where('year_level', $yearLevel);
+        if ($section)      $studentQ->where('section', $section);
+        $studentIds = $studentQ->pluck('id');
+
         $transactions = [];
         $dailyCollections = [];
 
-        // Always compute global stats for the selected period (shown when no student is selected)
-        $periodStart = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth();
-        $periodEnd   = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
-
-        $globalPayments  = StudentPayment::whereBetween('payment_date', [$periodStart, $periodEnd])->get();
-        $globalDocuments = DocumentRequest::where('is_paid', true)
+        $payments  = StudentPayment::whereIn('student_id', $studentIds)
+            ->whereBetween('payment_date', [$periodStart, $periodEnd])
+            ->get();
+        $documents = DocumentRequest::whereIn('student_id', $studentIds)
+            ->where('is_paid', true)
             ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->get();
 
-        $globalFeeCount  = $globalPayments->count();
-        $globalDocCount  = $globalDocuments->count();
-        $globalFeeSum    = (float) $globalPayments->sum('amount');
-        $globalDocSum    = (float) $globalDocuments->sum('fee');
-        $globalTotal     = $globalFeeSum + $globalDocSum;
-        $globalOverall   = (float) StudentPayment::sum('amount');
-        $totalFeesBilled = (float) StudentFee::sum('total_amount');
-        $globalRate      = $totalFeesBilled > 0
-            ? min(round(($globalOverall / $totalFeesBilled) * 100, 1), 100)
-            : ($globalOverall > 0 ? 100 : 0);
+        $feeCount    = $payments->count();
+        $docCount    = $documents->count();
+        $feeSum      = (float) $payments->sum('amount');
+        $docSum      = (float) $documents->sum('fee');
+        $overallPaid = (float) StudentPayment::whereIn('student_id', $studentIds)->sum('amount');
+        $feesBilled  = (float) StudentFee::whereIn('student_id', $studentIds)->sum('total_amount');
+        $rate        = $feesBilled > 0
+            ? min(round(($overallPaid / $feesBilled) * 100, 1), 100)
+            : ($overallPaid > 0 ? 100 : 0);
 
         $stats = [
-            'total_transactions'       => $globalFeeCount + $globalDocCount,
-            'fee_transactions'         => $globalFeeCount,
-            'document_transactions'    => $globalDocCount,
-            'collection_rate'          => $globalRate,
-            'total_fees_processed'     => $globalFeeSum,
-            'total_document_processed' => $globalDocSum,
-            'total_amount_processed'   => $globalTotal,
-            'overall_amount_processed' => $globalOverall,
+            'total_transactions'       => $feeCount + $docCount,
+            'fee_transactions'         => $feeCount,
+            'document_transactions'    => $docCount,
+            'collection_rate'          => $rate,
+            'total_fees_processed'     => $feeSum,
+            'total_document_processed' => $docSum,
+            'total_amount_processed'   => $feeSum + $docSum,
+            'overall_amount_processed' => $overallPaid,
         ];
 
         $paymentSummary = [
-            'cash'  => (float) $globalPayments->where('payment_method', 'CASH')->sum('amount'),
-            'gcash' => (float) $globalPayments->where('payment_method', 'GCASH')->sum('amount'),
-            'bank'  => (float) $globalPayments->where('payment_method', 'BANK')->sum('amount'),
+            'cash'  => (float) $payments->where('payment_method', 'CASH')->sum('amount'),
+            'gcash' => (float) $payments->where('payment_method', 'GCASH')->sum('amount'),
+            'bank'  => (float) $payments->where('payment_method', 'BANK')->sum('amount'),
         ];
 
-        // Build global daily collections chart for the selected period
-        $daysInPeriod = $periodEnd->day;
-        for ($day = 1; $day <= $daysInPeriod; $day++) {
-            $dayDate     = Carbon::create($selectedYear, $selectedMonth, $day);
-            $dayPayments = $globalPayments->filter(fn($p) => Carbon::parse($p->payment_date)->isSameDay($dayDate));
+        // Daily collections across the period
+        $periodDay    = $periodStart->copy()->startOfDay();
+        $periodEndDay = $periodEnd->copy()->startOfDay();
+        while ($periodDay->lte($periodEndDay)) {
+            $dayPayments = $payments->filter(fn($p) => Carbon::parse($p->payment_date)->isSameDay($periodDay));
             $dayAmount   = (float) $dayPayments->sum('amount');
-
             if ($dayAmount > 0) {
                 $avgHour = $dayPayments->avg(fn($p) => Carbon::parse($p->created_at)->hour);
                 $avgTime = $avgHour !== null
@@ -353,25 +414,49 @@ class AccountingDashboardController extends Controller
                         $avgHour > 12 ? floor($avgHour - 12) : ($avgHour == 0 ? 12 : floor($avgHour)),
                         0,
                         $avgHour >= 12 ? 'PM' : 'AM'
-                    )
-                    : 'N/A';
-
+                    ) : 'N/A';
                 $dailyCollections[] = [
-                    'day'    => $day,
-                    'date'   => $dayDate->format('Y-m-d'),
+                    'day'    => $periodDay->day,
+                    'date'   => $periodDay->format('Y-m-d'),
                     'amount' => $dayAmount,
                     'time'   => $avgTime,
                 ];
             }
+            $periodDay->addDay();
         }
 
-        if ($studentId) {
-            $student = Student::with(['department', 'program', 'yearLevel', 'section', 'fees'])
-                ->find($studentId);
+        // Recent transactions (top 25 payments + top 10 documents)
+        foreach ($payments->sortByDesc('payment_date')->take(25) as $p) {
+            $transactions[] = [
+                'id'        => $p->id,
+                'date'      => Carbon::parse($p->payment_date)->format('Y-m-d'),
+                'time'      => Carbon::parse($p->created_at)->format('h:i A'),
+                'type'      => 'Fee',
+                'or_number' => $p->or_number ?? 'N/A',
+                'mode'      => $p->payment_method ?? 'CASH',
+                'reference' => $p->reference_number,
+                'amount'    => (float) $p->amount,
+            ];
+        }
+        foreach ($documents->take(10) as $doc) {
+            $transactions[] = [
+                'id'        => 'doc-' . $doc->id,
+                'date'      => Carbon::parse($doc->created_at)->format('Y-m-d'),
+                'time'      => Carbon::parse($doc->created_at)->format('h:i A'),
+                'type'      => 'Document',
+                'or_number' => 'DOC' . str_pad($doc->id, 3, '0', STR_PAD_LEFT),
+                'mode'      => 'CASH',
+                'reference' => $doc->document_type,
+                'amount'    => (float) $doc->fee,
+            ];
+        }
+        usort($transactions, fn($a, $b) => strcmp($b['date'] . $b['time'], $a['date'] . $a['time']));
 
-            if ($student) {
-                $monthStart = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth();
-                $monthEnd = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
+        // Filter options
+        $departments = Department::orderBy('name')->get()->map(fn($d) => ['value' => (string) $d->id, 'label' => $d->name]);
+        $programs    = Student::whereNotNull('program')->where('program', '!=', '')->distinct()->orderBy('program')->pluck('program')->map(fn($v) => ['value' => $v, 'label' => $v]);
+        $yearLevels  = Student::whereNotNull('year_level')->where('year_level', '!=', '')->distinct()->orderBy('year_level')->pluck('year_level')->map(fn($v) => ['value' => $v, 'label' => $v]);
+        $sections    = Student::whereNotNull('section')->where('section', '!=', '')->distinct()->orderBy('section')->pluck('section')->map(fn($v) => ['value' => $v, 'label' => $v]);
 
                 // Get payments for this student in selected period
                 $payments = StudentPayment::where('student_id', $studentId)
@@ -442,113 +527,36 @@ class AccountingDashboardController extends Controller
                     'overall_amount_processed' => $overallAmountProcessed,
                 ];
 
-                // Payment summary by mode
-                $paymentSummary = [
-                    'cash' => (float) $payments->where('payment_method', 'CASH')->sum('amount'),
-                    'gcash' => (float) $payments->where('payment_method', 'GCASH')->sum('amount'),
-                    'bank' => (float) $payments->where('payment_method', 'BANK')->sum('amount'),
-                ];
-
-                // Daily collections for the month (per-student, reset the global chart)
-                $dailyCollections = [];
-                $daysInMonth = $monthEnd->day;
-                for ($day = 1; $day <= $daysInMonth; $day++) {
-                    $dayDate = Carbon::create($selectedYear, $selectedMonth, $day);
-                    $dayPayments = $payments->filter(function ($p) use ($dayDate) {
-                        return Carbon::parse($p->payment_date)->isSameDay($dayDate);
-                    });
-                    
-                    $dayAmount = $dayPayments->sum('amount');
-                    $avgTime = 'N/A';
-                    
-                    if ($dayPayments->count() > 0) {
-                        $avgHour = $dayPayments->avg(function ($p) {
-                            return Carbon::parse($p->created_at)->hour;
-                        });
-                        $avgTime = sprintf('%d:%02d %s',
-                            $avgHour > 12 ? floor($avgHour - 12) : ($avgHour == 0 ? 12 : floor($avgHour)),
-                            0,
-                            $avgHour >= 12 ? 'PM' : 'AM'
-                        );
-                    }
-
-                    // Only include days with payments for cleaner chart
-                    if ($dayAmount > 0) {
-                        $dailyCollections[] = [
-                            'day' => $day,
-                            'date' => $dayDate->format('Y-m-d'),
-                            'amount' => (float) $dayAmount,
-                            'time' => $avgTime,
-                        ];
-                    }
-                }
-
-                // Calculate total balance (fees - paid)
-                $studentFees = $student->fees ?? collect();
-                $totalFeesAmount = (float) $studentFees->sum('total_amount');
-                $totalPaidAmount = (float) $studentFees->sum('total_paid');
-                $totalBalance = $totalFeesAmount - $totalPaidAmount;
-                $studentPhotoUrl = $student->student_photo_url;
-                $studentSchoolYear = $student->school_year;
-                $studentEnrollmentStatus = $student->enrollment_status;
-
-                // Map student data
-                $student = [
-                    'id' => $student->id,
-                    'full_name' => $student->full_name,
-                    'lrn' => $student->lrn,
-                    'program' => $student->program?->name,
-                    'year_level' => $student->yearLevel?->name,
-                    'section' => $student->section?->name,
-                    'gender' => $student->gender,
-                    'phone' => $student->phone,
-                    'address' => $student->address,
-                    'student_id' => $student->lrn,
-                    'student_photo_url' => $studentPhotoUrl,
-                    'school_year' => $studentSchoolYear,
-                    'enrollment_status' => $studentEnrollmentStatus,
-                    'total_fees' => $totalFeesAmount,
-                    'total_paid' => $totalPaidAmount,
-                    'total_balance' => $totalBalance,
-                ];
-            }
-        }
-
-        // Months dropdown
         $months = [];
         for ($m = 1; $m <= 12; $m++) {
-            $months[] = [
-                'value' => $m,
-                'label' => Carbon::create(null, $m, 1)->format('F'),
-            ];
+            $months[] = ['value' => $m, 'label' => Carbon::create(null, $m, 1)->format('F')];
         }
-
-        // Available years
-        $years = StudentPayment::selectRaw('YEAR(payment_date) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year')
-            ->toArray();
-        
-        if (empty($years)) {
-            $years = [(int) date('Y')];
-        }
+        $years = StudentPayment::selectRaw('YEAR(payment_date) as year')->distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
+        if (empty($years)) $years = [(int) date('Y')];
 
         return Inertia::render('accounting/account-dashboard', [
-            'student' => $student,
-            'stats' => $stats,
-            'transactions' => $transactions,
+            'stats'            => $stats,
+            'transactions'     => array_values($transactions),
             'dailyCollections' => $dailyCollections,
-            'paymentSummary' => $paymentSummary,
-            'students' => $students,
-            'selectedMonth' => (int) $selectedMonth,
-            'selectedYear' => (int) $selectedYear,
-            'months' => $months,
-            'years' => $years,
-            'filters' => [
-                'student_id' => $studentId,
-                'month' => (int) $selectedMonth,
-                'year' => (int) $selectedYear,
+            'paymentSummary'   => $paymentSummary,
+            'departments'      => $departments,
+            'programs'         => $programs,
+            'yearLevels'       => $yearLevels,
+            'sections'         => $sections,
+            'selectedMonth'    => $selectedMonth,
+            'selectedYear'     => $selectedYear,
+            'months'           => $months,
+            'years'            => array_values($years),
+            'filters'          => [
+                'classification' => $classification,
+                'department_id'  => $departmentId,
+                'program'        => $program,
+                'year_level'     => $yearLevel,
+                'section'        => $section,
+                'date_from'      => $dateFrom,
+                'date_to'        => $dateTo,
+                'month'          => $selectedMonth,
+                'year'           => $selectedYear,
             ],
         ]);
     }
