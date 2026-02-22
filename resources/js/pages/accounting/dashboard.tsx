@@ -18,7 +18,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { BadgeDollarSign, TrendingUp, Users, Wallet, CalendarDays } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { BadgeDollarSign, TrendingUp, Users, Wallet, CalendarDays, CheckCircle, AlertTriangle, XCircle, BarChart3 } from 'lucide-react';
 
 interface Stats {
     total_students: number;
@@ -96,6 +97,9 @@ export default function AccountingDashboard({
 
     const monthTotal = dailyIncome.reduce((sum, d) => sum + d.total, 0);
     const activeDays = dailyIncome.filter(d => d.count > 0).length;
+    const totalStudents = stats.total_students || 0;
+    const collectionRate = totalStudents > 0 ? ((stats.fully_paid / totalStudents) * 100).toFixed(1) : '0.0';
+    const pendingCount = stats.unpaid + stats.partial_paid;
 
     return (
         <AccountingLayout>
@@ -109,49 +113,106 @@ export default function AccountingDashboard({
 
                 {/* Stats Grid */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
+                    <Card className="border-l-4 border-l-blue-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <Users className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.total_students}</div>
-                            <p className="text-xs text-muted-foreground">{stats.fully_paid} fully paid</p>
+                            <div className="text-3xl font-bold">{stats.total_students}</div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {stats.fully_paid} fully paid · {stats.partial_paid} partial · {stats.unpaid} unpaid
+                            </p>
+                            <Progress
+                                value={totalStudents > 0 ? (stats.fully_paid / totalStudents) * 100 : 0}
+                                className="mt-2 h-1.5"
+                            />
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="border-l-4 border-l-red-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Collectibles</CardTitle>
-                            <BadgeDollarSign className="h-4 w-4 text-muted-foreground" />
+                            <BadgeDollarSign className="h-4 w-4 text-red-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">₱{parseFloat(stats.total_collectibles).toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">Outstanding balance</p>
+                            <div className="text-3xl font-bold text-red-600">
+                                {formatCurrency(parseFloat(stats.total_collectibles))}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Outstanding balance from {pendingCount} students</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="border-l-4 border-l-green-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Collected Today</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                            <TrendingUp className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">₱{parseFloat(stats.total_collected_today).toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">Today's collections</p>
+                            <div className="text-3xl font-bold text-green-600">
+                                {formatCurrency(parseFloat(stats.total_collected_today))}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
+                            </p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="border-l-4 border-l-amber-500">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-                            <Wallet className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium">Collection Rate</CardTitle>
+                            <BarChart3 className="h-4 w-4 text-amber-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats.unpaid + stats.partial_paid}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {stats.unpaid} unpaid, {stats.partial_paid} partial
-                            </p>
+                            <div className="text-3xl font-bold text-amber-600">{collectionRate}%</div>
+                            <p className="text-xs text-muted-foreground mt-1">{stats.fully_paid} of {totalStudents} fully settled</p>
+                            <Progress
+                                value={parseFloat(collectionRate)}
+                                className="mt-2 h-1.5"
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Payment Status Breakdown */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                                    <CheckCircle className="h-6 w-6 text-green-600" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold text-green-600">{stats.fully_paid}</p>
+                                    <p className="text-sm text-muted-foreground">Fully Paid</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
+                                    <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold text-yellow-600">{stats.partial_paid}</p>
+                                    <p className="text-sm text-muted-foreground">Partial Payment</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                                    <XCircle className="h-6 w-6 text-red-600" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold text-red-600">{stats.unpaid}</p>
+                                    <p className="text-sm text-muted-foreground">Unpaid</p>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
