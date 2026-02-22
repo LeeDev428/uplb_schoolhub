@@ -77,7 +77,7 @@ The system includes the following modules and user accounts:
 - [ ] Advanced financial auditing
 - [ ] Monitoring and approval of student wallet/load transactions
 
-#### **1.4 Teacher Portal** 🔄 `50% COMPLETE`
+#### **1.4 Teacher Portal** 🔄 `55% COMPLETE`
 
 - [x] Dashboard with analytics (classes, students, subjects)
 - [x] View assigned class schedules (PDF viewer)
@@ -88,7 +88,7 @@ The system includes the following modules and user accounts:
 - [x] **Quiz Publishing** - Publish/unpublish quizzes, set time limits and attempts
 - [x] **Quiz Results** - View student attempts and scores
 - [x] **Manual Grading** - Grade text-based answers manually
-- [x] **Teacher Profile Page** — Update personal info (name, phone, specialization, bio), upload/remove profile photo, toggle `Show on Landing Page` to appear in the faculty section of the public landing page
+- [x] **Teacher Profile Page** — Update personal info (name, phone, specialization, bio), upload/remove profile photo, toggle `Show on Landing Page` to appear in the faculty section of the public landing page; accessible via **My Profile** sidebar link
 - [x] Announcements viewing (role-targeted)
 - [ ] Digital grade encoding
 - [ ] Attendance monitoring
@@ -112,20 +112,23 @@ The system includes the following modules and user accounts:
 - [ ] Submission of academic requirements
 - [ ] Transaction history
 
-#### **1.6 Parent Portal** 🔄 `10% COMPLETE`
+#### **1.6 Parent Portal** 🔄 `35% COMPLETE`
 
-- [x] Basic dashboard
+- [x] Dashboard with per-child summary (fees balance, requirements progress, latest announcements)
 - [x] View children's subjects
 - [x] View children's schedules
+- [x] **Fees & Payments** — Per-child fee summary (total fees, discounts, paid, balance), payment history, online transactions, promissory notes, due date alerts
+- [x] **Requirements** — Per-child requirements progress bar, status breakdown (approved/submitted/pending/rejected) with per-document status icons
 - [x] Announcements viewing (role-targeted)
 - [ ] View grades and report cards
-- [ ] View fees and payment status
 - [ ] View attendance records
 
-#### **1.7 Guidance Counselor Account** 🔄 `20% COMPLETE`
+#### **1.7 Guidance Counselor Account** 🔄 `35% COMPLETE`
 
-- [x] Dashboard with statistics
+- [x] Dashboard with statistics and quick links
 - [x] Student guidance records (CRUD)
+- [x] **Student Browser** — Search and filter all students, view guidance records count per student, filter to show only students with records
+- [x] **Student Profile View** — Full student details with all guidance records (severity, status, counselor, incident dates, action taken, recommendations)
 - [x] Announcements viewing (role-targeted)
 - [ ] Counseling notes and reports
 - [ ] Behavior and case monitoring
