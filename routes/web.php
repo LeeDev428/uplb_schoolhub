@@ -74,17 +74,9 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     
     Route::get('dashboard', [App\Http\Controllers\Owner\OwnerDashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('income/today', function () {
-        return Inertia::render('owner/dashboard');
-    })->name('income.today');
-
-    Route::get('income/overall', function () {
-        return Inertia::render('owner/dashboard');
-    })->name('income.overall');
-
-    Route::get('income/expected', function () {
-        return Inertia::render('owner/dashboard');
-    })->name('income.expected');
+    Route::get('income/today', [App\Http\Controllers\Owner\IncomeController::class, 'today'])->name('income.today');
+    Route::get('income/overall', [App\Http\Controllers\Owner\IncomeController::class, 'overall'])->name('income.overall');
+    Route::get('income/expected', [App\Http\Controllers\Owner\IncomeController::class, 'expected'])->name('income.expected');
 
     Route::get('departments', function () {
         return Inertia::render('owner/dashboard');
