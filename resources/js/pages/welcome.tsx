@@ -218,7 +218,7 @@ export default function Welcome({ canRegister, faculty = {} }: Props) {
                             </h1>
 
                             <p className={`mb-10 max-w-2xl text-lg sm:text-xl ${heroImages.length > 0 ? 'text-white/80' : 'text-neutral-600 dark:text-neutral-400'}`}>
-                                {appSettings?.hero_subtitle || 'Streamline your educational institution with our comprehensive platform. Manage students, track finances, and enhance administrative efficiencyâ€”all in one place.'}
+                                {appSettings?.hero_subtitle || 'Streamline your educational institution with our comprehensive platform. Manage students, track finances, and enhance administrative efficiency in one place.'}
                             </p>
 
                             <div className="flex flex-col items-start justify-start gap-4 sm:flex-row">
