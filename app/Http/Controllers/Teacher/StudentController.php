@@ -92,10 +92,11 @@ class StudentController extends Controller
 
         $students = $query->paginate(20)->withQueryString();
 
-        // Get filter options from the same scoped pool (clone before pagination)
+        // Get filter options from the same scoped pool (clone + reorder to avoid
+        // MySQL DISTINCT+ORDER BY conflict when the parent query has orderBy())
         $poolQuery = clone $query;
 
-        $programs = (clone $poolQuery)->select('program')
+        $programs = (clone $poolQuery)->reorder()->select('program')
             ->whereNotNull('program')
             ->where('program', '!=', '')
             ->distinct()
@@ -103,7 +104,7 @@ class StudentController extends Controller
             ->sort()
             ->values();
 
-        $yearLevels = (clone $poolQuery)->select('year_level')
+        $yearLevels = (clone $poolQuery)->reorder()->select('year_level')
             ->whereNotNull('year_level')
             ->where('year_level', '!=', '')
             ->distinct()
@@ -111,7 +112,7 @@ class StudentController extends Controller
             ->sort()
             ->values();
 
-        $sections = (clone $poolQuery)->select('section')
+        $sections = (clone $poolQuery)->reorder()->select('section')
             ->whereNotNull('section')
             ->where('section', '!=', '')
             ->distinct()
@@ -119,8 +120,8 @@ class StudentController extends Controller
             ->sort()
             ->values();
 
-        // Stats from scoped base (no search/filter)
-        $baseTotal = (clone $poolQuery)->count();
+        // Stats from scoped base (no search/filter) — reorder() safe for COUNT
+        $baseTotal = (clone $poolQuery)->reorder()->count();
         $stats = [
             'total'    => $baseTotal,
             'enrolled' => (clone $poolQuery)->where('enrollment_status', 'enrolled')->count(),
