@@ -528,7 +528,7 @@ export default function Welcome({ canRegister, faculty = {} }: Props) {
                         <div className="mt-12 pt-8 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <p className="text-sm text-neutral-500">&copy; {new Date().getFullYear()} {appName}. All rights reserved.</p>
                             <div className="flex items-center gap-1 text-sm text-neutral-500">
-                                Built with <span className="mx-1" style={{ color: primary }}>â™¥</span> for Education
+                                Built with <span className="mx-1" style={{ color: primary }}>...</span> for Education
                             </div>
                         </div>
                     </div>
