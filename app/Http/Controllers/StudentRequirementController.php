@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StudentRequirement;
 use App\Models\StudentActionLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class StudentRequirementController extends Controller
@@ -22,6 +23,14 @@ class StudentRequirementController extends Controller
         $newStatus = $validated['status'];
 
         if ($validated['status'] === 'approved') {
+            // Block approval if student's email is not yet verified
+            $studentUser = User::where('student_id', $studentRequirement->student_id)->first();
+            if ($studentUser && !$studentUser->email_verified_at) {
+                return back()->withErrors([
+                    'error' => 'Cannot approve requirements: the student has not verified their email address yet.',
+                ]);
+            }
+
             $validated['approved_at'] = now();
             $validated['approved_by'] = auth()->id();
         } elseif ($validated['status'] === 'submitted' && !$studentRequirement->submitted_at) {
