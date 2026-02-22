@@ -301,17 +301,69 @@ class AccountingDashboardController extends Controller
         $student = null;
         $transactions = [];
         $dailyCollections = [];
-        $paymentSummary = ['cash' => 0, 'gcash' => 0, 'bank' => 0];
+
+        // Always compute global stats for the selected period (shown when no student is selected)
+        $periodStart = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth();
+        $periodEnd   = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
+
+        $globalPayments  = StudentPayment::whereBetween('payment_date', [$periodStart, $periodEnd])->get();
+        $globalDocuments = DocumentRequest::where('is_paid', true)
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->get();
+
+        $globalFeeCount  = $globalPayments->count();
+        $globalDocCount  = $globalDocuments->count();
+        $globalFeeSum    = (float) $globalPayments->sum('amount');
+        $globalDocSum    = (float) $globalDocuments->sum('fee');
+        $globalTotal     = $globalFeeSum + $globalDocSum;
+        $globalOverall   = (float) StudentPayment::sum('amount');
+        $totalFeesBilled = (float) StudentFee::sum('total_amount');
+        $globalRate      = $totalFeesBilled > 0
+            ? min(round(($globalOverall / $totalFeesBilled) * 100, 1), 100)
+            : ($globalOverall > 0 ? 100 : 0);
+
         $stats = [
-            'total_transactions'       => 0,
-            'fee_transactions'         => 0,
-            'document_transactions'    => 0,
-            'collection_rate'          => 0,
-            'total_fees_processed'     => 0,
-            'total_document_processed' => 0,
-            'total_amount_processed'   => 0,
-            'overall_amount_processed' => 0,
+            'total_transactions'       => $globalFeeCount + $globalDocCount,
+            'fee_transactions'         => $globalFeeCount,
+            'document_transactions'    => $globalDocCount,
+            'collection_rate'          => $globalRate,
+            'total_fees_processed'     => $globalFeeSum,
+            'total_document_processed' => $globalDocSum,
+            'total_amount_processed'   => $globalTotal,
+            'overall_amount_processed' => $globalOverall,
         ];
+
+        $paymentSummary = [
+            'cash'  => (float) $globalPayments->where('payment_method', 'CASH')->sum('amount'),
+            'gcash' => (float) $globalPayments->where('payment_method', 'GCASH')->sum('amount'),
+            'bank'  => (float) $globalPayments->where('payment_method', 'BANK')->sum('amount'),
+        ];
+
+        // Build global daily collections chart for the selected period
+        $daysInPeriod = $periodEnd->day;
+        for ($day = 1; $day <= $daysInPeriod; $day++) {
+            $dayDate     = Carbon::create($selectedYear, $selectedMonth, $day);
+            $dayPayments = $globalPayments->filter(fn($p) => Carbon::parse($p->payment_date)->isSameDay($dayDate));
+            $dayAmount   = (float) $dayPayments->sum('amount');
+
+            if ($dayAmount > 0) {
+                $avgHour = $dayPayments->avg(fn($p) => Carbon::parse($p->created_at)->hour);
+                $avgTime = $avgHour !== null
+                    ? sprintf('%d:%02d %s',
+                        $avgHour > 12 ? floor($avgHour - 12) : ($avgHour == 0 ? 12 : floor($avgHour)),
+                        0,
+                        $avgHour >= 12 ? 'PM' : 'AM'
+                    )
+                    : 'N/A';
+
+                $dailyCollections[] = [
+                    'day'    => $day,
+                    'date'   => $dayDate->format('Y-m-d'),
+                    'amount' => $dayAmount,
+                    'time'   => $avgTime,
+                ];
+            }
+        }
 
         if ($studentId) {
             $student = Student::with(['department', 'program', 'yearLevel', 'section', 'fees'])
@@ -397,7 +449,8 @@ class AccountingDashboardController extends Controller
                     'bank' => (float) $payments->where('payment_method', 'BANK')->sum('amount'),
                 ];
 
-                // Daily collections for the month
+                // Daily collections for the month (per-student, reset the global chart)
+                $dailyCollections = [];
                 $daysInMonth = $monthEnd->day;
                 for ($day = 1; $day <= $daysInMonth; $day++) {
                     $dayDate = Carbon::create($selectedYear, $selectedMonth, $day);
