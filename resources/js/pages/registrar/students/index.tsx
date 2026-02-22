@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, MailCheck, MailWarning, RotateCcw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
@@ -62,6 +62,7 @@ interface Student {
     requirements_percentage: number;
     student_photo_url: string | null;
     remarks: string | null;
+    email_verified: boolean;
     requirements: StudentRequirement[];
     enrollment_clearance: EnrollmentClearance | null;
 }
@@ -482,6 +483,25 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                                         <div className="font-medium">{fullName}</div>
                                                         <div className="text-sm text-muted-foreground">
                                                             {student.email}
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                            {student.email_verified ? (
+                                                                <span className="inline-flex items-center gap-1 text-[11px] text-green-600 font-medium">
+                                                                    <MailCheck className="h-3 w-3" /> Verified
+                                                                </span>
+                                                            ) : (
+                                                                <>
+                                                                    <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 font-medium">
+                                                                        <MailWarning className="h-3 w-3" /> Unverified
+                                                                    </span>
+                                                                    <button
+                                                                        className="inline-flex items-center gap-0.5 text-[11px] text-primary underline hover:no-underline"
+                                                                        onClick={e => { e.stopPropagation(); router.post(`/registrar/students/${student.id}/resend-verification`, {}, { preserveScroll: true, onSuccess: () => showSuccess('Verification email resent.'), onError: () => showError('Failed to resend.') }); }}
+                                                                    >
+                                                                        <RotateCcw className="h-3 w-3" /> Resend
+                                                                    </button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
