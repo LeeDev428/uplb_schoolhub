@@ -240,8 +240,8 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
             type: form.data.type,
             units: form.data.units !== '' ? form.data.units : null,
             hours_per_week: form.data.hours_per_week !== '' ? form.data.hours_per_week : null,
-            year_level_id: form.data.year_level_id || '',
-            semester: form.data.semester === 'none' ? '' : form.data.semester,
+            year_level_id: form.data.year_level_id || null,
+            semester: form.data.semester === 'none' ? null : (form.data.semester || null),
             is_active: form.data.is_active,
         };
 
