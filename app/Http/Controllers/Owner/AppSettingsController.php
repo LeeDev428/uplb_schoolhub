@@ -181,16 +181,14 @@ class AppSettingsController extends Controller
      */
     public function updateAlumni(Request $request): RedirectResponse
     {
-        $request->validate([
-            'alumni' => 'nullable|array',
-            'alumni.*.name'        => 'required|string|max:100',
-            'alumni.*.description' => 'nullable|string|max:300',
-            'alumni.*.batch'       => 'nullable|string|max:20',
-        ]);
+        // Accept either a JSON string or a raw array (Inertia sends JSON string when serialized)
+        $raw = $request->input('alumni', []);
+        if (is_string($raw)) {
+            $raw = json_decode($raw, true) ?? [];
+        }
 
         $settings = AppSetting::current();
         $existing = $settings->alumni_items ?? [];
-        $incoming = $request->input('alumni', []);
 
         // Preserve existing photo_path if still present
         $merged = array_map(function ($item, $i) use ($existing) {
@@ -198,7 +196,7 @@ class AppSettingsController extends Controller
                 $item['photo_path'] = $existing[$i]['photo_path'];
             }
             return $item;
-        }, $incoming, array_keys($incoming));
+        }, $raw, array_keys($raw));
 
         $settings->alumni_items = $merged;
         $settings->save();
@@ -237,14 +235,14 @@ class AppSettingsController extends Controller
      */
     public function updateNavLinks(Request $request): RedirectResponse
     {
-        $request->validate([
-            'nav_links'          => 'nullable|array',
-            'nav_links.*.label'  => 'required|string|max:50',
-            'nav_links.*.href'   => 'required|string|max:200',
-        ]);
+        // Accept either a JSON string or a raw array
+        $raw = $request->input('nav_links', []);
+        if (is_string($raw)) {
+            $raw = json_decode($raw, true) ?? [];
+        }
 
         $settings             = AppSetting::current();
-        $settings->nav_links  = $request->input('nav_links', []);
+        $settings->nav_links  = $raw;
         $settings->save();
 
         return redirect()->back()->with('success', 'Navigation links updated.');
