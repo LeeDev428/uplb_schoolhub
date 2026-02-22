@@ -22,8 +22,8 @@ class FeesController extends Controller
         $parent = $user->parent;
 
         $children = $parent
-            ? Student::where('parent_id', $parent->id)
-                ->with(['department:id,name', 'section:id,name', 'section.yearLevel:id,name', 'program:id,name'])
+            ? $parent->students()
+                ->with(['department:id,name', 'section:id,name', 'section.yearLevel:id,name'])
                 ->get()
                 ->map(fn ($student) => $this->buildChildFees($student))
             : collect();
