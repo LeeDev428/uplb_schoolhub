@@ -191,6 +191,14 @@ class Student extends Model
     }
 
     /**
+     * Get the user account linked to this student
+     */
+    public function user()
+    {
+        return $this->hasOne(\App\Models\User::class, 'student_id');
+    }
+
+    /**
      * Get all fee records for this student
      */
     public function fees()
