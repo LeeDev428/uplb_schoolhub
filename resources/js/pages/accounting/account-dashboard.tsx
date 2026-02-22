@@ -5,17 +5,6 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -31,29 +20,16 @@ import {
     TrendingUp,
     RefreshCw,
     Download,
-    Search,
-    Clock,
 } from 'lucide-react';
-import { SearchBar } from '@/components/filters/search-bar';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { DateRangePicker } from '@/components/filters/date-range-picker';
 import { ExportButton } from '@/components/export-button';
+import type { DateRange } from 'react-day-picker';
 
-interface Student {
-    id: number;
-    full_name: string;
-    lrn: string;
-    program?: string;
-    year_level?: string;
-    section?: string;
-    gender?: string;
-    phone?: string;
-    address?: string;
-    student_id?: string;
-    student_photo_url?: string | null;
-    school_year?: string;
-    enrollment_status?: string;
-    total_fees?: number;
-    total_paid?: number;
-    total_balance?: number;
+interface FilterOption {
+    value: string;
+    label: string;
 }
 
 interface Transaction {
@@ -92,41 +68,56 @@ interface PaymentSummary {
 }
 
 interface Props {
-    student?: Student;
     stats: Stats;
     transactions: Transaction[];
     dailyCollections: DailyCollection[];
     paymentSummary: PaymentSummary;
-    students: Student[];
+    departments: FilterOption[];
+    programs: FilterOption[];
+    yearLevels: FilterOption[];
+    sections: FilterOption[];
     selectedMonth: number;
     selectedYear: number;
     months: { value: number; label: string }[];
     years: number[];
     filters: {
-        search?: string;
-        student_id?: string;
+        classification?: string;
+        department_id?: string;
+        program?: string;
+        year_level?: string;
+        section?: string;
+        date_from?: string;
+        date_to?: string;
         month?: number;
         year?: number;
     };
 }
 
 export default function AccountDashboard({
-    student,
     stats,
     transactions,
     dailyCollections,
     paymentSummary,
-    students,
+    departments = [],
+    programs = [],
+    yearLevels = [],
+    sections = [],
     selectedMonth,
     selectedYear,
     months,
     years,
     filters,
 }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [month, setMonth] = useState(selectedMonth.toString());
-    const [year, setYear] = useState(selectedYear.toString());
-    const [studentId, setStudentId] = useState(filters.student_id || '');
+    const [classification, setClassification] = useState(filters.classification || '');
+    const [departmentId, setDepartmentId]     = useState(filters.department_id || '');
+    const [program, setProgram]               = useState(filters.program || '');
+    const [yearLevel, setYearLevel]           = useState(filters.year_level || '');
+    const [section, setSection]               = useState(filters.section || '');
+    const [dateRange, setDateRange]           = useState<DateRange | undefined>(
+        filters.date_from && filters.date_to
+            ? { from: new Date(filters.date_from), to: new Date(filters.date_to) }
+            : undefined
+    );
 
     const formatCurrency = (amount: number) => {
         return `₱ ${(amount || 0).toLocaleString('en-PH', {
@@ -137,21 +128,23 @@ export default function AccountDashboard({
 
     const handleFilter = () => {
         router.get('/accounting/account-dashboard', {
-            search: search || undefined,
-            student_id: studentId || undefined,
-            month: month !== 'all' ? month : undefined,
-            year: year || undefined,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+            classification: classification || undefined,
+            department_id:  departmentId || undefined,
+            program:        program || undefined,
+            year_level:     yearLevel || undefined,
+            section:        section || undefined,
+            date_from: dateRange?.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+            date_to:   dateRange?.to   ? dateRange.to.toISOString().split('T')[0]   : undefined,
+        }, { preserveState: true, preserveScroll: true });
     };
 
     const handleReset = () => {
-        setSearch('');
-        setMonth(selectedMonth.toString());
-        setYear(selectedYear.toString());
-        setStudentId('');
+        setClassification('');
+        setDepartmentId('');
+        setProgram('');
+        setYearLevel('');
+        setSection('');
+        setDateRange(undefined);
         router.get('/accounting/account-dashboard');
     };
 
@@ -166,144 +159,70 @@ export default function AccountDashboard({
                 <div className="flex items-center justify-between">
                     <PageHeader
                         title="Account Dashboard"
-                        description={student ? `Viewing account: ${student.full_name}` : `All students · ${months?.find(m => m.value === parseInt(month))?.label ?? ''} ${year}`}
+                        description="Payment transactions across all students for the selected period"
                     />
                     <div className="flex gap-2">
                         <ExportButton
                             exportUrl="/accounting/account-dashboard/export"
-                            filters={{ student_id: student?.id, month: selectedMonth, year: selectedYear }}
+                            filters={{ classification, department_id: departmentId, program, year_level: yearLevel, section }}
                             buttonText="Export Data"
                         />
                         <Button variant="outline" onClick={() => window.location.reload()}>
                             <RefreshCw className="h-4 w-4 mr-2" />
                             Refresh
                         </Button>
-                        <Button className="bg-green-600 hover:bg-green-700">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export Report
-                        </Button>
                     </div>
                 </div>
 
-                {/* Student Profile Card - shown when student is selected */}
-                {student && (
-                    <Card className="border-l-4" style={{ borderLeftColor: '#2563eb' }}>
-                        <CardContent className="pt-6">
-                            <div className="flex items-start gap-6">
-                                <Avatar className="h-20 w-20 ring-4 ring-blue-100 flex-shrink-0">
-                                    <AvatarImage src={student.student_photo_url ?? undefined} alt={student.full_name} />
-                                    <AvatarFallback className="text-xl font-semibold bg-blue-600 text-white">
-                                        {student.full_name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                                        <div>
-                                            <h2 className="text-2xl font-bold text-gray-900">{student.full_name}</h2>
-                                            <p className="text-sm text-muted-foreground font-mono">Student No.: {student.lrn}</p>
-                                            <div className="flex flex-wrap items-center gap-2 mt-2">
-                                                {student.program && <Badge variant="secondary">{student.program}</Badge>}
-                                                {student.year_level && <Badge variant="outline">{student.year_level}{student.section ? ` - ${student.section}` : ''}</Badge>}
-                                                {student.school_year && <Badge variant="outline">SY {student.school_year}</Badge>}
-                                                {student.enrollment_status && (
-                                                    <Badge className={student.enrollment_status === 'enrolled' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
-                                                        {student.enrollment_status}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {/* Balance summary */}
-                                        {(student.total_fees ?? 0) > 0 && (
-                                            <div className="text-right min-w-[200px]">
-                                                <p className="text-sm text-muted-foreground mb-1">Payment Progress</p>
-                                                <Progress
-                                                    value={Math.min(((student.total_paid ?? 0) / (student.total_fees ?? 1)) * 100, 100)}
-                                                    className="h-2 mb-2"
-                                                />
-                                                <div className="flex justify-between text-xs text-muted-foreground">
-                                                    <span>Paid: {formatCurrency(student.total_paid ?? 0)}</span>
-                                                    <span>Total: {formatCurrency(student.total_fees ?? 0)}</span>
-                                                </div>
-                                                {(student.total_balance ?? 0) > 0 ? (
-                                                    <p className="mt-1 text-sm font-semibold text-red-600">
-                                                        Balance: {formatCurrency(student.total_balance ?? 0)}
-                                                    </p>
-                                                ) : (
-                                                    <p className="mt-1 text-sm font-semibold text-green-600">Fully Paid ✓</p>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Student Selection and Filters */}
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                            <div className="md:col-span-2">
-                                <Label>Search Student</Label>
-                                <Select value={studentId} onValueChange={(value) => {
-                                    setStudentId(value);
-                                    setTimeout(handleFilter, 0);
-                                }}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a student..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {(students || []).map((s) => (
-                                            <SelectItem key={s.id} value={s.id.toString()}>
-                                                {s.full_name} - {s.lrn}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Month</Label>
-                                <Select value={month} onValueChange={setMonth}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Month" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {(months || []).map((m) => (
-                                            <SelectItem key={m.value} value={m.value.toString()}>
-                                                {m.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Year</Label>
-                                <Select value={year} onValueChange={setYear}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {(years || [new Date().getFullYear()]).map((y) => (
-                                            <SelectItem key={y} value={y.toString()}>
-                                                {y}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="flex gap-2 items-end">
-                                <Button onClick={handleFilter} className="flex-1">
-                                    <Search className="h-4 w-4 mr-2" />
-                                    Filter
-                                </Button>
-                                <Button variant="outline" onClick={handleReset}>
-                                    Reset
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Filters */}
+                <FilterBar onReset={handleReset}>
+                    <FilterDropdown
+                        label="Classification"
+                        value={classification || 'all'}
+                        options={[{ value: 'K-12', label: 'K-12' }, { value: 'College', label: 'College' }]}
+                        onChange={v => setClassification(v === 'all' ? '' : v)}
+                        placeholder="All Classifications"
+                    />
+                    <FilterDropdown
+                        label="Department"
+                        value={departmentId || 'all'}
+                        options={departments}
+                        onChange={v => setDepartmentId(v === 'all' ? '' : v)}
+                        placeholder="All Departments"
+                    />
+                    <FilterDropdown
+                        label="Program"
+                        value={program || 'all'}
+                        options={programs}
+                        onChange={v => setProgram(v === 'all' ? '' : v)}
+                        placeholder="All Programs"
+                    />
+                    <FilterDropdown
+                        label="Year Level"
+                        value={yearLevel || 'all'}
+                        options={yearLevels}
+                        onChange={v => setYearLevel(v === 'all' ? '' : v)}
+                        placeholder="All Year Levels"
+                    />
+                    <FilterDropdown
+                        label="Section"
+                        value={section || 'all'}
+                        options={sections}
+                        onChange={v => setSection(v === 'all' ? '' : v)}
+                        placeholder="All Sections"
+                    />
+                    <DateRangePicker
+                        label="Date Range"
+                        value={dateRange}
+                        onChange={setDateRange}
+                        placeholder="Pick a date range"
+                    />
+                    <div className="flex items-end">
+                        <Button size="sm" onClick={handleFilter} className="bg-blue-600 hover:bg-blue-700 text-white">
+                            Apply Filters
+                        </Button>
+                    </div>
+                </FilterBar>
 
                 {/* Stats Cards — 8 cards in 2 rows of 4 */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -410,7 +329,9 @@ export default function AccountDashboard({
                             </CardTitle>
                         </div>
                         <span className="text-sm text-muted-foreground">
-                            {months?.find(m => m.value === parseInt(month))?.label} {year}
+                            {filters.date_from && filters.date_to
+                                ? `${filters.date_from} – ${filters.date_to}`
+                                : `${months?.find(m => m.value === selectedMonth)?.label ?? ''} ${selectedYear}`}
                         </span>
                     </CardHeader>
                     <CardContent>
