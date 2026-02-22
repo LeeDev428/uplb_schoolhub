@@ -31,7 +31,7 @@ The system includes the following modules and user accounts:
 
 ### 1. 🏫 **School Management System (SMS) and e-LMS**
 
-#### **1.1 Owner / Administrator Portal** ✅ `95% COMPLETE`
+#### **1.1 Owner / Administrator Portal** ✅ `98% COMPLETE`
 
 - [x] Full system dashboard with analytics (enrollment, payments, department stats)
 - [x] School-wide calendar with event management
@@ -45,6 +45,8 @@ The system includes the following modules and user accounts:
 - [x] User management (CRUD with role-based auto password generation)
 - [x] Announcements management (create, pin, target by role, with attachments)
 - [x] Financial reports and exports
+- [x] **Landing Page CMS** — Edit hero (title, subtitle, image gallery carousel), faculty section, principal's message (with author photo), alumni/notable graduates section, footer, and navigation links — all from a 4-tab settings editor
+- [x] **App Settings** — App name, academic structure type (K12/College), theme colors, logo/favicon upload
 
 #### **1.2 Registrar Account** ✅ `75% COMPLETE`
 
@@ -61,7 +63,7 @@ The system includes the following modules and user accounts:
 - [ ] Academic record and transcript generation
 - [ ] Integration with e-LMS for student academic tracking
 
-#### **1.3 Accounting Account** ✅ `65% COMPLETE`
+#### **1.3 Accounting Account** ✅ `70% COMPLETE`
 
 - [x] Student billing and fees management (CRUD)
 - [x] Student payments processing (CRUD)
@@ -69,10 +71,13 @@ The system includes the following modules and user accounts:
 - [x] Payment tracking with status filters
 - [x] Financial reports with export functionality
 - [x] Announcements viewing (role-targeted)
+- [x] **Comprehensive main dashboard** — Student count by payment status (fully paid/partial/overdue), total projected revenue, total collected, outstanding balance, collection rate progress bar, monthly income bar chart, department balance breakdown, recent payment activity feed
+- [x] **Accounting dashboard** — Daily income table per month, colored stat cards with collection rate, payment status breakdown (fully paid/partial/unpaid) with progress indicators, recent payments and top pending balances
+- [x] **Account dashboard** — Per-student account view with payment history, daily collection bar chart, payment method breakdown (Cash/GCash/Bank), transaction history table
 - [ ] Advanced financial auditing
 - [ ] Monitoring and approval of student wallet/load transactions
 
-#### **1.4 Teacher Portal** 🔄 `40% COMPLETE`
+#### **1.4 Teacher Portal** 🔄 `50% COMPLETE`
 
 - [x] Dashboard with analytics (classes, students, subjects)
 - [x] View assigned class schedules (PDF viewer)
@@ -83,12 +88,12 @@ The system includes the following modules and user accounts:
 - [x] **Quiz Publishing** - Publish/unpublish quizzes, set time limits and attempts
 - [x] **Quiz Results** - View student attempts and scores
 - [x] **Manual Grading** - Grade text-based answers manually
+- [x] **Teacher Profile Page** — Update personal info (name, phone, specialization, bio), upload/remove profile photo, toggle `Show on Landing Page` to appear in the faculty section of the public landing page
 - [x] Announcements viewing (role-targeted)
 - [ ] Digital grade encoding
 - [ ] Attendance monitoring
 - [ ] Uploading of lessons, modules, and learning materials
 - [ ] Creation of assignments
-
 #### **1.5 Student Portal** 🔄 `35% COMPLETE`
 
 - [x] Dashboard with quick links
@@ -439,14 +444,14 @@ school-mgmt_lms_pos/
 
 ## 📊 Implementation Progress
 
-### **Overall Progress: ~45%**
+### **Overall Progress: ~50%**
 
 | Module | Status | Completion | Priority |
 |--------|--------|------------|----------|
-| 🏫 Owner/Admin Portal | ✅ Done | 95% | - |
+| 🏫 Owner/Admin Portal | ✅ Done | 98% | - |
 | 📝 Registrar Account | ✅ Done | 75% | - |
-| 💰 Accounting Account | 🔄 In Progress | 65% | High |
-| 👨‍🏫 Teacher Portal | 🔄 In Progress | 40% | **Critical** |
+| 💰 Accounting Account | ✅ Enhanced | 70% | High |
+| 👨‍🏫 Teacher Portal | 🔄 In Progress | 50% | **Critical** |
 | 👨‍🎓 Student Portal | 🔄 In Progress | 35% | **Critical** |
 | 👨‍👩‍👦 Parent Portal | 🔄 In Progress | 10% | **Critical** |
 | 🧑‍⚕️ Guidance Counselor | 🔄 In Progress | 20% | Medium |
@@ -457,7 +462,7 @@ school-mgmt_lms_pos/
 
 ### **Detailed Breakdown**
 
-#### ✅ **Completed Features (45%)**
+#### ✅ **Completed Features (50%)**
 - [x] Authentication system (Login/Logout/Role-based access with 2FA support)
 - [x] Owner/Administrator dashboard with full analytics
 - [x] Department management (K-12 & College classification)
@@ -487,6 +492,10 @@ school-mgmt_lms_pos/
 - [x] Profile settings with photo support
 - [x] Guidance counselor records management
 - [x] Library book inventory and transactions
+- [x] **Landing Page CMS** — Owner can fully edit the public landing page (hero carousel, faculty section, principal's message with author photo, alumni section, footer, navigation links) from the app-settings page
+- [x] **Public Landing Page** — Dynamic welcome page driven by app settings; hero image carousel, faculty cards from DB, principal's message, alumni showcase, custom footer; no gradients, clean flat design
+- [x] **Accounting Dashboards** — Comprehensive stats with colored stat cards, collection rate progress, payment status breakdown, monthly/daily income charts, department balance breakdown
+- [x] **Teacher Profile Page** — Edit bio, phone, specialization; upload profile photo; toggle `show_on_landing` to appear in public faculty section
 
 #### 🔄 **In Progress (15%)**
 - [ ] Teacher grade encoding
@@ -598,6 +607,18 @@ php artisan test --coverage
 - Issue: User dropdown showing initials instead of profile photo
 - Fix: Added `avatar` field to shared Inertia auth data from User model's `profile_photo_url` accessor
 
+✅ **Teacher Portal Student/Grade Scoping** *(Fixed: Feb 2026)*
+- Issue: Teacher portal was fetching ALL students and grades, not just the teacher's assigned sections
+- Fix: `StudentController` and `GradeController` now scope queries to sections where `teacher_id` matches the authenticated teacher's ID
+
+✅ **Subjects Showing TBA for Unassigned Sections** *(Fixed: Feb 2026)*
+- Issue: Parent and student portals showed no teacher info when no teacher was assigned to a section
+- Fix: Frontend displays "TBA" when `teacher_name` is null, preventing empty/broken UI
+
+✅ **Welcome Page Duplicate Component** *(Fixed: Feb 22, 2026)*
+- Issue: A `replace_string_in_file` operation prepended new content without removing old duplicate component (~500 lines of old code remained)
+- Fix: File truncated to exact line boundary; one clean `Welcome` component remains
+
 ---
 
 ## 🗺️ Roadmap
@@ -668,4 +689,4 @@ For issues, questions, or feature requests:
 
 **Built with ❤️ using Laravel 12, React 19, TypeScript 5, and TailwindCSS 4**
 
-*Project Progress: 45% Complete | Last Updated: February 13, 2026*
+*Project Progress: 50% Complete | Last Updated: February 22, 2026*
