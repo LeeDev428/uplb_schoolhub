@@ -29,6 +29,10 @@ class AppSetting extends Model
         'alumni_section_title',
         'alumni_section_subtitle',
         'alumni_items',
+        'features_section_title',
+        'features_section_subtitle',
+        'features_show',
+        'features_items',
         'footer_tagline',
         'footer_address',
         'footer_phone',
@@ -38,11 +42,13 @@ class AppSetting extends Model
     ];
 
     protected $casts = [
-        'has_k12'      => 'boolean',
-        'has_college'  => 'boolean',
-        'hero_images'  => 'array',
-        'alumni_items' => 'array',
-        'nav_links'    => 'array',
+        'has_k12'          => 'boolean',
+        'has_college'      => 'boolean',
+        'features_show'    => 'boolean',
+        'hero_images'      => 'array',
+        'alumni_items'     => 'array',
+        'features_items'   => 'array',
+        'nav_links'        => 'array',
     ];
 
     public static function current(): self
