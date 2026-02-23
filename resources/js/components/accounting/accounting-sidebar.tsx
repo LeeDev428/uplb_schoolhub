@@ -13,6 +13,7 @@ import {
     LayoutGrid,
     Megaphone,
     Receipt,
+    RotateCcw,
     Settings,
     Users,
 } from 'lucide-react';
@@ -92,6 +93,11 @@ export function AccountingSidebar() {
             title: 'Student Clearance',
             href: '/accounting/clearance',
             icon: ClipboardCheck,
+        },
+        {
+            title: 'Refund / Void',
+            href: '/accounting/refunds',
+            icon: RotateCcw,
         },
         {
             title: 'Reports',
