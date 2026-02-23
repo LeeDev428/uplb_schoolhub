@@ -168,21 +168,13 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
         printWindow.document.close();
     };
 
+    // Requirements shown separately as prerequisite (not counted in the 3-step progress)
+    const reqPct = clearance?.requirements_complete_percentage || 0;
+    const reqDone = clearance?.requirements_complete || false;
+
     const clearanceSteps = [
         {
             id: 1,
-            title: 'Requirements Complete',
-            description: clearance ? 
-                (clearance.requirements_complete ? 'Completed' : `${clearance.requirements_complete_percentage}% Complete`) : 
-                'Pending',
-            completed: clearance?.requirements_complete || false,
-            percentage: clearance?.requirements_complete_percentage || 0,
-            color: 'bg-green-500',
-            key: 'requirements_complete',
-            canToggle: false, // Auto-calculated based on submitted requirements
-        },
-        {
-            id: 2,
             title: 'Registrar Clearance',
             description: clearance?.registrar_clearance ? 'Completed' : 'Pending',
             completed: clearance?.registrar_clearance || false,
@@ -192,7 +184,7 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
             canToggle: true,
         },
         {
-            id: 3,
+            id: 2,
             title: 'Accounting Clearance',
             description: clearance?.accounting_clearance ? 'Cleared by Accounting' : 'Pending from Accounting',
             completed: clearance?.accounting_clearance || false,
