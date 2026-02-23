@@ -16,11 +16,11 @@ class RequirementController extends Controller
         $parent = $user->parent;
 
         $children = $parent
-            ? Student::where('parent_id', $parent->id)
+            ? $parent->students()
                 ->with([
                     'department:id,name',
-                    'section:id,name',
-                    'section.yearLevel:id,name',
+                    'sectionModel:id,name',
+                    'sectionModel.yearLevel:id,name',
                     'requirements.requirement:id,name,description,is_required',
                 ])
                 ->get()
@@ -54,7 +54,7 @@ class RequirementController extends Controller
             'student_id'       => $student->student_id ?? $student->id,
             'enrollment_status'=> $student->enrollment_status ?? 'not_enrolled',
             'department'       => $student->department?->name,
-            'year_level'       => $student->section?->yearLevel?->name,
+            'year_level'       => $student->sectionModel?->yearLevel?->name ?? $student->year_level,
             'requirements'     => $requirements,
             'stats' => [
                 'total'      => $total,
