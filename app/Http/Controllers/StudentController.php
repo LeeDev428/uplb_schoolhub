@@ -455,8 +455,19 @@ class StudentController extends Controller
         // Get or create enrollment clearance
         $clearance = $student->enrollmentClearance()->firstOrCreate([]);
 
+        // Always sync requirements_complete from actual approved requirements so it's
+        // never stale when the registrar checks/toggles the other clearance fields.
+        $reqTotal    = $student->requirements()->count();
+        $reqApproved = $student->requirements()->where('status', 'approved')->count();
+        $reqPct      = $reqTotal > 0 ? (int) round(($reqApproved / $reqTotal) * 100) : 0;
+
         // Build update array dynamically
-        $updateData = [$clearanceType => $status];
+        $updateData = [
+            $clearanceType => $status,
+            // Always keep requirements_complete in sync with actual approvals
+            'requirements_complete'            => $reqPct >= 100,
+            'requirements_complete_percentage' => $reqPct,
+        ];
         
         // Add timestamp and user fields for specific clearance types (not requirements_complete)
         if ($clearanceType !== 'requirements_complete') {
@@ -497,7 +508,7 @@ class StudentController extends Controller
         }
 
         // Update enrollment status if all clearances are complete
-        if ($clearance->isFullyCleared()) {
+        if ($clearance->fresh()->isFullyCleared()) {
             $clearance->update(['enrollment_status' => 'completed']);
             $student->update(['enrollment_status' => 'enrolled']);
         } else {
