@@ -68,22 +68,25 @@ class EnrollmentClearance extends Model
     }
 
     // Helper methods
+    /**
+     * Overall progress is based only on the 3 actionable clearance steps:
+     * Registrar Clearance, Accounting Clearance, Official Enrollment.
+     * Requirements are tracked separately as a prerequisite.
+     */
     public function getOverallProgressAttribute(): int
     {
         $completed = 0;
-        if ($this->requirements_complete) $completed++;
         if ($this->registrar_clearance) $completed++;
         if ($this->accounting_clearance) $completed++;
         if ($this->official_enrollment) $completed++;
-        
-        return (int) round(($completed / 4) * 100);
+
+        return (int) round(($completed / 3) * 100);
     }
 
     public function isFullyCleared(): bool
     {
-        return $this->requirements_complete && 
-               $this->registrar_clearance && 
-               $this->accounting_clearance && 
+        return $this->registrar_clearance &&
+               $this->accounting_clearance &&
                $this->official_enrollment;
     }
 }
