@@ -23,7 +23,7 @@ class FeesController extends Controller
 
         $children = $parent
             ? $parent->students()
-                ->with(['department:id,name', 'section:id,name', 'section.yearLevel:id,name'])
+                ->with(['department:id,name', 'sectionModel:id,name', 'sectionModel.yearLevel:id,name'])
                 ->get()
                 ->map(fn ($student) => $this->buildChildFees($student))
             : collect();
@@ -68,8 +68,8 @@ class FeesController extends Controller
             'student_id'       => $student->student_id ?? $student->id,
             'enrollment_status'=> $student->enrollment_status ?? 'not_enrolled',
             'department'       => $student->department?->name,
-            'year_level'       => $student->section?->yearLevel?->name,
-            'section'          => $student->section?->name,
+            'year_level'       => $student->sectionModel?->yearLevel?->name ?? $student->year_level,
+            'section'          => $student->sectionModel?->name ?? $student->section,
             'payment' => [
                 'total_fees'        => $totalFees,
                 'total_discount'    => $totalDiscount,
