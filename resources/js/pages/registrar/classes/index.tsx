@@ -127,6 +127,8 @@ export default function RegistrarClassesIndex({
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [unassignedGenderFilter, setUnassignedGenderFilter] = useState<'all' | 'Male' | 'Female'>('all');
     const [assigning, setAssigning] = useState(false);
+    const [draggedStudentId, setDraggedStudentId] = useState<number | null>(null);
+    const [dragOverSectionId, setDragOverSectionId] = useState<number | null>(null);
 
     // Filter year levels based on selected department
     const filteredYearLevels = useMemo(() => {
@@ -281,6 +283,52 @@ export default function RegistrarClassesIndex({
         return name;
     };
 
+    // ── Drag-and-drop ──────────────────────────────────────────────────────────
+    const handleDragStart = (e: React.DragEvent, studentId: number) => {
+        setDraggedStudentId(studentId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', studentId.toString());
+    };
+
+    const handleDragEnd = () => {
+        setDraggedStudentId(null);
+        setDragOverSectionId(null);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDragEnter = (e: React.DragEvent, sectionId: number) => {
+        e.preventDefault();
+        setDragOverSectionId(sectionId);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setDragOverSectionId(null);
+        }
+    };
+
+    const handleDropOnSection = (e: React.DragEvent, sectionId: number) => {
+        e.preventDefault();
+        setDragOverSectionId(null);
+        const rawId = e.dataTransfer.getData('text/plain');
+        const studentId = draggedStudentId ?? (rawId ? parseInt(rawId) : null);
+        if (!studentId) return;
+        setDraggedStudentId(null);
+
+        router.post('/registrar/classes/assign', {
+            student_ids: [studentId],
+            section_id: sectionId,
+        }, {
+            preserveState: false,
+            onSuccess: () => toast.success('Student assigned to section'),
+            onError: (errors) => toast.error(Object.values(errors)[0] as string),
+        });
+    };
+
     return (
         <RegistrarLayout breadcrumbs={breadcrumbs}>
             <Head title="Class Management" />
@@ -394,6 +442,11 @@ export default function RegistrarClassesIndex({
                                     Unassigned Students
                                     <Badge variant="secondary">{unassignedStudents.length}</Badge>
                                 </CardTitle>
+                                {draggedStudentId && (
+                                    <span className="text-xs text-primary font-medium animate-pulse">
+                                        Drag to a section →
+                                    </span>
+                                )}
                             </div>
 
                             {/* Gender Tabs */}
@@ -461,9 +514,12 @@ export default function RegistrarClassesIndex({
                                     {displayedUnassigned.map((student) => (
                                         <div
                                             key={student.id}
-                                            className={`flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer ${
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, student.id)}
+                                            onDragEnd={handleDragEnd}
+                                            className={`flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-grab active:cursor-grabbing select-none ${
                                                 selectedStudents.includes(student.id) ? 'bg-primary/5 border border-primary/20' : ''
-                                            }`}
+                                            } ${draggedStudentId === student.id ? 'opacity-40 scale-95' : ''}`}
                                             onClick={() => toggleStudent(student.id)}
                                         >
                                             <Checkbox
@@ -514,8 +570,32 @@ export default function RegistrarClassesIndex({
                                 </div>
                             ) : (
                                 <div className="space-y-2">
-                                    {sections.map((section) => (
-                                        <div key={section.id} className="border rounded-lg overflow-hidden">
+                                    {sections.map((section) => {
+                                        const sectionMale   = section.assigned_students.filter(s => s.gender === 'Male').length;
+                                        const sectionFemale = section.assigned_students.filter(s => s.gender === 'Female').length;
+                                        const isDragTarget  = dragOverSectionId === section.id && draggedStudentId !== null;
+                                        return (
+                                        <div
+                                            key={section.id}
+                                            className={`border rounded-lg overflow-hidden transition-all duration-150 ${
+                                                isDragTarget
+                                                    ? 'border-primary border-2 shadow-md bg-primary/5 scale-[1.01]'
+                                                    : draggedStudentId
+                                                    ? 'border-dashed border-muted-foreground/40 hover:border-primary/60 hover:bg-primary/5'
+                                                    : ''
+                                            }`}
+                                            onDragOver={handleDragOver}
+                                            onDragEnter={(e) => handleDragEnter(e, section.id)}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDropOnSection(e, section.id)}
+                                        >
+                                            {/* Drop hint overlay */}
+                                            {isDragTarget && (
+                                                <div className="flex items-center justify-center gap-2 py-2 bg-primary/10 text-primary text-xs font-semibold">
+                                                    <ArrowRight className="h-3.5 w-3.5" />
+                                                    Drop to assign to {section.name}
+                                                </div>
+                                            )}
                                             {/* Section Header */}
                                             <button
                                                 className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
