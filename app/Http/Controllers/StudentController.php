@@ -519,7 +519,8 @@ class StudentController extends Controller
     }
 
     /**
-     * Drop a student (change enrollment status to dropped)
+     * Drop a student (change enrollment status to dropped).
+     * Automatically creates a pending refund request if the student has any payments on record.
      */
     public function dropStudent(Student $student)
     {
@@ -527,6 +528,26 @@ class StudentController extends Controller
             'enrollment_status' => 'dropped',
         ]);
 
-        return back()->with('success', 'Student dropped successfully');
+        // Auto-create a refund request if student has made payments
+        $totalPaid = $student->fees()->sum('total_paid');
+
+        if ($totalPaid > 0) {
+            $latestFee = $student->fees()->latest()->first();
+
+            \App\Models\RefundRequest::firstOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'status'     => 'pending',
+                ],
+                [
+                    'student_fee_id' => $latestFee?->id,
+                    'type'           => 'refund',
+                    'amount'         => (float) $totalPaid,
+                    'reason'         => 'Student dropped — auto-generated refund request.',
+                ]
+            );
+        }
+
+        return back()->with('success', 'Student dropped successfully.' . ($totalPaid > 0 ? ' A refund request has been created for accounting review.' : ''));
     }
 }
