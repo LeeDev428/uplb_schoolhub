@@ -206,7 +206,7 @@ class StudentController extends Controller
             // Link student to existing parent if not already linked
             if (!$existingParent->students()->where('student_id', $student->id)->exists()) {
                 $existingParent->students()->attach($student->id, [
-                    'relationship' => $student->guardian_relationship ?? 'guardian',
+                    'relationship_type' => $student->guardian_relationship ?? 'guardian',
                 ]);
             }
             return;
@@ -229,7 +229,7 @@ class StudentController extends Controller
 
         // Link student to parent via pivot
         $parent->students()->attach($student->id, [
-            'relationship' => $student->guardian_relationship ?? 'guardian',
+            'relationship_type' => $student->guardian_relationship ?? 'guardian',
         ]);
 
         // Create user account for parent (email-only login)
@@ -278,41 +278,40 @@ class StudentController extends Controller
      */
     public function updateEmail(Request $request, Student $student)
     {
+        // Resolve the student's linked user account so we can exclude it from the
+        // unique-email check on the users table (otherwise re-submitting the same
+        // email would fail validation).
+        $studentUser = User::where('student_id', $student->id)->first();
+
         $request->validate([
             'email' => [
                 'required',
                 'email',
                 'max:255',
                 \Illuminate\Validation\Rule::unique('students', 'email')->ignore($student->id),
-                \Illuminate\Validation\Rule::unique('users', 'email'),
+                \Illuminate\Validation\Rule::unique('users', 'email')->ignore($studentUser?->id),
             ],
         ]);
 
         $student->update(['email' => $request->email]);
 
-        $user = User::where('student_id', $student->id)->first();
-        if ($user) {
-            $user->update([
-                'email' => $request->email,
+        if ($studentUser) {
+            $studentUser->update([
+                'email'             => $request->email,
                 'email_verified_at' => null,
             ]);
 
             try {
-                $user->sendEmailVerificationNotification();
+                $studentUser->sendEmailVerificationNotification();
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::warning('Failed to resend email after update: ' . $e->getMessage());
             }
         }
 
-        // Also update parent user if guardian email matches
-        $parentUser = User::where('email', $student->getOriginal('email'))
-            ->where('role', User::ROLE_PARENT)
-            ->first();
-        if ($parentUser && $parentUser->email !== $request->email) {
-            // Only update the parent's guardian email on the student record; parent has separate email
-        }
-
-        return back()->with('success', 'Email updated and verification sent to ' . $request->email . '.');
+        // Redirect to the show page (not back()) so Inertia re-runs show() and
+        // returns a fresh emailVerified = false prop to the frontend.
+        return redirect()->route('registrar.students.show', $student)
+            ->with('success', 'Email updated and verification sent to ' . $request->email . '.');
     }
 
     /**
