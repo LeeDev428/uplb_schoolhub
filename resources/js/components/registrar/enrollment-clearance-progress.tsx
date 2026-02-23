@@ -79,7 +79,7 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
         .info-label { font-weight: bold; min-width: 120px; font-size: 10px; }
         .info-value { flex: 1; font-size: 10px; }
         .section-title { font-weight: bold; background: #333; color: #fff; padding: 3px 6px; margin: 8px 0 4px; font-size: 10px; text-transform: uppercase; }
-        .clearance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+        .clearance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
         .clearance-box { border: 1px solid #000; padding: 6px; text-align: center; }
         .clearance-box .status { font-size: 16px; }
         .clearance-box .label { font-size: 9px; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
@@ -124,11 +124,10 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
     </div>
 
     <div class="section-title">Enrollment Clearance Status</div>
+    <div style="margin-bottom:6px; font-size:10px;">
+        <strong>Requirements:</strong> ${clearance?.requirements_complete ? '✓ Approved' : `${clearance?.requirements_complete_percentage ?? 0}% Complete`}
+    </div>
     <div class="clearance-grid">
-        <div class="clearance-box">
-            <div class="status">${clearance?.requirements_complete ? '✓' : '○'}</div>
-            <div class="label">Requirements</div>
-        </div>
         <div class="clearance-box">
             <div class="status">${clearance?.registrar_clearance ? '✓' : '○'}</div>
             <div class="label">Registrar Clearance</div>
@@ -194,7 +193,7 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
             canToggle: false, // Only accounting department can toggle this
         },
         {
-            id: 4,
+            id: 3,
             title: 'Official Enrollment',
             description: clearance?.official_enrollment ? 'Completed' : 'Pending',
             completed: clearance?.official_enrollment || false,
@@ -224,6 +223,26 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
+                {/* Requirements Prerequisite Banner */}
+                <div className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border text-sm",
+                    reqDone ? "bg-green-50 border-green-200 text-green-700" : "bg-amber-50 border-amber-200 text-amber-700"
+                )}>
+                    <div className={cn(
+                        "flex items-center justify-center w-7 h-7 rounded-full flex-shrink-0",
+                        reqDone ? "bg-green-500 text-white" : "bg-amber-400 text-white"
+                    )}>
+                        {reqDone ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">!</span>}
+                    </div>
+                    <div className="flex-1">
+                        <span className="font-medium">Requirements: </span>
+                        {reqDone ? 'All requirements approved' : `${reqPct}% of requirements approved`}
+                    </div>
+                    <span className={cn(
+                        "text-xs font-semibold px-2 py-0.5 rounded-full",
+                        reqDone ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                    )}>Prerequisite</span>
+                </div>
                 {clearanceSteps.map((step, index) => (
                     <div 
                         key={step.id} 
@@ -286,7 +305,7 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
                                     >
                                         {step.completed ? 'Mark Incomplete' : 'Mark Complete'}
                                     </Button>
-                                    {step.id === 4 && step.completed && (
+                                    {step.id === 3 && step.completed && (
                                         <Button
                                             variant="outline"
                                             size="sm"
