@@ -118,7 +118,7 @@ class OnlinePaymentController extends Controller
      */
     private function getStudentFeeItems(Student $student): array
     {
-        $schoolYear = '2024-2025';
+        $schoolYear = \App\Models\AppSetting::current()->school_year ?? '2024-2025';
         
         // Get fee items from assignments
         $assignedFeeItemIds = FeeItemAssignment::where('school_year', $schoolYear)
