@@ -52,8 +52,7 @@ class ExamApprovalController extends Controller
         // 2. Have approved promissory notes, OR
         // 3. Have made partial payments
         $eligibleStudents = Student::whereHas('enrollmentClearance', function ($q) {
-                $q->where('registrar_clearance', true)
-                  ->orWhere('requirements_complete', true);
+                $q->where('registrar_clearance', true);
             })
             ->where(function ($q) {
                 // Not overdue OR has approved promissory note OR has made payments
@@ -76,21 +75,69 @@ class ExamApprovalController extends Controller
                     'full_name' => $student->full_name,
                     'lrn' => $student->lrn,
                     'student_photo_url' => $student->student_photo_url,
-                    'balance' => $currentFee->balance ?? 0,
-                    'total_paid' => $currentFee->total_paid ?? 0,
+                    'balance' => max(0, (float) ($currentFee->balance ?? 0)),
+                    'total_paid' => (float) ($currentFee->total_paid ?? 0),
                     'school_year' => $currentFee->school_year ?? now()->format('Y') . '-' . (now()->year + 1),
                 ];
             });
 
+        // Fully paid students — split by gender for male/female tables
+        $fullyPaidQuery = Student::whereHas('enrollmentClearance', function ($q) {
+                $q->where('registrar_clearance', true);
+            })
+            ->whereHas('fees', function ($fq) {
+                $fq->where('balance', '<=', 0)->where('total_amount', '>', 0);
+            })
+            ->with(['fees' => function ($q) {
+                $q->where('balance', '<=', 0)->where('total_amount', '>', 0)->latest();
+            }]);
+
+        // Apply search to fully paid list if provided
+        if ($search = $request->input('search')) {
+            $fullyPaidQuery->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('lrn', 'like', "%{$search}%");
+            });
+        }
+
+        $fullyPaidStudents = $fullyPaidQuery
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get()
+            ->map(function ($student) {
+                $fee = $student->fees->first();
+                return [
+                    'id'                => $student->id,
+                    'full_name'         => $student->full_name,
+                    'first_name'        => $student->first_name,
+                    'last_name'         => $student->last_name,
+                    'lrn'               => $student->lrn,
+                    'gender'            => strtolower($student->gender ?? ''),
+                    'program'           => $student->program,
+                    'year_level'        => $student->year_level,
+                    'section'           => $student->section,
+                    'student_photo_url' => $student->student_photo_url,
+                    'total_amount'      => (float) ($fee?->total_amount ?? 0),
+                    'total_paid'        => (float) ($fee?->total_paid ?? 0),
+                    'school_year'       => $fee?->school_year ?? '',
+                ];
+            });
+
+        $fullyPaidMale   = $fullyPaidStudents->where('gender', 'male')->values();
+        $fullyPaidFemale = $fullyPaidStudents->where('gender', 'female')->values();
+
         $schoolYears = ExamApproval::distinct()->pluck('school_year')->sort()->values();
 
         return Inertia::render('accounting/exam-approval/index', [
-            'approvals' => $approvals,
+            'approvals'       => $approvals,
             'eligibleStudents' => $eligibleStudents,
-            'examTypes' => ExamApproval::EXAM_TYPES,
-            'terms' => ExamApproval::TERMS,
-            'schoolYears' => $schoolYears,
-            'filters' => $request->only(['search', 'status', 'exam_type', 'school_year']),
+            'fullyPaidMale'   => $fullyPaidMale,
+            'fullyPaidFemale' => $fullyPaidFemale,
+            'examTypes'       => ExamApproval::EXAM_TYPES,
+            'terms'           => ExamApproval::TERMS,
+            'schoolYears'     => $schoolYears,
+            'filters'         => $request->only(['search', 'status', 'exam_type', 'school_year']),
         ]);
     }
 
