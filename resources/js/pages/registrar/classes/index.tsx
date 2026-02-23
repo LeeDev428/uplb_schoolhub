@@ -615,7 +615,10 @@ export default function RegistrarClassesIndex({
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {/* Gender breakdown */}
+                                                    <span className="text-xs text-blue-600 font-medium">{sectionMale}M</span>
+                                                    <span className="text-xs text-pink-600 font-medium">{sectionFemale}F</span>
                                                     <div className="h-2 w-16 rounded-full bg-muted overflow-hidden">
                                                         <div
                                                             className={`h-full rounded-full ${
@@ -672,37 +675,76 @@ export default function RegistrarClassesIndex({
                                                 );
                                                 return (
                                                     <>
-                                                        {/* Student list */}
+                                                        {/* Student table */}
                                                         <div className="border-t bg-muted/20">
                                                             {section.assigned_students.length === 0 ? (
                                                                 <p className="p-3 text-sm text-muted-foreground text-center">
                                                                     No students assigned
                                                                 </p>
                                                             ) : (
-                                                                <div className="divide-y">
-                                                                    {section.assigned_students.map((student) => (
-                                                                        <div
-                                                                            key={student.id}
-                                                                            className="flex items-center justify-between p-2 px-4 hover:bg-muted/50"
-                                                                        >
-                                                                            <div className="flex items-center gap-2 min-w-0">
-                                                                                <span className="text-sm truncate">{getStudentName(student)}</span>
-                                                                                <Badge variant="outline" className="text-xs shrink-0">
-                                                                                    {student.gender === 'Male' ? 'M' : 'F'}
-                                                                                </Badge>
-                                                                            </div>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                                                                                onClick={() => handleRemoveStudent(student.id)}
-                                                                                title="Remove from section"
-                                                                            >
-                                                                                <X className="h-3.5 w-3.5" />
-                                                                            </Button>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
+                                                                <table className="w-full text-xs">
+                                                                    <thead>
+                                                                        <tr className="border-b bg-muted/40 text-muted-foreground">
+                                                                            <th className="px-3 py-2 text-left font-medium w-6">#</th>
+                                                                            <th className="px-3 py-2 text-left font-medium">Name</th>
+                                                                            <th className="px-3 py-2 text-left font-medium hidden sm:table-cell">LRN / Student No.</th>
+                                                                            <th className="px-3 py-2 text-center font-medium w-8">Sex</th>
+                                                                            <th className="px-3 py-2 text-center font-medium hidden md:table-cell">Type</th>
+                                                                            <th className="px-3 py-2 w-8"></th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody className="divide-y">
+                                                                        {section.assigned_students.map((student, idx) => (
+                                                                            <tr key={student.id} className="hover:bg-muted/50 transition-colors">
+                                                                                <td className="px-3 py-2 text-muted-foreground">{idx + 1}</td>
+                                                                                <td className="px-3 py-2 font-medium">{getStudentName(student)}</td>
+                                                                                <td className="px-3 py-2 text-muted-foreground hidden sm:table-cell">
+                                                                                    {student.lrn || '—'}
+                                                                                </td>
+                                                                                <td className="px-3 py-2 text-center">
+                                                                                    <Badge
+                                                                                        variant="outline"
+                                                                                        className={`text-xs ${student.gender === 'Male' ? 'text-blue-600 border-blue-300' : 'text-pink-600 border-pink-300'}`}
+                                                                                    >
+                                                                                        {student.gender === 'Male' ? 'M' : 'F'}
+                                                                                    </Badge>
+                                                                                </td>
+                                                                                <td className="px-3 py-2 text-center hidden md:table-cell">
+                                                                                    {student.student_type ? (
+                                                                                        <Badge variant="secondary" className="text-xs capitalize">
+                                                                                            {student.student_type}
+                                                                                        </Badge>
+                                                                                    ) : '—'}
+                                                                                </td>
+                                                                                <td className="px-3 py-2">
+                                                                                    <Button
+                                                                                        variant="ghost"
+                                                                                        size="icon"
+                                                                                        className="h-6 w-6 text-destructive hover:text-destructive"
+                                                                                        onClick={() => handleRemoveStudent(student.id)}
+                                                                                        title="Remove from section"
+                                                                                    >
+                                                                                        <X className="h-3 w-3" />
+                                                                                    </Button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                    <tfoot>
+                                                                        <tr className="border-t bg-muted/30">
+                                                                            <td colSpan={2} className="px-3 py-1.5 text-xs text-muted-foreground font-medium">
+                                                                                Total: {section.assigned_students.length}
+                                                                            </td>
+                                                                            <td className="px-3 py-1.5 hidden sm:table-cell"></td>
+                                                                            <td className="px-3 py-1.5 text-center">
+                                                                                <span className="text-xs text-blue-600 font-semibold">{sectionMale}M</span>
+                                                                                <span className="text-xs mx-1 text-muted-foreground">/</span>
+                                                                                <span className="text-xs text-pink-600 font-semibold">{sectionFemale}F</span>
+                                                                            </td>
+                                                                            <td colSpan={2} className="hidden md:table-cell"></td>
+                                                                        </tr>
+                                                                    </tfoot>
+                                                                </table>
                                                             )}
                                                         </div>
 
@@ -740,7 +782,8 @@ export default function RegistrarClassesIndex({
                                                 );
                                             })()}
                                         </div>
-                                    ))}
+                                    );
+                                })}
                                 </div>
                             )}
                         </CardContent>
