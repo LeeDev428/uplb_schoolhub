@@ -63,6 +63,7 @@ interface NavLink {
 
 interface AppSettingsData {
     app_name: string;
+    school_year: string;
     primary_color: string;
     secondary_color: string;
     logo_url: string | null;
@@ -105,6 +106,7 @@ export default function AppSettings({ settings }: Props) {
     // ── General / branding ────────────────────────────────
     const { data, setData, post, processing, errors } = useForm({
         app_name:        settings.app_name || '',
+        school_year:     settings.school_year || '2024-2025',
         primary_color:   settings.primary_color || '#2563eb',
         secondary_color: settings.secondary_color || '#64748b',
         logo:    null as File | null,
@@ -347,6 +349,15 @@ export default function AppSettings({ settings }: Props) {
                                         {errors.app_name && <p className="text-sm text-destructive">{errors.app_name}</p>}
                                         <p className="text-xs text-muted-foreground">
                                             Appears in the browser tab, sidebar, and printed documents (COE, receipts).
+                                        </p>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="school_year">Current School Year</Label>
+                                        <Input id="school_year" value={data.school_year} onChange={e => setData('school_year', e.target.value)}
+                                            placeholder="e.g., 2025-2026" maxLength={20} />
+                                        {errors.school_year && <p className="text-sm text-destructive">{errors.school_year}</p>}
+                                        <p className="text-xs text-muted-foreground">
+                                            Used across fees, enrollment, and reports. Format: YYYY-YYYY (e.g., 2025-2026).
                                         </p>
                                     </div>
                                 </CardContent>
