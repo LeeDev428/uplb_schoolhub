@@ -42,6 +42,8 @@ import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { Check, MoreHorizontal, Plus, Trash2, X, CheckCircle, Users } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Student {
     id: number;
@@ -585,7 +587,82 @@ export default function ExamApprovalIndex({
                 )}
             </div>
 
-            {/* Deny Modal */}
+            {/* Fully Paid Students — Male / Female Tables */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-green-600" />
+                    <h2 className="text-lg font-semibold">Fully Paid Students</h2>
+                    <Badge className="bg-green-100 text-green-800 border border-green-200">
+                        {fullyPaidMale.length + fullyPaidFemale.length} total
+                    </Badge>
+                </div>
+
+                <Tabs defaultValue="male">
+                    <TabsList>
+                        <TabsTrigger value="male">
+                            Male ({fullyPaidMale.length})
+                        </TabsTrigger>
+                        <TabsTrigger value="female">
+                            Female ({fullyPaidFemale.length})
+                        </TabsTrigger>
+                    </TabsList>
+
+                    {(['male', 'female'] as const).map((gender) => {
+                        const students = gender === 'male' ? fullyPaidMale : fullyPaidFemale;
+                        return (
+                            <TabsContent key={gender} value={gender}>
+                                <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base capitalize">{gender} Students — Fully Paid</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-12">#</TableHead>
+                                                    <TableHead>Name</TableHead>
+                                                    <TableHead>LRN / Student No.</TableHead>
+                                                    <TableHead>Program</TableHead>
+                                                    <TableHead>Year Level</TableHead>
+                                                    <TableHead>Section</TableHead>
+                                                    <TableHead className="text-right">Total Paid</TableHead>
+                                                    <TableHead>School Year</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {students.length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                                                            No fully paid {gender} students.
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    students.map((student, idx) => (
+                                                        <TableRow key={student.id}>
+                                                            <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                                                            <TableCell>
+                                                                <div className="font-medium">{student.full_name}</div>
+                                                            </TableCell>
+                                                            <TableCell className="text-sm text-muted-foreground">{student.lrn}</TableCell>
+                                                            <TableCell className="text-sm">{student.program || '—'}</TableCell>
+                                                            <TableCell className="text-sm">{student.year_level || '—'}</TableCell>
+                                                            <TableCell className="text-sm">{student.section || '—'}</TableCell>
+                                                            <TableCell className="text-right text-green-600 font-medium">
+                                                                {formatCurrency(student.total_paid)}
+                                                            </TableCell>
+                                                            <TableCell className="text-sm">{student.school_year}</TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        );
+                    })}
+                </Tabs>
+            </div>
             <Dialog open={isDenyModalOpen} onOpenChange={(open) => {
                 setIsDenyModalOpen(open);
                 if (!open) {
