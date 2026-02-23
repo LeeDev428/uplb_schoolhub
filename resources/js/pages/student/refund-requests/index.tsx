@@ -1,8 +1,16 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Clock, CheckCircle2, XCircle, Plus, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    AlertTriangle,
+    CheckCircle2,
+    Clock,
+    Info,
+    Plus,
+    RefreshCw,
+    XCircle,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,6 +66,32 @@ type Props = {
     studentFees: StudentFee[];
 };
 
+const fmt = (val: number) =>
+    `₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const StatusBadge = ({ status }: { status: string }) => {
+    switch (status) {
+        case 'approved':
+            return (
+                <Badge className="bg-green-100 text-green-800 border border-green-200">
+                    <CheckCircle2 className="h-3 w-3 mr-1" /> Approved
+                </Badge>
+            );
+        case 'rejected':
+            return (
+                <Badge className="bg-red-100 text-red-800 border border-red-200">
+                    <XCircle className="h-3 w-3 mr-1" /> Rejected
+                </Badge>
+            );
+        default:
+            return (
+                <Badge className="bg-amber-100 text-amber-800 border border-amber-200">
+                    <Clock className="h-3 w-3 mr-1" /> Pending
+                </Badge>
+            );
+    }
+};
+
 export default function RefundRequestsIndex({ requests, studentFees }: Props) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -80,27 +114,21 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
         });
     };
 
-    const formatCurrency = (val: number) =>
-        `₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-    const statusBadge = (status: string) => {
-        switch (status) {
-            case 'approved': return <Badge className="bg-green-100 text-green-800 border border-green-200"><CheckCircle2 className="h-3 w-3 mr-1" />Approved</Badge>;
-            case 'rejected': return <Badge className="bg-red-100 text-red-800 border border-red-200"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
-            default:         return <Badge className="bg-amber-100 text-amber-800 border border-amber-200"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
-        }
-    };
+    const pending  = requests.filter(r => r.status === 'pending').length;
+    const approved = requests.filter(r => r.status === 'approved').length;
+    const rejected = requests.filter(r => r.status === 'rejected').length;
 
     return (
         <StudentLayout>
             <Head title="Refund / Void Requests" />
 
             <div className="space-y-6 p-6">
-                <div className="flex items-center justify-between">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold">Refund / Void Requests</h1>
                         <p className="text-muted-foreground text-sm mt-1">
-                            Request a refund or void for your payments. Accounting will review your request.
+                            Submit a refund or void request for payments you have made.
                         </p>
                     </div>
 
@@ -116,7 +144,7 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                 <DialogHeader>
                                     <DialogTitle>Submit Refund / Void Request</DialogTitle>
                                     <DialogDescription>
-                                        Fill in the details below. Accounting will review and process your request.
+                                        Accounting will review your request. Processing may take 3–5 business days.
                                     </DialogDescription>
                                 </DialogHeader>
 
@@ -125,7 +153,7 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                         <Label>Request Type *</Label>
                                         <Select
                                             value={form.data.type}
-                                            onValueChange={(v) => form.setData('type', v as 'refund' | 'void')}
+                                            onValueChange={v => form.setData('type', v as 'refund' | 'void')}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select type" />
@@ -135,17 +163,19 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                                 <SelectItem value="void">Void — Cancel / reverse a payment</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        {form.errors.type && <p className="text-sm text-destructive">{form.errors.type}</p>}
+                                        {form.errors.type && (
+                                            <p className="text-sm text-destructive">{form.errors.type}</p>
+                                        )}
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label>School Year / Fee Record *</Label>
+                                        <Label>Fee Record / School Year *</Label>
                                         <Select
                                             value={form.data.student_fee_id}
-                                            onValueChange={(v) => {
+                                            onValueChange={v => {
                                                 form.setData('student_fee_id', v);
                                                 const fee = studentFees.find(f => f.id.toString() === v);
-                                                if (fee) form.setData('amount', fee.total_paid.toString());
+                                                if (fee) form.setData('amount', fee.total_paid.toFixed(2));
                                             }}
                                         >
                                             <SelectTrigger>
@@ -154,15 +184,18 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                             <SelectContent>
                                                 {studentFees.map(fee => (
                                                     <SelectItem key={fee.id} value={fee.id.toString()}>
-                                                        {fee.school_year} — Paid: {formatCurrency(fee.total_paid)}
+                                                        {fee.school_year} — Paid: {fmt(fee.total_paid)}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                         {selectedFee && (
                                             <p className="text-xs text-muted-foreground">
-                                                Max refundable: {formatCurrency(selectedFee.total_paid)}
+                                                Max refundable: <strong>{fmt(selectedFee.total_paid)}</strong>
                                             </p>
+                                        )}
+                                        {form.errors.student_fee_id && (
+                                            <p className="text-sm text-destructive">{form.errors.student_fee_id}</p>
                                         )}
                                     </div>
 
@@ -177,7 +210,9 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                             onChange={e => form.setData('amount', e.target.value)}
                                             placeholder="0.00"
                                         />
-                                        {form.errors.amount && <p className="text-sm text-destructive">{form.errors.amount}</p>}
+                                        {form.errors.amount && (
+                                            <p className="text-sm text-destructive">{form.errors.amount}</p>
+                                        )}
                                     </div>
 
                                     <div className="grid gap-2">
@@ -188,7 +223,9 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                             placeholder="Explain why you are requesting this refund/void..."
                                             rows={3}
                                         />
-                                        {form.errors.reason && <p className="text-sm text-destructive">{form.errors.reason}</p>}
+                                        {form.errors.reason && (
+                                            <p className="text-sm text-destructive">{form.errors.reason}</p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -197,7 +234,7 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                         Cancel
                                     </Button>
                                     <Button type="submit" disabled={form.processing}>
-                                        {form.processing ? 'Submitting...' : 'Submit Request'}
+                                        {form.processing ? 'Submitting…' : 'Submit Request'}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -205,11 +242,66 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                     </Dialog>
                 </div>
 
+                {/* Drop / Withdrawal Warning */}
+                <Card className="border-red-200 bg-red-50">
+                    <CardContent className="pt-4">
+                        <div className="flex gap-3">
+                            <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                            <div className="space-y-1">
+                                <p className="font-semibold text-red-800 text-sm">
+                                    Important Notice — Dropping / Withdrawal
+                                </p>
+                                <p className="text-sm text-red-700">
+                                    Submitting a <strong>Refund</strong> request means you are requesting to be
+                                    <strong> dropped or withdrawn</strong> from your enrollment. Your enrollment
+                                    status may be updated once accounting processes and approves the request.
+                                    Please coordinate with the Registrar’s Office first.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Stats */}
+                {requests.length > 0 && (
+                    <div className="grid grid-cols-3 gap-4">
+                        <Card>
+                            <CardContent className="pt-4 flex items-center gap-3">
+                                <Clock className="h-7 w-7 text-amber-500" />
+                                <div>
+                                    <p className="text-xl font-bold">{pending}</p>
+                                    <p className="text-xs text-muted-foreground">Pending</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="pt-4 flex items-center gap-3">
+                                <CheckCircle2 className="h-7 w-7 text-green-500" />
+                                <div>
+                                    <p className="text-xl font-bold">{approved}</p>
+                                    <p className="text-xs text-muted-foreground">Approved</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="pt-4 flex items-center gap-3">
+                                <XCircle className="h-7 w-7 text-red-500" />
+                                <div>
+                                    <p className="text-xl font-bold">{rejected}</p>
+                                    <p className="text-xs text-muted-foreground">Rejected</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {/* No payment notice */}
                 {studentFees.length === 0 && (
-                    <Card className="border-amber-200 bg-amber-50">
-                        <CardContent className="pt-4">
-                            <p className="text-sm text-amber-800">
-                                You have no payment records yet. Refund requests are only available after a payment has been made.
+                    <Card className="border-blue-200 bg-blue-50">
+                        <CardContent className="pt-4 flex gap-3">
+                            <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                            <p className="text-sm text-blue-800">
+                                You have no payment records yet. Refund requests are only available after a payment has been recorded.
                             </p>
                         </CardContent>
                     </Card>
@@ -231,32 +323,36 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
                                     <TableHead className="text-right">Amount</TableHead>
                                     <TableHead>Reason</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Notes</TableHead>
+                                    <TableHead>Accounting Notes</TableHead>
+                                    <TableHead>Processed By</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {requests.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                            No refund/void requests yet.
+                                        <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
+                                            No requests submitted yet.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     requests.map(r => (
                                         <TableRow key={r.id}>
-                                            <TableCell className="text-sm">{r.created_at}</TableCell>
+                                            <TableCell className="text-sm whitespace-nowrap">{r.created_at}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline" className="capitalize">
-                                                    {r.type === 'void' ? <RefreshCw className="h-3 w-3 mr-1" /> : null}
+                                                <Badge variant="outline" className="capitalize gap-1">
+                                                    {r.type === 'void' && <RefreshCw className="h-3 w-3" />}
                                                     {r.type}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-sm">{r.school_year || '—'}</TableCell>
-                                            <TableCell className="text-right font-medium">{formatCurrency(r.amount)}</TableCell>
-                                            <TableCell className="text-sm max-w-[200px] truncate">{r.reason}</TableCell>
-                                            <TableCell>{statusBadge(r.status)}</TableCell>
+                                            <TableCell className="text-right font-medium">{fmt(r.amount)}</TableCell>
+                                            <TableCell className="text-sm max-w-[180px] truncate" title={r.reason}>{r.reason}</TableCell>
+                                            <TableCell><StatusBadge status={r.status} /></TableCell>
+                                            <TableCell className="text-sm text-muted-foreground max-w-[160px] truncate">
+                                                {r.accounting_notes || (r.status === 'pending' ? 'Awaiting review…' : '—')}
+                                            </TableCell>
                                             <TableCell className="text-sm text-muted-foreground">
-                                                {r.accounting_notes || (r.status === 'pending' ? 'Awaiting review' : '—')}
+                                                {r.processed_at ? r.processed_by : '—'}
                                             </TableCell>
                                         </TableRow>
                                     ))
