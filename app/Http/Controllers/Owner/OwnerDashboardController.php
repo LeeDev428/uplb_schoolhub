@@ -27,7 +27,7 @@ class OwnerDashboardController extends Controller
         $todayTarget = $monthlyTarget / $daysInMonth;
 
         // Overall Income (this school year or current fiscal period)
-        $currentSchoolYear = '2024-2025'; // Can be pulled from settings
+        $currentSchoolYear = \App\Models\AppSetting::current()->school_year ?? '2024-2025';
         $overallIncome = StudentPayment::whereHas('studentFee', function ($query) use ($currentSchoolYear) {
             $query->where('school_year', $currentSchoolYear);
         })->sum('amount');
