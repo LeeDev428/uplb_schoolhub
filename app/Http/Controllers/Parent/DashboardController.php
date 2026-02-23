@@ -32,8 +32,8 @@ class DashboardController extends Controller
         $children = $parent->students()
             ->with([
                 'department:id,name',
-                'section:id,name,room_number',
-                'section.yearLevel:id,name',
+                'sectionModel:id,name,room_number',
+                'sectionModel.yearLevel:id,name',
                 'requirements',
             ])
             ->get()
@@ -53,9 +53,9 @@ class DashboardController extends Controller
                     'photo_url'           => $student->photo_url ?? null,
                     'enrollment_status'   => $student->enrollment_status ?? 'not_enrolled',
                     'department'          => $student->department?->name,
-                    'program'             => $student->program?->name,
-                    'section'             => $student->section?->name,
-                    'year_level'          => $student->section?->yearLevel?->name,
+                    'program'             => $student->program ?? null,
+                    'section'             => $student->sectionModel?->name ?? $student->section,
+                    'year_level'          => $student->sectionModel?->yearLevel?->name ?? $student->year_level,
                     'classification'      => $student->classification ?? null,
                     'requirements' => [
                         'total'      => $total,
