@@ -442,6 +442,8 @@ export default function AppSettings({ settings }: Props) {
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
                         {/* ── LEFT: editor ─────────────────────────────── */}
                         <div className="space-y-6">
+                        {/* Hero */}
+                        <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2"><Layout className="h-5 w-5" /> Hero Section</CardTitle>
                                 <CardDescription>The first thing visitors see on the landing page</CardDescription>
