@@ -18,6 +18,11 @@ import {
     MailWarning,
     RotateCcw,
     MailOpen,
+    BookOpen,
+    CheckCircle,
+    XCircle,
+    MinusCircle,
+    ChevronRight,
 } from 'lucide-react';
 import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -125,6 +130,27 @@ interface EnrollmentHistory {
     remarks: string | null;
 }
 
+interface SubjectRow {
+    id: number;
+    code: string;
+    name: string;
+    units: number;
+    type: string;
+    semester: number | null;
+    year_level_name: string;
+    level_number: number;
+    status: 'enrolled' | 'completed' | 'failed' | 'dropped' | null;
+    enrollment_id: number | null;
+    grade: number | null;
+}
+
+interface CollegeSubjects {
+    school_year: string;
+    enrolled_units: number;
+    completed_units: number;
+    by_year_level: Record<string, SubjectRow[]>;
+}
+
 interface Student {
     id: number;
     first_name: string;
@@ -176,9 +202,11 @@ interface Props {
     sections: Section[];
     actionLogs: ActionLog[];
     enrollmentHistories: EnrollmentHistory[];
+    collegeSubjects?: CollegeSubjects | null;
+    currentSchoolYear: string;
 }
 
-export default function StudentShow({ student, requirementsCompletion, emailVerified, enrollmentClearance, departments, programs, yearLevels, sections, actionLogs = [], enrollmentHistories = [] }: Props) {
+export default function StudentShow({ student, requirementsCompletion, emailVerified, enrollmentClearance, departments, programs, yearLevels, sections, actionLogs = [], enrollmentHistories = [], collegeSubjects, currentSchoolYear }: Props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showEnrollmentHistoryModal, setShowEnrollmentHistoryModal] = useState(false);
     const [activeTab, setActiveTab] = useState('requirements');
@@ -472,10 +500,16 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
 
                 {/* Tabs Section */}
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className={`grid w-full ${collegeSubjects ? 'grid-cols-5' : 'grid-cols-4'}`}>
                         <TabsTrigger value="requirements">Submitted Requirements</TabsTrigger>
                         <TabsTrigger value="information">Student Information</TabsTrigger>
                         <TabsTrigger value="schedules">Schedules & Grades</TabsTrigger>
+                        {collegeSubjects && (
+                            <TabsTrigger value="subjects" className="flex items-center gap-1">
+                                <BookOpen className="h-3.5 w-3.5" />
+                                Subjects
+                            </TabsTrigger>
+                        )}
                         <TabsTrigger value="history">Transaction History</TabsTrigger>
                     </TabsList>
 
@@ -668,6 +702,147 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                             </CardContent>
                         </Card>
                     </TabsContent>
+
+                    {/* ── Subjects Tab (College only) ────────────────────────── */}
+                    {collegeSubjects && (
+                    <TabsContent value="subjects" className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <BookOpen className="h-5 w-5" />
+                                            College Curriculum — {collegeSubjects.school_year}
+                                        </CardTitle>
+                                        <CardDescription>
+                                            Subjects grouped by year level. Green = completed, amber = currently enrolled, red = failed.
+                                        </CardDescription>
+                                    </div>
+                                    <div className="text-right space-y-1">
+                                        <p className="text-xs text-muted-foreground">Enrolled units (this year)</p>
+                                        <p className="text-2xl font-bold text-blue-600">{collegeSubjects.enrolled_units}</p>
+                                        <p className="text-xs text-muted-foreground">Completed overall: <strong>{collegeSubjects.completed_units}</strong> units</p>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {Object.entries(collegeSubjects.by_year_level).map(([yearLevel, subjects]) => (
+                                    <div key={yearLevel}>
+                                        <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
+                                            <ChevronRight className="h-4 w-4" />
+                                            {yearLevel}
+                                        </h4>
+                                        <div className="rounded-lg border overflow-hidden">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Code</TableHead>
+                                                        <TableHead>Subject Name</TableHead>
+                                                        <TableHead className="text-center">Units</TableHead>
+                                                        <TableHead className="text-center">Sem</TableHead>
+                                                        <TableHead className="text-center">Type</TableHead>
+                                                        <TableHead className="text-center">Status</TableHead>
+                                                        <TableHead className="text-center">Grade</TableHead>
+                                                        <TableHead className="text-right">Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {(subjects as SubjectRow[]).map((subj) => (
+                                                        <TableRow key={subj.id} className={
+                                                            subj.status === 'completed' ? 'bg-green-50' :
+                                                            subj.status === 'enrolled'  ? 'bg-blue-50' :
+                                                            subj.status === 'failed'    ? 'bg-red-50' :
+                                                            subj.status === 'dropped'   ? 'bg-gray-50' : ''
+                                                        }>
+                                                            <TableCell className="font-mono text-xs">{subj.code}</TableCell>
+                                                            <TableCell>{subj.name}</TableCell>
+                                                            <TableCell className="text-center font-semibold">{subj.units}</TableCell>
+                                                            <TableCell className="text-center text-xs text-muted-foreground">
+                                                                {subj.semester === 1 ? '1st' : subj.semester === 2 ? '2nd' : subj.semester === null ? '—' : 'Sum'}
+                                                            </TableCell>
+                                                            <TableCell className="text-center">
+                                                                <Badge variant="outline" className="text-xs capitalize">{subj.type}</Badge>
+                                                            </TableCell>
+                                                            <TableCell className="text-center">
+                                                                {!subj.status && (
+                                                                    <span className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                                                                        <MinusCircle className="h-3.5 w-3.5" />
+                                                                        Not enrolled
+                                                                    </span>
+                                                                )}
+                                                                {subj.status === 'enrolled' && (
+                                                                    <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
+                                                                        <Clock className="h-3 w-3 mr-1" />
+                                                                        Enrolled
+                                                                    </Badge>
+                                                                )}
+                                                                {subj.status === 'completed' && (
+                                                                    <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">
+                                                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                                                        Completed
+                                                                    </Badge>
+                                                                )}
+                                                                {subj.status === 'failed' && (
+                                                                    <Badge className="bg-red-100 text-red-800 border-red-300 text-xs">
+                                                                        <XCircle className="h-3 w-3 mr-1" />
+                                                                        Failed
+                                                                    </Badge>
+                                                                )}
+                                                                {subj.status === 'dropped' && (
+                                                                    <Badge variant="secondary" className="text-xs">Dropped</Badge>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell className="text-center font-mono text-sm">
+                                                                {subj.grade != null ? subj.grade : '—'}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {subj.enrollment_id ? (
+                                                                    <Select
+                                                                        value={subj.status ?? ''}
+                                                                        onValueChange={(val) => {
+                                                                            router.patch(`/registrar/students/${student.id}/subjects/${subj.enrollment_id}`, {
+                                                                                status: val,
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        <SelectTrigger className="h-7 w-32 text-xs">
+                                                                            <SelectValue />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="enrolled">Enrolled</SelectItem>
+                                                                            <SelectItem value="completed">Completed</SelectItem>
+                                                                            <SelectItem value="failed">Failed</SelectItem>
+                                                                            <SelectItem value="dropped">Dropped</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                ) : (
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        className="h-7 text-xs"
+                                                                        onClick={() => {
+                                                                            router.post(`/registrar/students/${student.id}/subjects/sync`, {
+                                                                                subject_ids: [subj.id],
+                                                                                school_year: collegeSubjects.school_year,
+                                                                                semester: subj.semester,
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        Enroll
+                                                                    </Button>
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    )}
 
                     {/* Transaction History Tab */}
                     <TabsContent value="history" className="space-y-6">
