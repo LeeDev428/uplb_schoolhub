@@ -271,6 +271,7 @@ export default function OnlinePayment({ feeItems, summary, recentPayments, payme
                         </Card>
 
                         {/* Payment Submission Form */}
+                        {!isDropped && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
