@@ -39,6 +39,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
@@ -66,6 +67,7 @@ interface Student {
     full_name: string;
     program?: string;
     year_level?: string;
+    student_photo_url?: string | null;
 }
 
 interface GrantRecipient {
@@ -606,11 +608,22 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
                                         recipients.data.map((recipient) => (
                                             <TableRow key={recipient.id}>
                                                 <TableCell>
-                                                    <div>
-                                                        <div className="font-medium">{recipient.student.full_name}</div>
-                                                        <div className="text-sm text-muted-foreground">
-                                                            {recipient.student.lrn}
-                                                            {recipient.student.program && ` • ${recipient.student.program}`}
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-9 w-9">
+                                                            <AvatarImage
+                                                                src={recipient.student.student_photo_url ?? undefined}
+                                                                alt={recipient.student.full_name}
+                                                            />
+                                                            <AvatarFallback className="text-xs font-medium">
+                                                                {recipient.student.first_name?.[0]}{recipient.student.last_name?.[0]}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <div className="font-medium">{recipient.student.full_name}</div>
+                                                            <div className="text-sm text-muted-foreground">
+                                                                {recipient.student.lrn}
+                                                                {recipient.student.program && ` • ${recipient.student.program}`}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </TableCell>
