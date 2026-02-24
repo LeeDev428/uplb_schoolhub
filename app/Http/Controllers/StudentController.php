@@ -404,7 +404,7 @@ class StudentController extends Controller
             'sections' => Section::where('is_active', true)->with(['yearLevel:id,name', 'department:id,name', 'strand:id,name,code'])->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'code', 'capacity', 'room_number']),
             // College subjects curriculum (only for college departments)
             'collegeSubjects' => $this->getCollegeSubjectData($student),
-            'currentSchoolYear' => AppSetting::getSetting('school_year', date('Y') . '-' . (date('Y') + 1)),
+            'currentSchoolYear' => AppSetting::current()->school_year ?? (date('Y') . '-' . (date('Y') + 1)),
         ]);
     }
 
@@ -420,7 +420,7 @@ class StudentController extends Controller
             return null;
         }
 
-        $schoolYear = AppSetting::getSetting('school_year', date('Y') . '-' . (date('Y') + 1));
+        $schoolYear = AppSetting::current()->school_year ?? (date('Y') . '-' . (date('Y') + 1));
 
         $subjects = Subject::with(['yearLevel:id,name,level_number'])
             ->where('department_id', $student->department_id)
