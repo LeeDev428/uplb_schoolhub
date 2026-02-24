@@ -409,6 +409,7 @@ export default function OnlinePayment({ feeItems, summary, recentPayments, payme
                                 </form>
                             </CardContent>
                         </Card>
+                        )}
                     </div>
 
                     {/* Right Column - Recent Payments */}
