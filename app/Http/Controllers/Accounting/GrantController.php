@@ -78,6 +78,7 @@ class GrantController extends Controller
                     'full_name' => $student->full_name,
                     'program' => $student->program,
                     'year_level' => $student->year_level,
+                    'student_photo_url' => $student->student_photo_url,
                 ];
             });
 
