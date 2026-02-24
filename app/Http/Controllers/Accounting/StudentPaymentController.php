@@ -581,7 +581,43 @@ class StudentPaymentController extends Controller
             'is_overdue' => $isOverdue,
             'due_date' => $dueDate,
             'categories' => $itemsByCategory,
+            'carried_forward_balance' => (float) ($studentFee->carried_forward_balance ?? 0),
+            'carried_forward_from' => $studentFee->carried_forward_from ?? null,
         ];
+    }
+
+    /**
+     * Record a school year balance rollover (carry forward) for a student.
+     * Marks the current school year's StudentFee with how much was carried in from previous years.
+     */
+    public function carryForwardBalance(Request $request, Student $student): \Illuminate\Http\RedirectResponse
+    {
+        $currentSchoolYear = \App\Models\AppSetting::current()->school_year ?? date('Y') . '-' . (date('Y') + 1);
+
+        // Sum outstanding balances from previous school years
+        $previousFees = StudentFee::where('student_id', $student->id)
+            ->where('school_year', '!=', $currentSchoolYear)
+            ->where('balance', '>', 0)
+            ->get();
+
+        if ($previousFees->isEmpty()) {
+            return redirect()->back()->with('error', 'No previous balance to carry forward.');
+        }
+
+        $totalPreviousBalance = $previousFees->sum('balance');
+        $previousYears = $previousFees->pluck('school_year')->implode(', ');
+
+        // Get or create the current year's StudentFee
+        $currentFee = StudentFee::firstOrCreate(
+            ['student_id' => $student->id, 'school_year' => $currentSchoolYear],
+            ['total_amount' => 0, 'total_paid' => 0, 'balance' => 0, 'grant_discount' => 0]
+        );
+
+        $currentFee->carried_forward_balance = $totalPreviousBalance;
+        $currentFee->carried_forward_from    = $previousYears;
+        $currentFee->save();
+
+        return redirect()->back()->with('success', "Carried forward ₱" . number_format($totalPreviousBalance, 2) . " from {$previousYears}.");
     }
 
     /**
