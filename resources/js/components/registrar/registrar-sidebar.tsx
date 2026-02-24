@@ -11,6 +11,7 @@ import {
     ListChecks,
     Megaphone,
     Settings,
+    UserMinus,
     Users,
 } from 'lucide-react';
 import {
@@ -92,6 +93,11 @@ export function RegistrarSidebar() {
             title: 'Document Requests',
             href: '/registrar/document-approvals',
             icon: ClipboardCheck,
+        },
+        {
+            title: 'Drop Requests',
+            href: '/registrar/drop-requests',
+            icon: UserMinus,
         },
         {
             title: 'Deadlines',
