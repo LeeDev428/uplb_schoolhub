@@ -363,6 +363,10 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     Route::get('drop-request', [App\Http\Controllers\Student\DropRequestController::class, 'index'])->name('drop-request.index');
     Route::post('drop-request', [App\Http\Controllers\Student\DropRequestController::class, 'store'])->name('drop-request.store');
     Route::delete('drop-request/{dropRequest}', [App\Http\Controllers\Student\DropRequestController::class, 'cancel'])->name('drop-request.cancel');
+
+    // Self-Enrollment (returning students re-enroll for new school year)
+    Route::get('enrollment', [App\Http\Controllers\Student\SelfEnrollmentController::class, 'index'])->name('enrollment.index');
+    Route::post('enrollment', [App\Http\Controllers\Student\SelfEnrollmentController::class, 'store'])->name('enrollment.store');
     
     // Routes that require enrollment
     Route::middleware(['enrolled'])->group(function () {
