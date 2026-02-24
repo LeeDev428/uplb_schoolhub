@@ -411,6 +411,89 @@ class StudentController extends Controller
     }
 
     /**
+     * Build the college curriculum data for a student, annotated with enrollment status.
+     * Returns null for non-college students.
+     */
+    private function getCollegeSubjectData(Student $student): ?array
+    {
+        // Only applicable to college departments
+        $dept = \App\Models\Department::find($student->department_id);
+        if (!$dept || $dept->classification !== 'College') {
+            return null;
+        }
+
+        $schoolYear = AppSetting::getSetting('school_year', date('Y') . '-' . (date('Y') + 1));
+
+        $subjects = Subject::with(['yearLevel:id,name,level_number'])
+            ->where('department_id', $student->department_id)
+            ->where('classification', 'College')
+            ->where('is_active', true)
+            ->orderBy('year_level_id')
+            ->orderBy('semester')
+            ->orderBy('code')
+            ->get();
+
+        // All enrollment records for this student (all years)
+        $allEnrollments = StudentSubject::where('student_id', $student->id)
+            ->get()
+            ->groupBy(fn ($e) => "{$e->subject_id}_{$e->semester}");
+
+        // Current year enrolled units
+        $enrolledUnits = StudentSubject::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->where('status', 'enrolled')
+            ->join('subjects', 'subjects.id', '=', 'student_subjects.subject_id')
+            ->sum('subjects.units');
+
+        $completedUnits = StudentSubject::where('student_id', $student->id)
+            ->where('status', 'completed')
+            ->join('subjects', 'subjects.id', '=', 'student_subjects.subject_id')
+            ->sum('subjects.units');
+
+        $annotated = $subjects->map(function ($subject) use ($allEnrollments, $schoolYear) {
+            $key = "{$subject->id}_{$subject->semester}";
+            $enrollmentRecords = $allEnrollments[$key] ?? collect([]);
+
+            // Determine display status: prefer current year's record, else look at historical
+            $currentRecord  = $enrollmentRecords->firstWhere('school_year', $schoolYear);
+            $historicalPass = $enrollmentRecords->firstWhere('status', 'completed');
+
+            $displayStatus = null;
+            if ($currentRecord) {
+                $displayStatus = $currentRecord->status;
+            } elseif ($historicalPass) {
+                $displayStatus = 'completed';
+            }
+
+            return [
+                'id'              => $subject->id,
+                'code'            => $subject->code,
+                'name'            => $subject->name,
+                'units'           => (float) $subject->units,
+                'type'            => $subject->type,
+                'semester'        => $subject->semester,
+                'year_level_name' => $subject->yearLevel?->name ?? 'N/A',
+                'level_number'    => $subject->yearLevel?->level_number ?? 0,
+                'status'          => $displayStatus,
+                'enrollment_id'   => $currentRecord?->id,
+                'grade'           => $currentRecord?->grade ?? $historicalPass?->grade,
+            ];
+        });
+
+        $grouped = $annotated
+            ->sortBy(['level_number', 'semester', 'code'])
+            ->groupBy('year_level_name')
+            ->map(fn ($items) => $items->values());
+
+        return [
+            'school_year'     => $schoolYear,
+            'enrolled_units'  => (float) $enrolledUnits,
+            'completed_units' => (float) $completedUnits,
+            'by_year_level'   => $grouped,
+        ];
+    }
+
+    /**
      * Update the specified resource in storage.
      */
     public function update(UpdateStudentRequest $request, Student $student)
