@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, MailCheck, MailWarning, RotateCcw } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, MailCheck, MailWarning, RotateCcw, Archive, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
@@ -8,6 +8,7 @@ import { StudentStatCard } from '@/components/registrar/student-stat-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -156,6 +157,8 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
     const [editingStudent, setEditingStudent] = useState<Student | undefined>();
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [viewMode, setViewMode] = useState<'list' | 'classlist'>('list');
+    const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
+    const [isArchiving, setIsArchiving] = useState(false);
 
     // ── Global Active School Year ───────────────────────────────────────────────────
     const defaultSyStart = new Date().getMonth() < 5 ? new Date().getFullYear() - 1 : new Date().getFullYear();
@@ -172,6 +175,47 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
     useEffect(() => {
         localStorage.setItem('registrar_sy_start', syStart.toString());
     }, [syStart]);
+
+    // Clear selection when page changes
+    useEffect(() => {
+        setSelectedStudents([]);
+    }, [students.current_page]);
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedStudents(students.data.map(s => s.id));
+        } else {
+            setSelectedStudents([]);
+        }
+    };
+
+    const handleSelectStudent = (studentId: number, checked: boolean) => {
+        if (checked) {
+            setSelectedStudents(prev => [...prev, studentId]);
+        } else {
+            setSelectedStudents(prev => prev.filter(id => id !== studentId));
+        }
+    };
+
+    const handleBulkArchive = () => {
+        if (selectedStudents.length === 0) return;
+        
+        if (confirm(`Are you sure you want to archive ${selectedStudents.length} student(s)? This will set their status to "dropped" and deactivate their accounts.`)) {
+            setIsArchiving(true);
+            router.post('/registrar/students/bulk-archive', { student_ids: selectedStudents }, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    showSuccess(`Successfully archived ${selectedStudents.length} student(s).`);
+                    setSelectedStudents([]);
+                    setIsArchiving(false);
+                },
+                onError: () => {
+                    showError('Failed to archive students.');
+                    setIsArchiving(false);
+                },
+            });
+        }
+    };
 
     const handleAddStudent = () => {
         setEditingStudent(undefined);
@@ -256,6 +300,16 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                         </p>
                     </div>
                     <div className="flex space-x-3">
+                        {selectedStudents.length > 0 && (
+                            <Button 
+                                variant="destructive" 
+                                onClick={handleBulkArchive}
+                                disabled={isArchiving}
+                            >
+                                <Archive className="mr-2 h-4 w-4" />
+                                {isArchiving ? 'Archiving...' : `Archive (${selectedStudents.length})`}
+                            </Button>
+                        )}
                         <Button
                             variant={viewMode === 'classlist' ? 'default' : 'outline'}
                             onClick={() => setViewMode(viewMode === 'list' ? 'classlist' : 'list')}
@@ -441,6 +495,13 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-12">
+                                    <Checkbox
+                                        checked={selectedStudents.length === students.data.length && students.data.length > 0}
+                                        onCheckedChange={handleSelectAll}
+                                        aria-label="Select all"
+                                    />
+                                </TableHead>
                                 <TableHead>Student</TableHead>
                                 <TableHead>Student No.</TableHead>
                                 <TableHead>Type</TableHead>
