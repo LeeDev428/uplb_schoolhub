@@ -101,7 +101,7 @@ function formatDate(dateString: string): string {
     });
 }
 
-export default function OnlinePayment({ feeItems, summary, recentPayments, paymentMethods }: Props) {
+export default function OnlinePayment({ feeItems, summary, recentPayments, paymentMethods, enrollmentStatus, isDropped = false }: Props) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -156,12 +156,34 @@ export default function OnlinePayment({ feeItems, summary, recentPayments, payme
             <Head title="Online Payment" />
 
             <div className="space-y-6 p-6">
+                {/* Dropped Student Banner */}
+                {isDropped && (
+                    <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-400">
+                                <UserMinus className="h-5 w-5" />
+                                Account Dropped
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                                Your enrollment has been dropped. Online payments are disabled. If you believe this is an error or wish to request a refund, please visit the Refund Requests page.
+                            </p>
+                            <Button asChild variant="outline" className="border-red-300 text-red-800 hover:bg-red-100 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30">
+                                <Link href="/student/refund-requests">
+                                    View Refund Options
+                                </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Online Payment</h1>
                         <p className="text-muted-foreground">
-                            Submit your payment details for verification
+                            {isDropped ? 'View your payment history' : 'Submit your payment details for verification'}
                         </p>
                     </div>
                 </div>
