@@ -9,6 +9,7 @@ import {
     UserMinus,
     XCircle,
 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -95,7 +96,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     }
 };
 
-export default function RefundRequestsIndex({ requests, studentFees }: Props) {
+export default function RefundRequestsIndex({ requests, studentFees, canRequestRefund = true, dropStatus = 'none' }: Props) {
     const [isOpen, setIsOpen] = useState(false);
 
     const form = useForm({
@@ -121,11 +122,65 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
     const approved = requests.filter(r => r.status === 'approved').length;
     const rejected = requests.filter(r => r.status === 'rejected').length;
 
+    // Determine why refunds are blocked
+    const getRefundBlockReason = () => {
+        if (dropStatus === 'none') {
+            return {
+                title: 'Drop Request Required',
+                message: 'You must first submit and have a drop request approved before you can request a refund.',
+                action: '/student/drop-request',
+                actionLabel: 'Submit Drop Request',
+            };
+        }
+        if (dropStatus === 'pending') {
+            return {
+                title: 'Drop Request Pending',
+                message: 'Your drop request is still being reviewed. You can request a refund once it is approved.',
+                action: '/student/drop-request',
+                actionLabel: 'View Drop Request Status',
+            };
+        }
+        if (dropStatus === 'rejected') {
+            return {
+                title: 'Drop Request Rejected',
+                message: 'Your previous drop request was rejected. You may submit a new drop request if needed.',
+                action: '/student/drop-request',
+                actionLabel: 'View Drop Requests',
+            };
+        }
+        return null;
+    };
+
+    const blockReason = !canRequestRefund ? getRefundBlockReason() : null;
+
     return (
         <StudentLayout>
             <Head title="Refund / Void Requests" />
 
             <div className="space-y-6 p-6">
+                {/* Drop Request Required Banner */}
+                {blockReason && (
+                    <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
+                                <UserMinus className="h-5 w-5" />
+                                {blockReason.title}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <p className="text-sm text-amber-700 dark:text-amber-300">
+                                {blockReason.message}
+                            </p>
+                            <Button asChild variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/30">
+                                <Link href={blockReason.action}>
+                                    <UserMinus className="h-4 w-4 mr-2" />
+                                    {blockReason.actionLabel}
+                                </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                     <div>
@@ -137,7 +192,7 @@ export default function RefundRequestsIndex({ requests, studentFees }: Props) {
 
                     <Dialog open={isOpen} onOpenChange={setIsOpen}>
                         <DialogTrigger asChild>
-                            <Button disabled={studentFees.length === 0}>
+                            <Button disabled={!canRequestRefund || studentFees.length === 0}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 New Request
                             </Button>
