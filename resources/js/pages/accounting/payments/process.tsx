@@ -90,6 +90,8 @@ interface Fee {
     is_overdue: boolean;
     due_date: string | null;
     categories: FeeCategory[];
+    carried_forward_balance: number;
+    carried_forward_from: string | null;
 }
 
 interface Payment {
@@ -927,6 +929,43 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
 
                     {/* Tab 2: School Year Details */}
                     <TabsContent value="school-year" className="space-y-4">
+                        {/* Previous Balance Rollover Banner */}
+                        {summary.previous_balance > 0 && (
+                            <Card className="border-amber-200 bg-amber-50">
+                                <CardContent className="pt-4 pb-4">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                                            <div>
+                                                <p className="font-medium text-amber-800">
+                                                    Outstanding Previous Balance: {formatCurrency(summary.previous_balance)}
+                                                </p>
+                                                <p className="text-sm text-amber-700">
+                                                    This student has an unpaid balance from a previous school year.
+                                                    Use "Carry Forward" to formally acknowledge it for the current school year.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="flex-shrink-0 border-amber-400 text-amber-800 hover:bg-amber-100"
+                                            onClick={() => {
+                                                if (confirm(`Carry forward ₱${summary.previous_balance.toLocaleString('en-PH', { minimumFractionDigits: 2 })} from previous school year(s) to the current year record?`)) {
+                                                    router.post(`/accounting/payments/process/${student.id}/carry-forward`, {}, {
+                                                        preserveScroll: true,
+                                                    });
+                                                }
+                                            }}
+                                        >
+                                            <RefreshCw className="mr-1.5 h-4 w-4" />
+                                            Carry Forward
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         <Card>
                             <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -959,6 +998,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                 <TableHead>School Year</TableHead>
                                                 <TableHead className="text-right">Total Fees</TableHead>
                                                 <TableHead className="text-right">Discount</TableHead>
+                                                <TableHead className="text-right">Carried Fwd</TableHead>
                                                 <TableHead className="text-right">Paid</TableHead>
                                                 <TableHead className="text-right">Balance</TableHead>
                                                 <TableHead>Status</TableHead>
@@ -968,10 +1008,20 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                         <TableBody>
                                             {filteredFees.map((fee) => (
                                                 <TableRow key={fee.id} className={fee.is_overdue ? 'bg-red-50' : ''}>
-                                                    <TableCell className="font-medium">{fee.school_year}</TableCell>
+                                                    <TableCell className="font-medium">
+                                                        <div>{fee.school_year}</div>
+                                                        {fee.carried_forward_from && (
+                                                            <div className="text-xs text-amber-600">
+                                                                ↩ From {fee.carried_forward_from}
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell className="text-right">{formatCurrency(fee.total_amount)}</TableCell>
                                                     <TableCell className="text-right text-green-600">
                                                         {fee.grant_discount > 0 ? `-${formatCurrency(fee.grant_discount)}` : '-'}
+                                                    </TableCell>
+                                                    <TableCell className="text-right text-amber-600">
+                                                        {fee.carried_forward_balance > 0 ? formatCurrency(fee.carried_forward_balance) : '-'}
                                                     </TableCell>
                                                     <TableCell className="text-right text-blue-600">{formatCurrency(fee.total_paid)}</TableCell>
                                                     <TableCell className="text-right font-medium text-red-600">
