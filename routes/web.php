@@ -239,6 +239,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     // Payment Processing
     Route::get('payments/create', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'create'])->name('payments.create');
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
+    Route::post('payments/process/{student}/carry-forward', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'carryForwardBalance'])->name('payments.carry-forward');
     Route::get('payments/export', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'export'])->name('payments.export');
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
     
