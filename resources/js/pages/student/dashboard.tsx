@@ -109,6 +109,18 @@ export default function Dashboard({ student, stats, enrollmentClearance, payment
                                 You need to complete the following before you can be officially enrolled:
                             </p>
                             
+                            {/* Re-enrollment button for students not yet pending */}
+                            {(student.enrollment_status === 'not-enrolled' || student.enrollment_status === 'dropped') && (
+                                <div className="mb-4">
+                                    <Link href="/student/enrollment">
+                                        <Button size="sm" className="bg-white text-red-700 border border-red-300 hover:bg-red-50">
+                                            <GraduationCap className="h-4 w-4 mr-2" />
+                                            Apply for Re-Enrollment
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
+                            
                             <div className="grid gap-4 md:grid-cols-2">
                                 {/* Payment Status */}
                                 {paymentInfo && (
