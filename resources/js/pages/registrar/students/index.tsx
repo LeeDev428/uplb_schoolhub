@@ -530,6 +530,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                         <TableRow 
                                             key={student.id}
                                             className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                            onClick={() => router.visit(showStudent.url({ student: student.id }))}
                                         >
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <Checkbox
@@ -538,7 +539,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, f
                                                     aria-label={`Select ${fullName}`}
                                                 />
                                             </TableCell>
-                                            <TableCell onClick={() => router.visit(showStudent.url({ student: student.id }))}>
+                                            <TableCell>
                                                 <div className="flex items-center space-x-3">
                                                     <Avatar>
                                                         <AvatarImage src={student.student_photo_url || undefined} />
