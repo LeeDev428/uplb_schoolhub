@@ -194,6 +194,11 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     ]);
     Route::post('subjects/{subject}/assign-teachers', [\App\Http\Controllers\Registrar\RegistrarSubjectController::class, 'assignTeachers'])->name('registrar.subjects.assign-teachers');
 
+    // Student Subjects (College curriculum tracking)
+    Route::get('students/{student}/subjects', [\App\Http\Controllers\Registrar\StudentSubjectController::class, 'index'])->name('students.subjects.index');
+    Route::post('students/{student}/subjects/sync', [\App\Http\Controllers\Registrar\StudentSubjectController::class, 'sync'])->name('students.subjects.sync');
+    Route::patch('students/{student}/subjects/{enrollment}', [\App\Http\Controllers\Registrar\StudentSubjectController::class, 'updateStatus'])->name('students.subjects.update-status');
+
     Route::get('classes', [App\Http\Controllers\Registrar\ClassController::class, 'index'])->name('classes');
     Route::post('classes/assign', [App\Http\Controllers\Registrar\ClassController::class, 'assignStudents'])->name('classes.assign');
     Route::delete('classes/remove/{student}', [App\Http\Controllers\Registrar\ClassController::class, 'removeStudent'])->name('classes.remove');
