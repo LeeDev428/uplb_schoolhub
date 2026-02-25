@@ -42,6 +42,11 @@ class SelfEnrollmentController extends Controller
         // If there is already a pending enrollment request, show status
         $hasPendingRequest = $student->enrollment_status === 'pending-registrar';
 
+        // Check if enrollment is open for student's classification
+        $dept = Department::find($student->department_id);
+        $classification = $dept?->classification ?? 'K-12';
+        $enrollmentOpen = $settings->isEnrollmentOpen($classification);
+
         // Get available options from database
         $departments = Department::orderBy('name')->get(['id', 'name', 'code', 'classification']);
         $programs    = Program::orderBy('name')->get(['id', 'name', 'code', 'department_id']);
@@ -62,8 +67,18 @@ class SelfEnrollmentController extends Controller
                 'school_year'      => $student->school_year,
                 'student_photo_url'=> $student->student_photo_url,
             ],
-            'currentSchoolYear' => $currentSchoolYear,
-            'hasPendingRequest' => $hasPendingRequest,
+            'currentSchoolYear'  => $currentSchoolYear,
+            'hasPendingRequest'  => $hasPendingRequest,
+            'enrollmentOpen'     => $enrollmentOpen,
+            'classification'     => $classification,
+            'enrollmentPeriod'   => [
+                'k12_open'          => $settings->k12_enrollment_open,
+                'k12_start'         => $settings->k12_enrollment_start?->format('M d, Y'),
+                'k12_end'           => $settings->k12_enrollment_end?->format('M d, Y'),
+                'college_open'      => $settings->college_enrollment_open,
+                'college_start'     => $settings->college_enrollment_start?->format('M d, Y'),
+                'college_end'       => $settings->college_enrollment_end?->format('M d, Y'),
+            ],
             'departments'       => $departments,
             'programs'          => $programs,
             'yearLevels'        => $yearLevels,
@@ -84,6 +99,14 @@ class SelfEnrollmentController extends Controller
 
         $settings          = AppSetting::current();
         $currentSchoolYear = $settings->school_year ?? date('Y') . '-' . (date('Y') + 1);
+
+        // Check if enrollment is open for student's classification
+        $dept = Department::find($student->department_id);
+        $classification = $dept?->classification ?? 'K-12';
+        
+        if (!$settings->isEnrollmentOpen($classification)) {
+            return back()->with('error', "Enrollment for {$classification} is currently closed.");
+        }
 
         // Don't allow if already enrolled for this school year
         if ($student->enrollment_status === 'enrolled' && $student->school_year === $currentSchoolYear) {
