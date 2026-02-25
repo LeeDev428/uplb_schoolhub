@@ -90,6 +90,11 @@ class StudentController extends Controller
             $query->where('section', $request->input('section'));
         }
 
+        // School year filter
+        if ($request->filled('school_year') && $request->input('school_year') !== 'all') {
+            $query->where('school_year', $request->input('school_year'));
+        }
+
         $students = $query->paginate(20)->withQueryString();
 
         // Get filter options from the same scoped pool (clone + reorder to avoid
@@ -117,6 +122,14 @@ class StudentController extends Controller
             ->where('section', '!=', '')
             ->distinct()
             ->pluck('section')
+            ->sort()
+            ->values();
+
+        $schoolYears = (clone $poolQuery)->reorder()->select('school_year')
+            ->whereNotNull('school_year')
+            ->where('school_year', '!=', '')
+            ->distinct()
+            ->pluck('school_year')
             ->sort()
             ->values();
 
