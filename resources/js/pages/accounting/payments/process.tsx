@@ -179,6 +179,10 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
     const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('all');
     const [printReceipt, setPrintReceipt] = useState(true);
     const [amountReceived, setAmountReceived] = useState<string>('');
+    const feesWithBalance = fees.filter(f => f.balance > 0);
+    const [selectedFeeId, setSelectedFeeId] = useState<string>(
+        feesWithBalance.length > 0 ? feesWithBalance[0].id.toString() : ''
+    );
 
     // Payment allocation calculation
     const paymentAllocation = useMemo(() => {
