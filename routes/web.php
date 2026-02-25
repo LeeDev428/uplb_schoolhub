@@ -79,10 +79,6 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::get('income/overall', [App\Http\Controllers\Owner\IncomeController::class, 'overall'])->name('income.overall');
     Route::get('income/expected', [App\Http\Controllers\Owner\IncomeController::class, 'expected'])->name('income.expected');
 
-    Route::get('departments', function () {
-        return Inertia::render('owner/dashboard');
-    })->name('departments');
-
     Route::get('calendar', [App\Http\Controllers\Owner\CalendarController::class, 'index'])->name('calendar');
 
     Route::get('reports', [App\Http\Controllers\Owner\ReportsController::class, 'index'])->name('reports');
@@ -208,9 +204,11 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 
     Route::get('reports', [App\Http\Controllers\Registrar\ReportsController::class, 'index'])->name('reports');
 
-    Route::get('archived', function () {
-        return Inertia::render('registrar/archived');
-    })->name('archived');
+    // Archived Students
+    Route::get('archived', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'index'])->name('archived');
+    Route::post('archived/{id}/restore', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'restore'])->name('archived.restore');
+    Route::delete('archived/{id}', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'forceDelete'])->name('archived.destroy');
+    Route::post('archived/bulk-restore', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'bulkRestore'])->name('archived.bulk-restore');
 
     Route::get('schedule', [App\Http\Controllers\Registrar\ScheduleController::class, 'index'])->name('schedule');
 
@@ -374,6 +372,9 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     // Self-Enrollment (returning students re-enroll for new school year)
     Route::get('enrollment', [App\Http\Controllers\Student\SelfEnrollmentController::class, 'index'])->name('enrollment.index');
     Route::post('enrollment', [App\Http\Controllers\Student\SelfEnrollmentController::class, 'store'])->name('enrollment.store');
+
+    // Grades (available to all students to view historical grades)
+    Route::get('grades', [App\Http\Controllers\Student\GradeController::class, 'index'])->name('grades.index');
     
     // Routes that require enrollment
     Route::middleware(['enrolled'])->group(function () {
@@ -405,7 +406,10 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'verified', 'rol
     Route::get('subjects/{subject}/students', [App\Http\Controllers\Teacher\SubjectController::class, 'students'])->name('subjects.students');
     Route::get('schedules', [App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedules');
     Route::get('grades', [App\Http\Controllers\Teacher\GradeController::class, 'index'])->name('grades.index');
+    Route::post('grades', [App\Http\Controllers\Teacher\GradeController::class, 'store'])->name('grades.store');
     Route::get('attendance', [App\Http\Controllers\Teacher\AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('attendance', [App\Http\Controllers\Teacher\AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('attendance/summary', [App\Http\Controllers\Teacher\AttendanceController::class, 'summary'])->name('attendance.summary');
 
     // Teacher Profile
     Route::get('profile', [App\Http\Controllers\Teacher\ProfileController::class, 'index'])->name('profile');
