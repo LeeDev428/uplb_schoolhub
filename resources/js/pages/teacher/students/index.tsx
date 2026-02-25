@@ -8,8 +8,9 @@ import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { StudentPhoto } from '@/components/ui/student-photo';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TeacherLayout from '@/layouts/teacher/teacher-layout';
-import { Eye, GraduationCap, Users, BookOpen, Layers, List } from 'lucide-react';
+import { Eye, GraduationCap, Users, BookOpen, Layers, List, CalendarDays } from 'lucide-react';
 
 interface Student {
     id: number;
@@ -45,6 +46,7 @@ interface Props {
     programs: string[];
     yearLevels: string[];
     sections: string[];
+    schoolYears: string[];
     stats: {
         total: number;
         enrolled: number;
@@ -56,6 +58,7 @@ interface Props {
         program?: string;
         year_level?: string;
         section?: string;
+        school_year?: string;
     };
     teacherDepartment: string;
     classListMale: {
