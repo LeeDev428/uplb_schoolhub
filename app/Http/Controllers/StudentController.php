@@ -577,21 +577,34 @@ class StudentController extends Controller
 
         // Create StudentFee record when registrar clearance is approved
         if ($clearanceType === 'registrar_clearance' && $status) {
+            $newSchoolYear = $student->school_year;
+
+            // Sum any unpaid balances from previous school years
+            $previousFees = \App\Models\StudentFee::where('student_id', $student->id)
+                ->where('school_year', '!=', $newSchoolYear)
+                ->where('balance', '>', 0)
+                ->get();
+
+            $carriedBalance = $previousFees->sum('balance');
+            $carriedFrom    = $previousFees->pluck('school_year')->unique()->sort()->implode(', ');
+
             \App\Models\StudentFee::firstOrCreate(
                 [
                     'student_id' => $student->id,
-                    'school_year' => $student->school_year,
+                    'school_year' => $newSchoolYear,
                 ],
                 [
-                    'registration_fee' => 0,
-                    'tuition_fee' => 0,
-                    'misc_fee' => 0,
-                    'books_fee' => 0,
-                    'other_fees' => 0,
-                    'total_amount' => 0,
-                    'total_paid' => 0,
-                    'balance' => 0,
-                    'grant_discount' => 0,
+                    'registration_fee'          => 0,
+                    'tuition_fee'               => 0,
+                    'misc_fee'                  => 0,
+                    'books_fee'                 => 0,
+                    'other_fees'                => 0,
+                    'total_amount'              => 0,
+                    'total_paid'                => 0,
+                    'balance'                   => 0,
+                    'grant_discount'            => 0,
+                    'carried_forward_balance'   => $carriedBalance > 0 ? $carriedBalance : 0,
+                    'carried_forward_from'      => $carriedBalance > 0 ? $carriedFrom : null,
                 ]
             );
         }
