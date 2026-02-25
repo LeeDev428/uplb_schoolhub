@@ -92,6 +92,7 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::get('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'index'])->name('app-settings');
     Route::post('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'update'])->name('app-settings.update');
     Route::patch('app-settings/academic-structure', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateAcademicStructure'])->name('app-settings.academic-structure');
+    Route::patch('app-settings/enrollment-period', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateEnrollmentPeriod'])->name('app-settings.enrollment-period');
     Route::post('app-settings/landing-page', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateLandingPage'])->name('app-settings.landing-page');
     Route::post('app-settings/alumni', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateAlumni'])->name('app-settings.alumni');
     Route::post('app-settings/alumni-photo', [App\Http\Controllers\Owner\AppSettingsController::class, 'uploadAlumniPhoto'])->name('app-settings.alumni-photo');
@@ -149,6 +150,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     // Student Enrollment Clearance
     Route::put('students/{student}/clearance', [App\Http\Controllers\StudentController::class, 'updateClearance'])->name('students.clearance.update');
     Route::put('students/{student}/drop', [App\Http\Controllers\StudentController::class, 'dropStudent'])->name('students.drop');
+    Route::post('students/{student}/re-enroll', [App\Http\Controllers\StudentController::class, 'reEnroll'])->name('students.re-enroll');
 
     // Email verification management by registrar
     Route::post('students/{student}/resend-verification', [App\Http\Controllers\StudentController::class, 'resendVerification'])->name('students.resend-verification');
