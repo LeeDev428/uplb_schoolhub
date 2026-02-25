@@ -94,7 +94,11 @@ export function AccountingSidebar() {
             href: '/accounting/clearance',
             icon: ClipboardCheck,
         },
-        // Refund / Void moved to Super Accounting portal
+        {
+            title: 'Refunds',
+            href: '/accounting/refunds',
+            icon: RotateCcw,
+        },
         {
             title: 'Reports',
             href: '/accounting/reports',
