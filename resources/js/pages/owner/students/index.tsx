@@ -7,7 +7,8 @@ import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { StudentPhoto } from '@/components/ui/student-photo';
-import { Users } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, CalendarDays } from 'lucide-react';
 
 interface Student {
     id: number;
