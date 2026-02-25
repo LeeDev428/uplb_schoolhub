@@ -452,6 +452,19 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                                 {formatMoney(student.balance)}
                                             </TableCell>
                                             <TableCell className="text-center">
+                                                {student.is_fully_paid ? (
+                                                    <Badge className="bg-green-100 text-green-700 border border-green-200">
+                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                        Fully Paid
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge className="bg-red-100 text-red-700 border border-red-200">
+                                                        <AlertCircle className="mr-1 h-3 w-3" />
+                                                        Has Balance
+                                                    </Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-center">
                                                 {student.enrollment_clearance?.accounting_clearance ? (
                                                     <Badge className="bg-green-100 text-green-700">
                                                         <CheckCircle2 className="mr-1 h-3 w-3" />
