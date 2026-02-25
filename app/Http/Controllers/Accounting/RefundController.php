@@ -102,7 +102,7 @@ class RefundController extends Controller
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('lrn', 'like', "%{$search}%");
             })
-            ->with(['studentFees' => function ($q) {
+            ->with(['fees' => function ($q) {
                 $q->where('balance', '>', 0)
                   ->orWhere('total_paid', '>', 0);
             }])
@@ -114,7 +114,7 @@ class RefundController extends Controller
                 'lrn' => $s->lrn,
                 'program' => $s->program,
                 'year_level' => $s->year_level,
-                'fees' => $s->studentFees->map(fn ($f) => [
+                'fees' => $s->fees->map(fn ($f) => [
                     'id' => $f->id,
                     'school_year' => $f->school_year,
                     'total_amount' => (float) $f->total_amount,
