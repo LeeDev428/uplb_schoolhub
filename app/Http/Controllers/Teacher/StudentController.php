@@ -147,8 +147,9 @@ class StudentController extends Controller
             'programs'         => $programs,
             'yearLevels'       => $yearLevels,
             'sections'         => $sections,
+            'schoolYears'      => $schoolYears,
             'stats'            => $stats,
-            'filters'          => $request->only(['search', 'program', 'year_level', 'section']),
+            'filters'          => $request->only(['search', 'program', 'year_level', 'section', 'school_year']),
             'teacherDepartment' => $teacher?->department?->name ?? 'My Students',
             'classListMale'    => (clone $poolQuery)->whereRaw("LOWER(gender) = 'male'")
                 ->orderBy('last_name')->orderBy('first_name')
