@@ -400,6 +400,7 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                     <TableHead className="text-right">Total Fees</TableHead>
                                     <TableHead className="text-right">Total Paid</TableHead>
                                     <TableHead className="text-right">Balance</TableHead>
+                                    <TableHead className="text-center">Payment Status</TableHead>
                                     <TableHead className="text-center">Clearance Status</TableHead>
                                     <TableHead className="text-center">Actions</TableHead>
                                 </TableRow>
