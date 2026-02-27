@@ -40,7 +40,7 @@ class YearLevelController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
         
-        $yearLevels = $query->orderBy('level_number')->paginate(25)->withQueryString();
+        $yearLevels = $query->withCount(['sections'])->orderBy('level_number')->paginate(25)->withQueryString();
         $departments = Department::where('is_active', true)
             ->orderBy('classification')
             ->orderBy('name')
@@ -49,6 +49,7 @@ class YearLevelController extends Controller
         return Inertia::render('owner/year-levels/index', [
             'yearLevels' => $yearLevels,
             'departments' => $departments,
+            'programs' => \App\Models\Program::where('is_active', true)->orderBy('name')->get(['id', 'name', 'department_id']),
             'filters' => [
                 'search' => $request->search,
                 'department_id' => $request->department_id,
@@ -62,11 +63,15 @@ class YearLevelController extends Controller
     {
         $validated = $request->validate([
             'department_id' => 'required|exists:departments,id',
-            'classification' => 'required|in:K-12,College',
+            'program_id' => 'nullable|exists:programs,id',
             'name' => 'required|string|max:255',
             'level_number' => 'required|integer|min:1',
             'is_active' => 'boolean',
         ]);
+
+        // Auto-derive classification from the selected department
+        $department = Department::findOrFail($validated['department_id']);
+        $validated['classification'] = $department->classification;
 
         YearLevel::create($validated);
 
@@ -77,11 +82,15 @@ class YearLevelController extends Controller
     {
         $validated = $request->validate([
             'department_id' => 'required|exists:departments,id',
-            'classification' => 'required|in:K-12,College',
+            'program_id' => 'nullable|exists:programs,id',
             'name' => 'required|string|max:255',
             'level_number' => 'required|integer|min:1',
             'is_active' => 'boolean',
         ]);
+
+        // Auto-derive classification from the selected department
+        $department = Department::findOrFail($validated['department_id']);
+        $validated['classification'] = $department->classification;
 
         $yearLevel->update($validated);
 
