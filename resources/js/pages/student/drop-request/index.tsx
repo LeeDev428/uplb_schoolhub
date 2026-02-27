@@ -238,12 +238,7 @@ export default function DropRequestIndex({
                         <XCircle className="h-4 w-4 text-red-600" />
                         <AlertTitle className="text-red-800">You Have Been Dropped</AlertTitle>
                         <AlertDescription className="text-red-700">
-                            Your enrollment has been dropped. You can now proceed to request a refund for any payments
-                            you have made. Visit the{' '}
-                            <a href="/student/refund-requests" className="underline font-medium">
-                                Refund Requests
-                            </a>{' '}
-                            page.
+                            Your enrollment has been dropped. Please visit the accounting office for any refund concerns.
                         </AlertDescription>
                     </Alert>
                 )}
