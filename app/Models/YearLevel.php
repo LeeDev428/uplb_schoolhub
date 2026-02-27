@@ -11,6 +11,7 @@ class YearLevel extends Model
 {
     protected $fillable = [
         'department_id',
+        'program_id',
         'classification',
         'name',
         'level_number',
@@ -28,6 +29,14 @@ class YearLevel extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Program this year level belongs to (College only)
+     */
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
     }
 
     /**
