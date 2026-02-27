@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
@@ -108,6 +108,14 @@ export default function AccountDashboard({
     years,
     filters,
 }: Props) {
+    const { props } = usePage();
+    const hasK12 = (props.appSettings as any)?.has_k12 !== false;
+    const hasCollege = (props.appSettings as any)?.has_college !== false;
+    const classificationOptions = [
+        ...(hasK12 ? [{ value: 'K-12', label: 'K-12' }] : []),
+        ...(hasCollege ? [{ value: 'College', label: 'College' }] : []),
+    ];
+
     const [classification, setClassification] = useState(filters.classification || '');
     const [departmentId, setDepartmentId]     = useState(filters.department_id || '');
     const [program, setProgram]               = useState(filters.program || '');
@@ -179,7 +187,7 @@ export default function AccountDashboard({
                     <FilterDropdown
                         label="Classification"
                         value={classification || 'all'}
-                        options={[{ value: 'K-12', label: 'K-12' }, { value: 'College', label: 'College' }]}
+                        options={classificationOptions}
                         onChange={v => setClassification(v === 'all' ? '' : v)}
                         placeholder="All Classifications"
                     />
