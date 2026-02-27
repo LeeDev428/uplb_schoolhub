@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
@@ -91,6 +91,14 @@ interface Props {
 }
 
 export default function SubjectsIndex({ subjects, departments, yearLevels, teachers, filters }: Props) {
+    const { props } = usePage();
+    const hasK12 = (props.appSettings as any)?.has_k12 !== false;
+    const hasCollege = (props.appSettings as any)?.has_college !== false;
+    const classificationOptions = [
+        ...(hasK12 ? [{ value: 'K-12', label: 'K-12' }] : []),
+        ...(hasCollege ? [{ value: 'College', label: 'College' }] : []),
+    ];
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -340,8 +348,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                                 onChange={handleClassificationChange}
                                 options={[
                                     { value: 'all', label: 'All Classifications' },
-                                    { value: 'K-12', label: 'K-12' },
-                                    { value: 'College', label: 'College' },
+                                    ...classificationOptions,
                                 ]}
                             />
                             <FilterDropdown
