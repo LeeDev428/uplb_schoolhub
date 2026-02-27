@@ -23,15 +23,29 @@ interface Department {
     classification: 'K-12' | 'College';
 }
 
+interface Program {
+    id: number;
+    name: string;
+    department_id: number;
+}
+
 interface YearLevel {
     id: number;
     name: string;
     level_number: number;
     department_id: number;
+    classification: 'K-12' | 'College';
     department: {
         id: number;
         name: string;
     };
+}
+
+interface Section {
+    id: number;
+    name: string;
+    department_id: number;
+    year_level_id: number;
 }
 
 interface Subject {
@@ -44,11 +58,13 @@ interface Subject {
     units: number | null;
     hours_per_week: number | null;
     type: 'core' | 'major' | 'elective' | 'general';
-    year_level_id: number | null;
     semester: '1' | '2' | 'summer' | null;
     is_active: boolean;
     department: Department;
-    year_level: YearLevel | null;
+    departments: Department[];
+    programs: Program[];
+    yearLevels: YearLevel[];
+    assignedSections: Section[];
     teachers?: TeacherSummary[];
 }
 
@@ -73,7 +89,9 @@ interface Props {
         links: any[];
     };
     departments: Department[];
+    programs: Program[];
     yearLevels: YearLevel[];
+    sections: Section[];
     teachers: TeacherSummary[];
     filters: {
         search?: string;
@@ -90,7 +108,7 @@ interface AppSettingsData {
     [key: string]: unknown;
 }
 
-export default function SubjectsIndex({ subjects, departments, yearLevels, teachers, filters }: Props) {
+export default function SubjectsIndex({ subjects, departments, programs, yearLevels, sections, teachers, filters }: Props) {
     const { props } = usePage();
     const appSettings = props.appSettings as AppSettingsData | undefined;
     const hasK12 = appSettings?.has_k12 !== false;
@@ -119,7 +137,10 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
     const [status, setStatus] = useState(filters.status || 'all');
 
     const form = useForm({
-        department_id: '',
+        department_ids: [] as string[],
+        program_ids: [] as string[],
+        year_level_ids: [] as string[],
+        section_ids: [] as string[],
         code: '',
         name: '',
         description: '',
@@ -127,7 +148,6 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
         units: '',
         hours_per_week: '',
         type: 'core' as 'core' | 'major' | 'elective' | 'general',
-        year_level_id: '',
         semester: 'none',
         is_active: true,
     });
@@ -204,7 +224,21 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
 
     const openCreateModal = () => {
         form.reset();
-        form.setData('classification', defaultClassification);
+        form.setData({
+            department_ids: [],
+            program_ids: [],
+            year_level_ids: [],
+            section_ids: [],
+            code: '',
+            name: '',
+            description: '',
+            classification: defaultClassification,
+            units: '',
+            hours_per_week: '',
+            type: 'core',
+            semester: 'none',
+            is_active: true,
+        });
         setEditingSubject(null);
         setIsModalOpen(true);
     };
@@ -212,7 +246,10 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
     const openEditModal = (subject: Subject) => {
         setEditingSubject(subject);
         form.setData({
-            department_id: subject.department_id.toString(),
+            department_ids: (subject.departments ?? []).map(d => d.id.toString()),
+            program_ids: (subject.programs ?? []).map(p => p.id.toString()),
+            year_level_ids: (subject.yearLevels ?? []).map(y => y.id.toString()),
+            section_ids: (subject.assignedSections ?? []).map(s => s.id.toString()),
             code: subject.code,
             name: subject.name,
             description: subject.description || '',
@@ -220,7 +257,6 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
             units: subject.units?.toString() || '',
             hours_per_week: subject.hours_per_week?.toString() || '',
             type: subject.type,
-            year_level_id: subject.year_level_id?.toString() || '',
             semester: subject.semester || 'none',
             is_active: subject.is_active,
         });
@@ -230,17 +266,20 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Prepare clean data for submission
+        const isCollege = form.data.classification === 'College';
+
         const submitData = {
             code: form.data.code,
             name: form.data.name,
             description: form.data.description,
             classification: form.data.classification,
-            department_id: form.data.department_id,
+            department_ids: form.data.department_ids,
+            program_ids: form.data.program_ids,
+            year_level_ids: form.data.year_level_ids,
+            section_ids: form.data.section_ids,
             type: form.data.type,
-            units: form.data.units !== '' ? form.data.units : null,
-            hours_per_week: form.data.hours_per_week !== '' ? form.data.hours_per_week : null,
-            year_level_id: form.data.year_level_id || null,
+            units: isCollege && form.data.units !== '' ? form.data.units : null,
+            hours_per_week: isCollege && form.data.hours_per_week !== '' ? form.data.hours_per_week : null,
             semester: form.data.semester === 'none' ? null : (form.data.semester || null),
             is_active: form.data.is_active,
         };
@@ -317,12 +356,31 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
         ? departments.filter((d) => d.classification === form.data.classification)
         : departments;
 
-    const filteredYearLevels = form.data.department_id
-        ? yearLevels.filter((yl) => yl.department_id === parseInt(form.data.department_id))
-        : [];
+    // For multi-select helpers
+    // Programs available for selected college departments
+    const programsForSelectedDepts = programs.filter(p =>
+        form.data.department_ids.includes(p.department_id.toString())
+    );
+    // Year levels available based on selected departments
+    const yearLevelsForSelectedDepts = yearLevels.filter(yl =>
+        form.data.department_ids.includes(yl.department_id.toString())
+    );
+    // Sections available based on selected year levels
+    const sectionsForSelectedYearLevels = sections.filter(s =>
+        form.data.year_level_ids.includes(s.year_level_id.toString())
+    );
+
+    const toggleMultiSelect = (field: 'department_ids' | 'program_ids' | 'year_level_ids' | 'section_ids', value: string) => {
+        const current = form.data[field] as string[];
+        const updated = current.includes(value)
+            ? current.filter(v => v !== value)
+            : [...current, value];
+        form.setData(field, updated);
+    };
 
     // Dynamic period options based on classification
     const isK12 = form.data.classification === 'K-12';
+    const isCollegeForm = form.data.classification === 'College';
     const periodLabel = isK12 ? 'Quarter' : 'Semester';
     const periodOptions = isK12
         ? [
@@ -422,7 +480,6 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                                         <th className="p-3 text-left text-sm font-semibold">Department</th>
                                         <th className="p-3 text-left text-sm font-semibold">Classification</th>
                                         <th className="p-3 text-left text-sm font-semibold">Type</th>
-                                        <th className="p-3 text-left text-sm font-semibold">Units</th>
                                         <th className="p-3 text-left text-sm font-semibold">Teacher(s)</th>
                                         <th className="p-3 text-left text-sm font-semibold">Status</th>
                                         <th className="p-3 text-left text-sm font-semibold">Actions</th>
@@ -431,7 +488,7 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                                 <tbody>
                                     {subjects.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} className="p-8 text-center text-muted-foreground">
+                                            <td colSpan={8} className="p-8 text-center text-muted-foreground">
                                                 No subjects found
                                             </td>
                                         </tr>
@@ -463,11 +520,6 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                                                 </td>
                                                 <td className="p-3">
                                                     {getTypeBadge(subject.type)}
-                                                </td>
-                                                <td className="p-3">
-                                                    <span className="text-sm">
-                                                        {subject.units ? `${subject.units} units` : '-'}
-                                                    </span>
                                                 </td>
                                                 <td className="p-3">
                                                     {(subject.teachers ?? []).length === 0 ? (
@@ -584,10 +636,15 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                                     <Select
                                         value={form.data.classification}
                                         onValueChange={(value: 'K-12' | 'College') => {
-                                            form.setData('classification', value);
-                                            form.setData('department_id', '');
-                                            form.setData('year_level_id', '');
-                                            form.setData('semester', 'none');
+                                            form.setData({
+                                                ...form.data,
+                                                classification: value,
+                                                department_ids: [],
+                                                program_ids: [],
+                                                year_level_ids: [],
+                                                section_ids: [],
+                                                semester: 'none',
+                                            });
                                         }}
                                     >
                                         <SelectTrigger>
@@ -603,33 +660,6 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                                     </Select>
                                 </div>
 
-                                <div>
-                                    <Label htmlFor="department_id">Department *</Label>
-                                    <Select
-                                        value={form.data.department_id}
-                                        onValueChange={(value) => {
-                                            form.setData('department_id', value);
-                                            form.setData('year_level_id', '');
-                                        }}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select department" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {filteredDepartments.map((dept) => (
-                                                <SelectItem key={dept.id} value={dept.id.toString()}>
-                                                    {dept.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {form.errors.department_id && (
-                                        <p className="mt-1 text-sm text-destructive">{form.errors.department_id}</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="type">Subject Type *</Label>
                                     <Select
@@ -647,79 +677,143 @@ export default function SubjectsIndex({ subjects, departments, yearLevels, teach
                                         </SelectContent>
                                     </Select>
                                 </div>
-
-                                <div>
-                                    <Label htmlFor="year_level_id">Year Level (Optional)</Label>
-                                    <Select
-                                        value={form.data.year_level_id}
-                                        onValueChange={(value) => form.setData('year_level_id', value)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select year level" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {filteredYearLevels.length === 0 ? (
-                                                <div className="p-2 text-sm text-muted-foreground">
-                                                    Select a department first
-                                                </div>
-                                            ) : (
-                                                filteredYearLevels.map((yl) => (
-                                                    <SelectItem key={yl.id} value={yl.id.toString()}>
-                                                        {yl.name}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <Label htmlFor="units">Units</Label>
-                                    <Input
-                                        id="units"
-                                        type="number"
-                                        step="0.5"
-                                        min="0"
-                                        max="10"
-                                        value={form.data.units}
-                                        onChange={(e) => form.setData('units', e.target.value)}
-                                        placeholder="3.0"
-                                    />
+                            {/* Departments multi-select */}
+                            <div>
+                                <Label>Departments</Label>
+                                <div className="mt-1 max-h-36 overflow-y-auto rounded-md border p-2 space-y-1">
+                                    {filteredDepartments.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground p-1">No departments available</p>
+                                    ) : (
+                                        filteredDepartments.map((dept) => (
+                                            <label key={dept.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.data.department_ids.includes(dept.id.toString())}
+                                                    onChange={() => toggleMultiSelect('department_ids', dept.id.toString())}
+                                                    className="h-3.5 w-3.5"
+                                                />
+                                                <span className="text-sm">{dept.name}</span>
+                                            </label>
+                                        ))
+                                    )}
                                 </div>
+                                {form.errors.department_ids && (
+                                    <p className="mt-1 text-sm text-destructive">{form.errors.department_ids}</p>
+                                )}
+                            </div>
 
+                            {/* Programs multi-select (College only, when college depts selected) */}
+                            {isCollegeForm && programsForSelectedDepts.length > 0 && (
                                 <div>
-                                    <Label htmlFor="hours_per_week">Hours/Week</Label>
-                                    <Input
-                                        id="hours_per_week"
-                                        type="number"
-                                        min="1"
-                                        max="40"
-                                        value={form.data.hours_per_week}
-                                        onChange={(e) => form.setData('hours_per_week', e.target.value)}
-                                        placeholder="3"
-                                    />
+                                    <Label>Programs</Label>
+                                    <div className="mt-1 max-h-32 overflow-y-auto rounded-md border p-2 space-y-1">
+                                        {programsForSelectedDepts.map((prog) => (
+                                            <label key={prog.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.data.program_ids.includes(prog.id.toString())}
+                                                    onChange={() => toggleMultiSelect('program_ids', prog.id.toString())}
+                                                    className="h-3.5 w-3.5"
+                                                />
+                                                <span className="text-sm">{prog.name}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
+                            )}
 
+                            {/* Year Levels multi-select */}
+                            {yearLevelsForSelectedDepts.length > 0 && (
                                 <div>
-                                    <Label htmlFor="semester">{periodLabel}</Label>
-                                    <Select
-                                        value={form.data.semester}
-                                        onValueChange={(value) => form.setData('semester', value)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {periodOptions.map((opt) => (
-                                                <SelectItem key={opt.value} value={opt.value}>
-                                                    {opt.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Label>Year Levels</Label>
+                                    <div className="mt-1 max-h-32 overflow-y-auto rounded-md border p-2 space-y-1">
+                                        {yearLevelsForSelectedDepts.map((yl) => (
+                                            <label key={yl.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.data.year_level_ids.includes(yl.id.toString())}
+                                                    onChange={() => toggleMultiSelect('year_level_ids', yl.id.toString())}
+                                                    className="h-3.5 w-3.5"
+                                                />
+                                                <span className="text-sm">{yl.name} <span className="text-xs text-muted-foreground">({yl.department.name})</span></span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
+                            )}
+
+                            {/* Sections multi-select */}
+                            {sectionsForSelectedYearLevels.length > 0 && (
+                                <div>
+                                    <Label>Sections</Label>
+                                    <div className="mt-1 max-h-32 overflow-y-auto rounded-md border p-2 space-y-1">
+                                        {sectionsForSelectedYearLevels.map((sec) => (
+                                            <label key={sec.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.data.section_ids.includes(sec.id.toString())}
+                                                    onChange={() => toggleMultiSelect('section_ids', sec.id.toString())}
+                                                    className="h-3.5 w-3.5"
+                                                />
+                                                <span className="text-sm">{sec.name}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Units & Hours — College only */}
+                            {isCollegeForm && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="units">Units</Label>
+                                        <Input
+                                            id="units"
+                                            type="number"
+                                            step="0.5"
+                                            min="0"
+                                            max="10"
+                                            value={form.data.units}
+                                            onChange={(e) => form.setData('units', e.target.value)}
+                                            placeholder="3.0"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="hours_per_week">Hours/Week</Label>
+                                        <Input
+                                            id="hours_per_week"
+                                            type="number"
+                                            min="1"
+                                            max="40"
+                                            value={form.data.hours_per_week}
+                                            onChange={(e) => form.setData('hours_per_week', e.target.value)}
+                                            placeholder="3"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Period: Semester (College) or Quarter (K-12) */}
+                            <div>
+                                <Label htmlFor="semester">{periodLabel}</Label>
+                                <Select
+                                    value={form.data.semester}
+                                    onValueChange={(value) => form.setData('semester', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {periodOptions.map((opt) => (
+                                            <SelectItem key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="flex items-center justify-between rounded-lg border p-4">
