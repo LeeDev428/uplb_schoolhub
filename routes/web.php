@@ -329,8 +329,6 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::get('refunds', [App\Http\Controllers\Accounting\RefundController::class, 'index'])->name('refunds.index');
     Route::get('refunds/search-students', [App\Http\Controllers\Accounting\RefundController::class, 'searchStudents'])->name('refunds.search-students');
     Route::post('refunds', [App\Http\Controllers\Accounting\RefundController::class, 'store'])->name('refunds.store');
-    Route::post('refunds/{refund}/approve', [App\Http\Controllers\Accounting\RefundController::class, 'approve'])->name('refunds.approve');
-    Route::post('refunds/{refund}/reject', [App\Http\Controllers\Accounting\RefundController::class, 'reject'])->name('refunds.reject');
     
     // Dashboard exports
     Route::get('dashboard/export', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'export'])->name('dashboard.export');
@@ -361,10 +359,6 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     // Online Payments (available to all students)
     Route::get('online-payments', [App\Http\Controllers\Student\OnlinePaymentController::class, 'index'])->name('online-payments.index');
     Route::post('online-payments', [App\Http\Controllers\Student\OnlinePaymentController::class, 'store'])->name('online-payments.store');
-
-    // Refund / Void Requests
-    Route::get('refund-requests', [App\Http\Controllers\Student\RefundRequestController::class, 'index'])->name('refund-requests.index');
-    Route::post('refund-requests', [App\Http\Controllers\Student\RefundRequestController::class, 'store'])->name('refund-requests.store');
 
     // Drop Requests
     Route::get('drop-request', [App\Http\Controllers\Student\DropRequestController::class, 'index'])->name('drop-request.index');
