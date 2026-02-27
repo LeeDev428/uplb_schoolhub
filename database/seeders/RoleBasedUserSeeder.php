@@ -180,10 +180,23 @@ class RoleBasedUserSeeder extends Seeder
             ]
         );
 
-        $this->command->info('✅ Created accounts for all 10 roles:');
+        // Create Super Accounting
+        User::updateOrCreate(
+            ['email' => 'super.accounting@gmail.com'],
+            [
+                'name' => 'Super Accountant',
+                'username' => 'super.accounting',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_SUPER_ACCOUNTING,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $this->command->info('✅ Created accounts for all 11 roles:');
         $this->command->info('   👑 Owner: owner@gmail.com');
         $this->command->info('   📋 Registrar: registrar@gmail.com');
         $this->command->info('   💰 Accounting: accounting@gmail.com');
+        $this->command->info('   🏦 Super Accounting: super.accounting@gmail.com');
         $this->command->info('   🎓 Students: john.doe@gmail.com, student@gmail.com, carlos.reyes@gmail.com, ana.cruz@gmail.com');
         $this->command->info('   👨‍🏫 Teacher: teacher@gmail.com');
         $this->command->info('   👨‍👩‍👧 Parent: parent@gmail.com');
