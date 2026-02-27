@@ -23,9 +23,12 @@ export default defineConfig({
     ],
     server: {
         host: '0.0.0.0', // Allow external access
+        port: 5174,
+        strictPort: true,
         cors: true, // Enable CORS for Cloudflare tunnel
         hmr: {
             host: 'localhost', // HMR still uses localhost
+            port: 5174,
         },
     },
     esbuild: {
