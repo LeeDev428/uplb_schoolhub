@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Card, CardContent } from '@/components/ui/card';
 import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import { BookOpen } from 'lucide-react';
@@ -71,6 +71,14 @@ interface Props {
 }
 
 export default function SubjectsIndex({ subjects, filters, teacherId }: Props) {
+    const { props } = usePage();
+    const hasK12 = (props.appSettings as any)?.has_k12 !== false;
+    const hasCollege = (props.appSettings as any)?.has_college !== false;
+    const classificationOptions = [
+        ...(hasK12 ? [{ value: 'K-12', label: 'K-12' }] : []),
+        ...(hasCollege ? [{ value: 'College', label: 'College' }] : []),
+    ];
+
     const [search, setSearch] = useState(filters.search || '');
     const [type, setType] = useState(filters.type || 'all');
     const [classification, setClassification] = useState(filters.classification || 'all');
@@ -155,8 +163,7 @@ export default function SubjectsIndex({ subjects, filters, teacherId }: Props) {
                                 onChange={handleClassificationChange}
                                 options={[
                                     { value: 'all', label: 'All Classifications' },
-                                    { value: 'K-12', label: 'K-12' },
-                                    { value: 'College', label: 'College' },
+                                    ...classificationOptions,
                                 ]}
                             />
                             <FilterDropdown
