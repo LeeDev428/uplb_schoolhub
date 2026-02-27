@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
@@ -105,6 +105,14 @@ interface Props {
 }
 
 export default function SchedulesIndex({ schedules, departments, programs, yearLevels, sections, teachers, filters }: Props) {
+    const { props } = usePage();
+    const hasK12 = (props.appSettings as any)?.has_k12 !== false;
+    const hasCollege = (props.appSettings as any)?.has_college !== false;
+    const classificationOptions = [
+        ...(hasK12 ? [{ value: 'K-12', label: 'K-12' }] : []),
+        ...(hasCollege ? [{ value: 'College', label: 'College' }] : []),
+    ];
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -279,10 +287,7 @@ export default function SchedulesIndex({ schedules, departments, programs, yearL
                                 label="Classification"
                                 value={classification}
                                 onChange={handleClassificationChange}
-                                options={[
-                                    { value: 'K-12', label: 'K-12' },
-                                    { value: 'College', label: 'College' },
-                                ]}
+                                options={classificationOptions}
                             />
                             <FilterDropdown
                                 label="Department"
