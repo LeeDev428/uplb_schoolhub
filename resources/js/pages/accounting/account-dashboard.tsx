@@ -36,7 +36,7 @@ interface Transaction {
     id: number;
     date: string;
     time: string;
-    type: 'Fee' | 'Document';
+    type: 'Fee' | 'Document' | 'Drop';
     or_number: string;
     mode: string;
     reference: string | null;
@@ -403,7 +403,7 @@ export default function AccountDashboard({
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant={tx.type === 'Fee' ? 'default' : 'secondary'} className={
-                                                        tx.type === 'Fee' ? 'bg-blue-500' : 'bg-green-500'
+                                                        tx.type === 'Fee' ? 'bg-blue-500' : tx.type === 'Drop' ? 'bg-orange-500' : 'bg-green-500'
                                                     }>
                                                         {tx.type}
                                                     </Badge>
