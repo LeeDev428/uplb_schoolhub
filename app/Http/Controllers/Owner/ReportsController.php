@@ -248,7 +248,7 @@ class ReportsController extends Controller
                 return [
                     'OR Number' => $payment->or_number ?? 'N/A',
                     'Date' => $payment->payment_date->format('Y-m-d'),
-                    'Student' => $payment->student->name ?? 'N/A',
+                    'Student' => $payment->student?->full_name ?? 'N/A',
                     'Amount' => number_format($payment->amount, 2),
                     'Payment For' => ucfirst($payment->payment_for ?? 'general'),
                     'Notes' => $payment->notes ?? '',
@@ -292,7 +292,7 @@ class ReportsController extends Controller
                     'Student ID' => $student->student_id,
                     'Name' => $student->name,
                     'Email' => $student->email ?? 'N/A',
-                    'Department' => $student->department->name ?? 'N/A',
+                    'Department' => $student->department?->name ?? 'N/A',
                     'Program' => $student->program ?? 'N/A',
                     'Year Level' => $student->year_level ?? 'N/A',
                     'Section' => $student->section ?? 'N/A',
