@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\YearLevel;
 use App\Models\Department;
+use App\Models\Program;
 use App\Models\Strand;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -56,12 +57,14 @@ class SectionController extends Controller
         $sections = $query->orderBy('name')->paginate(25)->withQueryString();
         $yearLevels = YearLevel::with('department')->where('is_active', true)->orderBy('level_number')->get();
         $departments = Department::where('is_active', true)->orderBy('name')->get();
+        $programs = Program::where('is_active', true)->select('id', 'name', 'department_id')->orderBy('name')->get();
         $strands = Strand::where('is_active', true)->orderBy('code')->get();
         
         return Inertia::render('owner/sections/index', [
             'sections' => $sections,
             'yearLevels' => $yearLevels,
             'departments' => $departments,
+            'programs' => $programs,
             'strands' => $strands,
             'filters' => [
                 'search' => $request->search,
@@ -79,6 +82,7 @@ class SectionController extends Controller
         $validated = $request->validate([
             'department_id' => 'required|exists:departments,id',
             'year_level_id' => 'required|exists:year_levels,id',
+            'program_id' => 'nullable|exists:programs,id',
             'strand_id' => 'nullable|exists:strands,id',
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50',
@@ -97,6 +101,7 @@ class SectionController extends Controller
         $validated = $request->validate([
             'department_id' => 'required|exists:departments,id',
             'year_level_id' => 'required|exists:year_levels,id',
+            'program_id' => 'nullable|exists:programs,id',
             'strand_id' => 'nullable|exists:strands,id',
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50',
