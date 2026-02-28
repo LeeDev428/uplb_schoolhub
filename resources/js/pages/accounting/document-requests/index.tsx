@@ -158,6 +158,7 @@ export default function DocumentRequestIndex({
         e.preventDefault();
         createForm.post('/accounting/document-requests', {
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setIsCreateModalOpen(false);
                 createForm.reset();
             },
@@ -168,6 +169,7 @@ export default function DocumentRequestIndex({
         if (selectedRequest) {
             router.post(`/accounting/document-requests/${selectedRequest.id}/mark-paid`, {}, {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsPaymentModalOpen(false);
                     setSelectedRequest(null);
                 },
