@@ -158,6 +158,7 @@ export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
         if (selectedNote) {
             approveForm.post(`/accounting/promissory-notes/${selectedNote.id}/approve`, {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsApproveDialogOpen(false);
                     setSelectedNote(null);
                 },
@@ -170,6 +171,7 @@ export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
         if (selectedNote) {
             declineForm.post(`/accounting/promissory-notes/${selectedNote.id}/decline`, {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsDeclineDialogOpen(false);
                     setSelectedNote(null);
                 },
