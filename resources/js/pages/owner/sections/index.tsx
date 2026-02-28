@@ -143,6 +143,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, progr
         if (editingSection) {
             form.put(`/owner/sections/${editingSection.id}`, {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsModalOpen(false);
                     form.reset();
                 },
@@ -150,6 +151,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, progr
         } else {
             form.post('/owner/sections', {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsModalOpen(false);
                     form.reset();
                 },
