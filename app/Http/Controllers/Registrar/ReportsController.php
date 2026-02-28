@@ -80,8 +80,8 @@ class ReportsController extends Controller
             ->get()
             ->map(fn ($s) => [
                 'name' => $s->name,
-                'department' => $s->department->name ?? 'N/A',
-                'year_level' => $s->yearLevel->name ?? 'N/A',
+                'department' => $s->department?->name ?? 'N/A',
+                'year_level' => $s->yearLevel?->name ?? 'N/A',
                 'room_number' => $s->room_number,
                 'students' => $s->students_count,
                 'capacity' => $s->capacity,
