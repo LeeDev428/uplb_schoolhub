@@ -11,6 +11,7 @@ class Section extends Model
     protected $fillable = [
         'department_id',
         'year_level_id',
+        'program_id',
         'strand_id',
         'teacher_id',
         'name',
@@ -24,6 +25,14 @@ class Section extends Model
         'is_active' => 'boolean',
         'capacity' => 'integer',
     ];
+
+    /**
+     * Program this section belongs to (College only)
+     */
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Program::class);
+    }
 
     /**
      * Teacher (adviser/homeroom) assigned to this section
