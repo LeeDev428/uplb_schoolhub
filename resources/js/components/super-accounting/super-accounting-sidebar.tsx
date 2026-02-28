@@ -1,11 +1,21 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    BadgeDollarSign,
     BookOpen,
-    FileBarChart,
+    Calculator,
+    ClipboardCheck,
+    CreditCard,
+    FileCheck,
+    FileText,
+    Gift,
+    Globe,
     LayoutDashboard,
+    LayoutGrid,
     Megaphone,
+    Receipt,
     RotateCcw,
     Settings,
+    Users,
 } from 'lucide-react';
 import {
     Sidebar,
@@ -34,7 +44,12 @@ export function SuperAccountingSidebar() {
 
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: 'Account Dashboard',
+            href: '/super-accounting/account-dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Main Dashboard',
             href: '/super-accounting/dashboard',
             icon: LayoutDashboard,
         },
@@ -45,21 +60,61 @@ export function SuperAccountingSidebar() {
             badge: announcementCount || undefined,
         },
         {
-            title: 'Refund Requests',
+            title: 'Student Accounts',
+            href: '/super-accounting/student-accounts',
+            icon: Users,
+        },
+        {
+            title: 'Document Request',
+            href: '/super-accounting/document-approvals',
+            icon: FileCheck,
+        },
+        {
+            title: 'Payment Processing',
+            href: '/super-accounting/payments',
+            icon: CreditCard,
+        },
+        {
+            title: 'Student Grants',
+            href: '/super-accounting/grants',
+            icon: Gift,
+        },
+        {
+            title: 'Exam Approval',
+            href: '/super-accounting/exam-approval',
+            icon: FileCheck,
+        },
+        {
+            title: 'Student Clearance',
+            href: '/super-accounting/clearance',
+            icon: ClipboardCheck,
+        },
+        {
+            title: 'Refunds',
             href: '/super-accounting/refunds',
             icon: RotateCcw,
         },
         {
             title: 'Reports',
             href: '/super-accounting/reports',
-            icon: FileBarChart,
+            icon: BookOpen,
         },
     ];
 
-    const footerNavItems: NavItem[] = [
+    const adminNavItems: NavItem[] = [
+        {
+            title: 'Fee Management',
+            href: '/super-accounting/fee-management',
+            icon: Calculator,
+        },
+        {
+            title: 'Online Transactions',
+            href: '/super-accounting/online-transactions',
+            icon: Globe,
+        },
         {
             title: 'Settings',
-            href: '/super-accounting/settings/profile',
+            href: '/super-accounting/settings',
             icon: Settings,
         },
     ];
@@ -70,17 +125,17 @@ export function SuperAccountingSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/super-accounting/dashboard" prefetch>
-                                <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-md overflow-hidden">
-                                    {logoUrl ? (
-                                        <img src={logoUrl} alt={appName} className="size-full object-cover" />
-                                    ) : (
-                                        <LayoutDashboard className="size-4" />
-                                    )}
-                                </div>
+                            <Link href="/super-accounting/dashboard">
+                                {logoUrl ? (
+                                    <img src={logoUrl} alt={appName} className="size-8 rounded-lg object-contain bg-white" />
+                                ) : (
+                                    <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                                        <BadgeDollarSign className="size-4" />
+                                    </div>
+                                )}
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-medium">{appName}</span>
-                                    <span className="truncate text-xs text-muted-foreground">Super Accounting</span>
+                                    <span className="truncate font-semibold">{appName}</span>
+                                    <span className="truncate text-xs">Super Accounting Portal</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
@@ -88,10 +143,10 @@ export function SuperAccountingSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={mainNavItems} label="Main" />
+                <NavMain items={mainNavItems} label="Main Navigation" />
+                <NavMain items={adminNavItems} label="Administration" />
             </SidebarContent>
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
