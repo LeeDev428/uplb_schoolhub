@@ -75,12 +75,12 @@ class OnlineTransactionController extends Controller
                 'failure_reason' => null,
                 'remarks' => $transaction->remarks,
                 'created_at' => $transaction->created_at,
-                'student' => [
+                'student' => $transaction->student ? [
                     'id' => $transaction->student->id,
                     'full_name' => $transaction->student->full_name,
                     'lrn' => $transaction->student->lrn,
                     'email' => $transaction->student->email ?? null,
-                ],
+                ] : null,
                 'verified_by' => $transaction->verifiedBy ? ['name' => $transaction->verifiedBy->name] : null,
             ];
         });
