@@ -1,8 +1,9 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     CheckCircle2,
     Clock,
+    DollarSign,
     Search,
     ThumbsDown,
     ThumbsUp,
@@ -13,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -45,9 +47,23 @@ type Student = {
     section: string | null;
     student_photo_url: string | null;
     enrollment_status: string;
+    classification: string | null;
 };
 
-type ProcessedBy = {
+type FeeItemInfo = {
+    id: number;
+    name: string;
+    amount: number;
+};
+
+type DropFeeItem = {
+    id: number;
+    name: string;
+    selling_price: number;
+    category: string | null;
+};
+
+type ApprovedBy = {
     id: number;
     name: string;
 };
@@ -56,12 +72,17 @@ type DropRequest = {
     id: number;
     reason: string;
     status: 'pending' | 'approved' | 'rejected';
+    registrar_status: 'pending' | 'approved' | 'rejected';
+    accounting_status: 'pending' | 'approved' | 'rejected';
     semester: string | null;
     school_year: string | null;
-    registrar_notes: string | null;
-    processed_by: ProcessedBy | null;
-    processed_at: string | null;
+    registrar_remarks: string | null;
+    fee_amount: number;
+    is_paid: boolean;
+    registrar_approved_by: ApprovedBy | null;
+    registrar_approved_at: string | null;
     created_at: string;
+    fee_items: FeeItemInfo[];
     student: Student;
 };
 
@@ -88,7 +109,15 @@ type Props = {
     filters: {
         search?: string;
     };
+    dropFeeItems: DropFeeItem[];
+    appSettings: {
+        has_k12: boolean;
+        has_college: boolean;
+    };
 };
+
+const formatCurrency = (amount: number) =>
+    `\u20B1${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const StatusBadge = ({ status }: { status: string }) => {
     switch (status) {
@@ -113,15 +142,22 @@ const StatusBadge = ({ status }: { status: string }) => {
     }
 };
 
-export default function DropRequestsIndex({ requests, stats, tab, filters }: Props) {
+export default function DropRequestsIndex({ requests, stats, tab, filters, dropFeeItems }: Props) {
     const [activeTab, setActiveTab] = useState(tab);
     const [selectedRequest, setSelectedRequest] = useState<DropRequest | null>(null);
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [search, setSearch] = useState(filters.search || '');
+    const [selectedFeeItemIds, setSelectedFeeItemIds] = useState<number[]>([]);
 
-    const approveForm = useForm({ registrar_notes: '' });
-    const rejectForm = useForm({ registrar_notes: '' });
+    const approveForm = useForm({ registrar_remarks: '', fee_item_ids: [] as number[] });
+    const rejectForm = useForm({ registrar_remarks: '' });
+
+    const selectedFeeTotal = useMemo(() => {
+        return dropFeeItems
+            .filter((fi) => selectedFeeItemIds.includes(fi.id))
+            .reduce((sum, fi) => sum + fi.selling_price, 0);
+    }, [selectedFeeItemIds, dropFeeItems]);
 
     const handleTabChange = (newTab: string) => {
         setActiveTab(newTab);
@@ -141,7 +177,14 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
     const openApproveModal = (request: DropRequest) => {
         setSelectedRequest(request);
         approveForm.reset();
+        setSelectedFeeItemIds([]);
         setShowApproveModal(true);
+    };
+
+    const toggleFeeItem = (id: number) => {
+        setSelectedFeeItemIds((prev) =>
+            prev.includes(id) ? prev.filter((fid) => fid !== id) : [...prev, id]
+        );
     };
 
     const openRejectModal = (request: DropRequest) => {
@@ -153,10 +196,15 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
     const handleApprove = (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedRequest) return;
+        approveForm.transform((data) => ({
+            ...data,
+            fee_item_ids: selectedFeeItemIds,
+        }));
         approveForm.post(`/registrar/drop-requests/${selectedRequest.id}/approve`, {
             onSuccess: () => {
                 setShowApproveModal(false);
                 setSelectedRequest(null);
+                setSelectedFeeItemIds([]);
             },
         });
     };
@@ -190,7 +238,7 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
                 <div>
                     <h1 className="text-2xl font-bold">Drop Requests</h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        Review and process student drop requests.
+                        Review student drop requests and assign applicable fees before forwarding to accounting.
                     </p>
                 </div>
 
@@ -213,7 +261,7 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.approved}</div>
-                            <p className="text-xs text-muted-foreground">Students dropped</p>
+                            <p className="text-xs text-muted-foreground">Forwarded to accounting</p>
                         </CardContent>
                     </Card>
                     <Card className="cursor-pointer hover:bg-muted/50" onClick={() => handleTabChange('rejected')}>
@@ -267,6 +315,7 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
                                             <TableHead>Program / Year</TableHead>
                                             <TableHead>School Year</TableHead>
                                             <TableHead>Reason</TableHead>
+                                            <TableHead>Fee</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Submitted</TableHead>
                                             {activeTab !== 'pending' && <TableHead>Processed</TableHead>}
@@ -318,21 +367,30 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
                                                         </p>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <StatusBadge status={req.status} />
+                                                        {req.fee_amount > 0 ? (
+                                                            <span className="text-sm font-medium">
+                                                                {formatCurrency(req.fee_amount)}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-sm text-muted-foreground">&mdash;</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <StatusBadge status={req.registrar_status} />
                                                     </TableCell>
                                                     <TableCell className="text-sm">{req.created_at}</TableCell>
                                                     {activeTab !== 'pending' && (
                                                         <TableCell>
-                                                            {req.processed_at ? (
+                                                            {req.registrar_approved_at ? (
                                                                 <div className="text-sm">
-                                                                    <div>{req.processed_at}</div>
-                                                                    <div className="text-muted-foreground">{req.processed_by?.name}</div>
+                                                                    <div>{req.registrar_approved_at}</div>
+                                                                    <div className="text-muted-foreground">{req.registrar_approved_by?.name}</div>
                                                                 </div>
                                                             ) : '—'}
                                                         </TableCell>
                                                     )}
                                                     <TableCell className="text-right">
-                                                        {req.status === 'pending' && (
+                                                        {req.registrar_status === 'pending' && (
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <Button
                                                                     size="sm"
@@ -354,9 +412,9 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
                                                                 </Button>
                                                             </div>
                                                         )}
-                                                        {req.status !== 'pending' && (
+                                                        {req.registrar_status !== 'pending' && (
                                                             <span className="text-sm text-muted-foreground">
-                                                                {req.registrar_notes || '—'}
+                                                                {req.registrar_remarks || '—'}
                                                             </span>
                                                         )}
                                                     </TableCell>
@@ -394,31 +452,59 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
 
             {/* Approve Modal */}
             <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
-                <DialogContent>
+                <DialogContent className="max-w-lg">
                     <form onSubmit={handleApprove}>
                         <DialogHeader>
                             <DialogTitle>Approve Drop Request</DialogTitle>
                             <DialogDescription>
-                                Are you sure you want to approve this drop request for{' '}
-                                <strong>{selectedRequest?.student.full_name}</strong>?
-                                <br />
-                                <br />
-                                This will:
-                                <ul className="list-disc ml-4 mt-2 space-y-1">
-                                    <li>Change their enrollment status to "Dropped"</li>
-                                    <li>Deactivate their account (they cannot log in)</li>
-                                    <li>Allow them to request a refund</li>
-                                </ul>
+                                Review and approve the drop request for{' '}
+                                <strong>{selectedRequest?.student.full_name}</strong>.
+                                Select applicable fee items and forward to accounting for final approval.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
+                            {/* Fee Items Selection */}
+                            {dropFeeItems.length > 0 && (
+                                <div className="space-y-3">
+                                    <Label className="text-sm font-medium">Drop Fee Items</Label>
+                                    <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
+                                        {dropFeeItems.map((item) => (
+                                            <label
+                                                key={item.id}
+                                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 cursor-pointer"
+                                            >
+                                                <Checkbox
+                                                    checked={selectedFeeItemIds.includes(item.id)}
+                                                    onCheckedChange={() => toggleFeeItem(item.id)}
+                                                />
+                                                <span className="flex-1 text-sm">{item.name}</span>
+                                                <span className="text-sm font-medium">
+                                                    {formatCurrency(item.selling_price)}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    {selectedFeeItemIds.length > 0 && (
+                                        <div className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2">
+                                            <span className="text-sm font-medium flex items-center gap-1">
+                                                <DollarSign className="h-4 w-4" />
+                                                Total Fee:
+                                            </span>
+                                            <span className="text-sm font-bold">
+                                                {formatCurrency(selectedFeeTotal)}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="space-y-2">
-                                <Label htmlFor="approve_notes">Notes (Optional)</Label>
+                                <Label htmlFor="approve_remarks">Remarks (Optional)</Label>
                                 <Textarea
-                                    id="approve_notes"
-                                    value={approveForm.data.registrar_notes}
-                                    onChange={(e) => approveForm.setData('registrar_notes', e.target.value)}
-                                    placeholder="Add any notes for the student..."
+                                    id="approve_remarks"
+                                    value={approveForm.data.registrar_remarks}
+                                    onChange={(e) => approveForm.setData('registrar_remarks', e.target.value)}
+                                    placeholder="Add any notes..."
                                     rows={3}
                                 />
                             </div>
@@ -428,7 +514,7 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
                                 Cancel
                             </Button>
                             <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={approveForm.processing}>
-                                Approve Drop
+                                Approve & Forward to Accounting
                             </Button>
                         </DialogFooter>
                     </form>
@@ -448,19 +534,19 @@ export default function DropRequestsIndex({ requests, stats, tab, filters }: Pro
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="reject_notes">
+                                <Label htmlFor="reject_remarks">
                                     Reason for Rejection <span className="text-destructive">*</span>
                                 </Label>
                                 <Textarea
-                                    id="reject_notes"
-                                    value={rejectForm.data.registrar_notes}
-                                    onChange={(e) => rejectForm.setData('registrar_notes', e.target.value)}
+                                    id="reject_remarks"
+                                    value={rejectForm.data.registrar_remarks}
+                                    onChange={(e) => rejectForm.setData('registrar_remarks', e.target.value)}
                                     placeholder="Explain why the drop request is being rejected..."
                                     rows={3}
                                     required
                                 />
-                                {rejectForm.errors.registrar_notes && (
-                                    <p className="text-sm text-destructive">{rejectForm.errors.registrar_notes}</p>
+                                {rejectForm.errors.registrar_remarks && (
+                                    <p className="text-sm text-destructive">{rejectForm.errors.registrar_remarks}</p>
                                 )}
                             </div>
                         </div>
