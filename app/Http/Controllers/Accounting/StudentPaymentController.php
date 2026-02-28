@@ -505,10 +505,13 @@ class StudentPaymentController extends Controller
      */
     private function calculateFeesForSchoolYear(Student $student, string $schoolYear): ?array
     {
-        // Get applicable fee items
+        // Get applicable fee items (exclude Drop category - those are only charged via drop requests)
         $feeItems = \App\Models\FeeItem::with('category')
             ->where('school_year', $schoolYear)
             ->where('is_active', true)
+            ->whereDoesntHave('category', function ($q) {
+                $q->where('name', 'like', '%Drop%');
+            })
             ->where(function ($query) use ($student) {
                 $query->where('assignment_scope', 'all')
                     ->orWhere(function ($q) use ($student) {
@@ -714,9 +717,12 @@ class StudentPaymentController extends Controller
      */
     private function calculateStudentBalance(Student $student, string $schoolYear): float
     {
-        // Calculate total from applicable fee items
+        // Calculate total from applicable fee items (exclude Drop category - those are only charged via drop requests)
         $totalAmount = \App\Models\FeeItem::where('school_year', $schoolYear)
             ->where('is_active', true)
+            ->whereDoesntHave('category', function ($q) {
+                $q->where('name', 'like', '%Drop%');
+            })
             ->where(function ($query) use ($student) {
                 $query->where('assignment_scope', 'all')
                     ->orWhere(function ($q) use ($student) {
