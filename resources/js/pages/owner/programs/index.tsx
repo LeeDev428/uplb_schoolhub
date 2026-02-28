@@ -14,6 +14,7 @@ import { SearchBar } from '@/components/filters/search-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { Pagination } from '@/components/ui/pagination';
+import { toast } from 'sonner';
 
 interface Department {
     id: number;
