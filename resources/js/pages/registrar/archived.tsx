@@ -110,7 +110,7 @@ export default function ArchivedStudentsIndex({ students, filters, schoolYears, 
         : departments;
 
     const applyFilter = (newFilters: Record<string, string | undefined>) => {
-        const merged = { ...filters, ...newFilters, page: undefined };
+        const merged: Record<string, string | undefined> = { ...filters, ...newFilters, page: undefined };
         // Remove empty values
         Object.keys(merged).forEach(k => {
             if (!merged[k]) delete merged[k];
