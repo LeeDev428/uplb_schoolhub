@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -33,6 +33,12 @@ interface Strand {
     code: string;
 }
 
+interface Program {
+    id: number;
+    name: string;
+    department_id: number;
+}
+
 interface Section {
     id: number;
     name: string;
@@ -58,6 +64,7 @@ interface Props {
     };
     yearLevels: YearLevel[];
     departments: Department[];
+    programs: Program[];
     strands: Strand[];
     filters: {
         search?: string;
@@ -69,7 +76,7 @@ interface Props {
     };
 }
 
-export default function SectionsIndex({ sections, yearLevels, departments, strands, filters }: Props) {
+export default function SectionsIndex({ sections, yearLevels, departments, programs, strands, filters }: Props) {
     const { props } = usePage();
     const hasK12 = (props.appSettings as any)?.has_k12 !== false;
     const hasCollege = (props.appSettings as any)?.has_college !== false;
@@ -89,6 +96,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
 
     const form = useForm({
         department_id: '',
+        program_id: '',
         year_level_id: '',
         strand_id: '',
         name: '',
@@ -97,6 +105,14 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         room_number: '',
         is_active: true,
     });
+
+    // Derived values based on selected department in the form
+    const selectedDeptForForm = departments.find(d => d.id.toString() === form.data.department_id);
+    const isCollegeDeptForForm = selectedDeptForForm?.classification === 'College';
+    const programsForDept = programs.filter(p => p.department_id.toString() === form.data.department_id);
+    const yearLevelsForDept = form.data.department_id
+        ? yearLevels.filter(yl => yl.department?.id.toString() === form.data.department_id)
+        : yearLevels;
 
     const openCreateModal = () => {
         form.reset();
@@ -108,6 +124,7 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
         setEditingSection(section);
         form.setData({
             department_id: section.department?.id.toString() || '',
+            program_id: (section as any).program_id?.toString() || '',
             year_level_id: section.year_level.id.toString(),
             strand_id: section.strand?.id.toString() || '',
             name: section.name,
@@ -417,19 +434,31 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
 
             {/* Create/Edit Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
                             {editingSection ? 'Edit Section' : 'Add New Section'}
                         </DialogTitle>
+                        <DialogDescription>
+                            {editingSection ? 'Update the section details below.' : 'Fill in the details to create a new section.'}
+                        </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-4 py-4">
+                            {/* Department */}
                             <div className="space-y-2">
                                 <Label htmlFor="department_id">Department *</Label>
                                 <Select
                                     value={form.data.department_id}
-                                    onValueChange={(value) => form.setData('department_id', value)}
+                                    onValueChange={(value) => {
+                                        form.setData({
+                                            ...form.data,
+                                            department_id: value,
+                                            program_id: '',
+                                            year_level_id: '',
+                                            strand_id: '',
+                                        });
+                                    }}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select department" />
@@ -438,6 +467,8 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                         {departments.map((dept) => (
                                             <SelectItem key={dept.id} value={dept.id.toString()}>
                                                 {dept.name}
+                                                {' '}
+                                                <span className="text-xs text-muted-foreground">({dept.classification})</span>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -447,6 +478,34 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                 )}
                             </div>
 
+                            {/* Programs dropdown — College only */}
+                            {isCollegeDeptForForm && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="program_id">Program (Optional)</Label>
+                                    <Select
+                                        value={form.data.program_id || 'none'}
+                                        onValueChange={(value) => form.setData('program_id', value === 'none' ? '' : value)}
+                                        disabled={programsForDept.length === 0}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={programsForDept.length === 0 ? 'No programs available' : 'Select program (optional)'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            {programsForDept.map((prog) => (
+                                                <SelectItem key={prog.id} value={prog.id.toString()}>
+                                                    {prog.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {form.errors.program_id && (
+                                        <p className="text-sm text-red-500">{form.errors.program_id}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Year Level */}
                             <div className="space-y-2">
                                 <Label htmlFor="year_level_id">Year Level *</Label>
                                 <Select
@@ -457,9 +516,9 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                         <SelectValue placeholder="Select year level" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {yearLevels.map((yl) => (
+                                        {yearLevelsForDept.map((yl) => (
                                             <SelectItem key={yl.id} value={yl.id.toString()}>
-                                                {yl.department ? `${yl.department.name} - ${yl.name}` : yl.name}
+                                                {yl.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -469,28 +528,31 @@ export default function SectionsIndex({ sections, yearLevels, departments, stran
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="strand_id">Strand (For SHS Only)</Label>
-                                <Select
-                                    value={form.data.strand_id}
-                                    onValueChange={(value) => form.setData('strand_id', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select strand (optional)" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="">None</SelectItem>
-                                        {strands.map((strand) => (
-                                            <SelectItem key={strand.id} value={strand.id.toString()}>
-                                                {strand.name} ({strand.code})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {form.errors.strand_id && (
-                                    <p className="text-sm text-red-500">{form.errors.strand_id}</p>
-                                )}
-                            </div>
+                            {/* Strand — K-12 only */}
+                            {!isCollegeDeptForForm && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="strand_id">Strand (For SHS Only)</Label>
+                                    <Select
+                                        value={form.data.strand_id || 'none'}
+                                        onValueChange={(value) => form.setData('strand_id', value === 'none' ? '' : value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select strand (optional)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            {strands.map((strand) => (
+                                                <SelectItem key={strand.id} value={strand.id.toString()}>
+                                                    {strand.name} ({strand.code})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {form.errors.strand_id && (
+                                        <p className="text-sm text-red-500">{form.errors.strand_id}</p>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label htmlFor="name">Name *</Label>
