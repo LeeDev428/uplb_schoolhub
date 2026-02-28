@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\FeeItem;
+use App\Models\GrantRecipient;
 use App\Models\Student;
+use App\Models\StudentFee;
 use App\Models\EnrollmentClearance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -76,12 +79,39 @@ class StudentClearanceController extends Controller
 
         $students = $query->paginate(20)->withQueryString();
 
-        // Calculate balances for each student
+        // Calculate balances dynamically from fee_items for each student
         $students->getCollection()->transform(function ($student) {
-            $totalFees = $student->fees->sum('total_amount');
-            $totalPaid = $student->fees->sum('total_paid');
-            $balance = $totalFees - $totalPaid;
-            
+            $schoolYear = $student->school_year ?? date('Y') . '-' . (date('Y') + 1);
+
+            // Dynamic total from applicable fee items
+            $totalFees = FeeItem::where('school_year', $schoolYear)
+                ->where('is_active', true)
+                ->where(function ($query) use ($student) {
+                    $query->where('assignment_scope', 'all')
+                        ->orWhere(function ($q) use ($student) {
+                            $q->where('assignment_scope', 'specific');
+                            $this->applyStudentFilters($q, $student);
+                        })
+                        ->orWhereHas('assignments', function ($q) use ($student) {
+                            $this->applyAssignmentFilters($q, $student);
+                        });
+                })
+                ->sum('selling_price');
+
+            // Grant discount
+            $grantDiscount = GrantRecipient::where('student_id', $student->id)
+                ->where('school_year', $schoolYear)
+                ->where('status', 'active')
+                ->sum('discount_amount');
+
+            // Total paid from student_fees
+            $studentFee = StudentFee::where('student_id', $student->id)
+                ->where('school_year', $schoolYear)
+                ->first();
+            $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
+
+            $balance = max(0, $totalFees - $grantDiscount - $totalPaid);
+
             $student->total_fees = $totalFees;
             $student->total_paid = $totalPaid;
             $student->balance = $balance;
