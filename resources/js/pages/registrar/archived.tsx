@@ -167,6 +167,7 @@ export default function ArchivedStudentsIndex({ students, filters, schoolYears, 
         router.post(`/registrar/archived/${studentId}/restore`, {}, {
             preserveScroll: true,
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setSelectedStudents(prev => prev.filter(id => id !== studentId));
             }
         });
