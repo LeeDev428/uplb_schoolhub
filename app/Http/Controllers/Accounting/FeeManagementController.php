@@ -264,10 +264,13 @@ class FeeManagementController extends Controller
             'program_id' => 'nullable|exists:programs,id',
             'year_level_id' => 'nullable|exists:year_levels,id',
             'section_id' => 'nullable|exists:sections,id',
-            'assignment_scope' => 'required|in:all,specific',
+            'assignment_scope' => 'nullable|in:all,specific',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
         ]);
+
+        // Default assignment_scope to 'all' if not provided
+        $validated['assignment_scope'] = $validated['assignment_scope'] ?? 'all';
 
         FeeItem::create($validated);
 
@@ -295,10 +298,13 @@ class FeeManagementController extends Controller
             'program_id' => 'nullable|exists:programs,id',
             'year_level_id' => 'nullable|exists:year_levels,id',
             'section_id' => 'nullable|exists:sections,id',
-            'assignment_scope' => 'required|in:all,specific',
+            'assignment_scope' => 'nullable|in:all,specific',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
         ]);
+
+        // Default assignment_scope to 'all' if not provided
+        $validated['assignment_scope'] = $validated['assignment_scope'] ?? 'all';
 
         $item->update($validated);
 
