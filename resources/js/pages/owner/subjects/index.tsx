@@ -16,6 +16,7 @@ import { FilterBar } from '@/components/filters/filter-bar';
 import { Pagination } from '@/components/ui/pagination';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface Department {
     id: number;
