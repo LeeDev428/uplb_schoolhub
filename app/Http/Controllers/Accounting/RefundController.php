@@ -60,14 +60,14 @@ class RefundController extends Controller
                 'processed_at'     => $r->processed_at?->format('M d, Y h:i A'),
                 'created_at'       => $r->created_at->format('M d, Y h:i A'),
                 'school_year'      => $r->studentFee?->school_year,
-                'student' => [
+                'student' => $r->student ? [
                     'id'                => $r->student->id,
                     'full_name'         => $r->student->full_name,
                     'lrn'               => $r->student->lrn,
                     'program'           => $r->student->program,
                     'year_level'        => $r->student->year_level,
                     'student_photo_url' => $r->student->student_photo_url,
-                ],
+                ] : null,
             ];
         });
 
