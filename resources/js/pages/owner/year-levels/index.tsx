@@ -117,6 +117,7 @@ export default function YearLevelsIndex({ yearLevels, departments, programs, fil
         if (editingYearLevel) {
             form.put(`/owner/year-levels/${editingYearLevel.id}`, {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsModalOpen(false);
                     form.reset();
                 },
@@ -124,6 +125,7 @@ export default function YearLevelsIndex({ yearLevels, departments, programs, fil
         } else {
             form.post('/owner/year-levels', {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsModalOpen(false);
                     form.reset();
                 },
