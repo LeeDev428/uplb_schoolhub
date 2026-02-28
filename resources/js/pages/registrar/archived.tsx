@@ -373,6 +373,7 @@ export default function ArchivedStudentsIndex({ students, filters, schoolYears, 
                                                 <TableHead>Email</TableHead>
                                                 <TableHead>Department</TableHead>
                                                 <TableHead>Year Level</TableHead>
+                                                <TableHead>School Year</TableHead>
                                                 <TableHead>Last Status</TableHead>
                                                 <TableHead>Archived On</TableHead>
                                                 <TableHead className="text-right">Actions</TableHead>
@@ -411,6 +412,9 @@ export default function ArchivedStudentsIndex({ students, filters, schoolYears, 
                                                         ) : '-'}
                                                     </TableCell>
                                                     <TableCell>{student.year_level || '-'}</TableCell>
+                                                    <TableCell className="text-sm">
+                                                        {student.school_year || '-'}
+                                                    </TableCell>
                                                     <TableCell>
                                                         <Badge variant="secondary">
                                                             {student.enrollment_status}
@@ -496,9 +500,9 @@ export default function ArchivedStudentsIndex({ students, filters, schoolYears, 
                                 <Archive className="h-12 w-12 text-muted-foreground mb-4" />
                                 <h3 className="text-lg font-medium mb-2">No Archived Students</h3>
                                 <p className="text-muted-foreground text-center">
-                                    {filters.search ? 
-                                        'No archived students match your search criteria.' :
-                                        'There are no archived student records.'}
+                                    {(filters.search || filters.classification || filters.school_year || filters.semester || filters.department_id)
+                                        ? 'No archived students match your filter criteria.'
+                                        : 'There are no archived student records.'}
                                 </p>
                             </div>
                         )}
