@@ -33,6 +33,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Edit, Trash2, FileText } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
+import { toast } from 'sonner';
 
 interface Student {
     id: number;
