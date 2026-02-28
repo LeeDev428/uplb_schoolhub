@@ -160,6 +160,7 @@ export default function DocumentRequestsIndex({ requests, documentFees, feesByCa
         form.post('/student/document-requests', {
             forceFormData: true,
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setIsDialogOpen(false);
                 form.reset();
                 setSelectedFee(null);
