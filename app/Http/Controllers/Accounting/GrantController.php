@@ -84,7 +84,7 @@ class GrantController extends Controller
 
         $schoolYears = GrantRecipient::distinct()->pluck('school_year')->sort()->values();
 
-        return Inertia::render('accounting/grants/index', [
+        return Inertia::render($this->viewPrefix() . '/grants/index', [
             'tab' => $tab,
             'grants' => $grants,
             'recipients' => $recipients,
