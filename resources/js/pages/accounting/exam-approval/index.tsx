@@ -185,6 +185,7 @@ export default function ExamApprovalIndex({
         e.preventDefault();
         createForm.post('/accounting/exam-approval', {
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setIsCreateModalOpen(false);
                 createForm.reset();
             },
@@ -202,6 +203,7 @@ export default function ExamApprovalIndex({
                 remarks: denyForm.data.remarks,
             }, {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsDenyModalOpen(false);
                     setSelectedApproval(null);
                     denyForm.reset();
