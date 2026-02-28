@@ -115,6 +115,7 @@ export default function AccountingFees({ fees, filters, schoolYears, students = 
         e.preventDefault();
         post(storeFor.url(), {
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setIsCreateModalOpen(false);
                 reset();
             },
@@ -126,6 +127,7 @@ export default function AccountingFees({ fees, filters, schoolYears, students = 
         if (selectedFee) {
             put(updateFee.url({ fee: selectedFee.id }), {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsEditModalOpen(false);
                     setSelectedFee(null);
                     reset();
