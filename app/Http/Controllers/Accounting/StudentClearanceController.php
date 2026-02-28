@@ -260,4 +260,62 @@ class StudentClearanceController extends Controller
 
         return back()->with('success', "{$count} students updated successfully.");
     }
+
+    /**
+     * Apply student-specific filters to fee item query.
+     */
+    private function applyStudentFilters($query, Student $student): void
+    {
+        if ($student->department) {
+            $query->where(function ($sq) use ($student) {
+                $sq->whereNull('classification')
+                    ->orWhere('classification', $student->department->classification);
+            });
+        }
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('department_id')
+                ->orWhere('department_id', $student->department_id);
+        });
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('program_id')
+                ->orWhere('program_id', $student->program_id);
+        });
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('year_level_id')
+                ->orWhere('year_level_id', $student->year_level_id);
+        });
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('section_id')
+                ->orWhere('section_id', $student->section_id);
+        });
+    }
+
+    /**
+     * Apply assignment-specific filters to fee_item_assignments query.
+     */
+    private function applyAssignmentFilters($query, Student $student): void
+    {
+        $query->where('is_active', true);
+
+        if ($student->department) {
+            $query->where(function ($sq) use ($student) {
+                $sq->whereNull('classification')
+                    ->orWhere('classification', $student->department->classification);
+            });
+        }
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('department_id')
+                ->orWhere('department_id', $student->department_id);
+        });
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('year_level_id')
+                ->orWhere('year_level_id', $student->year_level_id);
+        });
+    }
 }
