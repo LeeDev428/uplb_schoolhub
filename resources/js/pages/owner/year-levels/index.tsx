@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -363,6 +363,9 @@ export default function YearLevelsIndex({ yearLevels, departments, programs, fil
                         <DialogTitle>
                             {editingYearLevel ? 'Edit Year Level' : 'Add New Year Level'}
                         </DialogTitle>
+                        <DialogDescription>
+                            {editingYearLevel ? 'Update the year level details below.' : 'Fill in the details to create a new year level.'}
+                        </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-4 py-4">
@@ -411,27 +414,19 @@ export default function YearLevelsIndex({ yearLevels, departments, programs, fil
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Classification</Label>
-                                <Input
-                                    value={form.data.classification}
-                                    disabled
-                                    className="bg-gray-50"
-                                />
-                                <p className="text-xs text-gray-500">Auto-selected based on department</p>
-                            </div>
-
-                            {isCollegeDept && programsForDept.length > 0 && (
+                            {isCollegeDept && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="program_id">Program</Label>
+                                    <Label htmlFor="program_id">Program (Optional)</Label>
                                     <Select
-                                        value={form.data.program_id}
-                                        onValueChange={(value) => form.setData('program_id', value)}
+                                        value={form.data.program_id || 'none'}
+                                        onValueChange={(value) => form.setData('program_id', value === 'none' ? '' : value)}
+                                        disabled={programsForDept.length === 0}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select program (optional)" />
+                                            <SelectValue placeholder={programsForDept.length === 0 ? 'No programs available' : 'Select program (optional)'} />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
                                             {programsForDept.map((prog) => (
                                                 <SelectItem key={prog.id} value={prog.id.toString()}>
                                                     {prog.name}
