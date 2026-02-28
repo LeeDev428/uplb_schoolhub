@@ -1,0 +1,1700 @@
+import { Head, router, useForm } from '@inertiajs/react';
+import { useState, useEffect, useMemo } from 'react';
+import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Edit, MoreHorizontal, Plus, Trash2, FolderPlus, Calculator, DollarSign, RefreshCw, FileText, Clock, CheckSquare, Save, TrendingUp, Search, X } from 'lucide-react';
+
+interface FeeItem {
+    id: number;
+    fee_category_id: number;
+    name: string;
+    description?: string;
+    cost_price: string;
+    selling_price: string;
+    profit: string;
+    school_year?: string;
+    is_active: boolean;
+    classification?: string;
+    department_id?: number | null;
+    program_id?: number | null;
+    year_level_id?: number | null;
+    section_id?: number | null;
+    assignment_scope?: 'all' | 'specific';
+    students_availed?: number;
+    total_revenue?: number;
+    total_income?: number;
+    is_per_unit?: boolean;
+    unit_price?: string;
+}
+
+interface FeeCategory {
+    id: number;
+    name: string;
+    code: string;
+    description?: string;
+    sort_order: number;
+    is_active: boolean;
+    items: FeeItem[];
+    total_cost: string;
+    total_selling: string;
+    total_profit: string;
+    total_revenue?: number;
+    total_income?: number;
+}
+
+interface Department {
+    id: number;
+    name: string;
+    code: string;
+    classification: string;
+}
+
+interface Program {
+    id: number;
+    name: string;
+    department_id: number;
+    classification: string;
+}
+
+interface YearLevel {
+    id: number;
+    name: string;
+    department_id: number;
+    level_number: number;
+    classification: string;
+}
+
+interface Section {
+    id: number;
+    name: string;
+    year_level_id: number;
+    department_id: number;
+    classification: string;
+}
+
+interface DocumentFeeItem {
+    id: number;
+    category: string;
+    name: string;
+    price: string;
+    processing_days: number;
+    processing_type: 'normal' | 'rush';
+    description?: string;
+    is_active: boolean;
+    students_availed?: number;
+    total_revenue?: number;
+}
+
+interface Props {
+    categories: FeeCategory[];
+    totals: {
+        cost: string;
+        selling: string;
+        profit: string;
+    };
+    departments: Department[];
+    programs: Program[];
+    yearLevels: YearLevel[];
+    sections: Section[];
+    documentFees: DocumentFeeItem[];
+    documentCategories: string[];
+    tab: string;
+    studentCounts: {
+        school_year: string | null;
+        classification: string;
+        department_id: number | null;
+        year_level_id: number | null;
+        count: number;
+    }[];
+    studentSchoolYears: string[];
+}
+
+export default function FeeManagementIndex({ categories, totals, departments, programs, yearLevels, sections, documentFees, documentCategories, tab, studentCounts = [], studentSchoolYears = [] }: Props) {
+    const [activeTab, setActiveTab] = useState(tab || 'general');
+
+    // Search/filter state for general fees
+    const [feeSearch, setFeeSearch] = useState('');
+    const [feeClassificationFilter, setFeeClassificationFilter] = useState<string>('all');
+
+    // Projected revenue filter state
+    const [projSchoolYear, setProjSchoolYear] = useState<string>('');
+    const [projClassification, setProjClassification] = useState<string>('');
+    const [projDepartmentId, setProjDepartmentId] = useState<number | null>(null);
+    const [projYearLevelId, setProjYearLevelId] = useState<number | null>(null);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+    const [isDocFeeModalOpen, setIsDocFeeModalOpen] = useState(false);
+    const [editingCategory, setEditingCategory] = useState<FeeCategory | null>(null);
+    const [editingItem, setEditingItem] = useState<FeeItem | null>(null);
+    const [editingDocFee, setEditingDocFee] = useState<DocumentFeeItem | null>(null);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+    const [isAddingNewDocCategory, setIsAddingNewDocCategory] = useState(false);
+    const [newDocCategoryName, setNewDocCategoryName] = useState('');
+
+    // Fee Assignment state
+    const [assignClassification, setAssignClassification] = useState<string>('');
+    const [assignDepartmentId, setAssignDepartmentId] = useState<number | null>(null);
+    const [assignYearLevelId, setAssignYearLevelId] = useState<number | null>(null);
+    const [selectedFeeItemIds, setSelectedFeeItemIds] = useState<number[]>([]);
+    const [loadingAssignments, setLoadingAssignments] = useState(false);
+    const [savingAssignments, setSavingAssignments] = useState(false);
+
+
+    const categoryForm = useForm({
+        name: '',
+        code: '',
+        description: '',
+        sort_order: 0,
+        is_active: true,
+    });
+
+    const docFeeForm = useForm({
+        category: '',
+        name: '',
+        price: '',
+        students_availed: 0,
+        processing_days: 5,
+        processing_type: 'normal' as 'normal' | 'rush',
+        description: '',
+        is_active: true,
+    });
+
+    const itemForm = useForm({
+        fee_category_id: null as number | null,
+        name: '',
+        description: '',
+        cost_price: '',
+        selling_price: '',
+        students_availed: 0,
+        school_year: '2024-2025',
+        classification: '' as string,
+        department_id: null as number | null,
+        program_id: null as number | null,
+        year_level_id: null as number | null,
+        section_id: null as number | null,
+        assignment_scope: 'all' as 'all' | 'specific',
+        is_active: true,
+        is_per_unit: false,
+        unit_price: '',
+    });
+
+    // Filter categories based on search and classification
+    const filteredCategories = useMemo(() => {
+        return categories.map(category => {
+            const filteredItems = category.items.filter(item => {
+                const matchesSearch = !feeSearch || 
+                    item.name.toLowerCase().includes(feeSearch.toLowerCase()) ||
+                    (item.description && item.description.toLowerCase().includes(feeSearch.toLowerCase()));
+                
+                const matchesClassification = feeClassificationFilter === 'all' || 
+                    !item.classification || 
+                    item.classification === feeClassificationFilter;
+                
+                return matchesSearch && matchesClassification;
+            });
+            return { ...category, items: filteredItems };
+        }).filter(category => 
+            // Keep categories that have matching items, or show all when no search
+            !feeSearch || category.items.length > 0
+        );
+    }, [categories, feeSearch, feeClassificationFilter]);
+
+    const formatCurrency = (amount: string | number) => {
+        const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+        if (isNaN(numAmount)) return '₱0.00';
+        return `₱${numAmount.toLocaleString('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    };
+
+    const calculateProfit = () => {
+        const cost = parseFloat(itemForm.data.cost_price) || 0;
+        const selling = parseFloat(itemForm.data.selling_price) || 0;
+        return (selling - cost).toFixed(2);
+    };
+
+    const openCategoryModal = (category?: FeeCategory) => {
+        if (category) {
+            setEditingCategory(category);
+            categoryForm.setData({
+                name: category.name,
+                code: category.code || '',
+                description: category.description || '',
+                sort_order: category.sort_order,
+                is_active: category.is_active,
+            });
+        } else {
+            setEditingCategory(null);
+            categoryForm.reset();
+        }
+        setIsCategoryModalOpen(true);
+    };
+
+    const openItemModal = (categoryId: number, item?: FeeItem) => {
+        setSelectedCategoryId(categoryId);
+        if (item) {
+            setEditingItem(item);
+            itemForm.setData({
+                fee_category_id: item.fee_category_id,
+                name: item.name,
+                description: item.description || '',
+                cost_price: item.cost_price,
+                selling_price: item.selling_price,
+                students_availed: item.students_availed || 0,
+                school_year: item.school_year || '2024-2025',
+                is_active: item.is_active,
+                classification: item.classification || '',
+                department_id: item.department_id || null,
+                program_id: item.program_id || null,
+                year_level_id: item.year_level_id || null,
+                section_id: item.section_id || null,
+                assignment_scope: item.assignment_scope || 'all',
+                is_per_unit: item.is_per_unit ?? false,
+                unit_price: item.unit_price ?? '',
+            });
+        } else {
+            setEditingItem(null);
+            itemForm.setData({
+                fee_category_id: categoryId,
+                name: '',
+                description: '',
+                cost_price: '',
+                selling_price: '',
+                students_availed: 0,
+                school_year: '2024-2025',
+                is_active: true,
+                classification: '',
+                department_id: null,
+                program_id: null,
+                year_level_id: null,
+                section_id: null,
+                assignment_scope: 'all',
+                is_per_unit: false,
+                unit_price: '',
+            });
+        }
+        setIsItemModalOpen(true);
+    };
+
+    const handleCategorySubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingCategory) {
+            categoryForm.put(`/super-accounting/fee-management/categories/${editingCategory.id}`, {
+                onSuccess: () => {
+                    setIsCategoryModalOpen(false);
+                    categoryForm.reset();
+                    setEditingCategory(null);
+                },
+            });
+        } else {
+            categoryForm.post('/super-accounting/fee-management/categories', {
+                onSuccess: () => {
+                    setIsCategoryModalOpen(false);
+                    categoryForm.reset();
+                },
+            });
+        }
+    };
+
+    const handleItemSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingItem) {
+            console.log('Updating fee item:', editingItem.id, itemForm.data);
+            itemForm.put(`/super-accounting/fee-management/items/${editingItem.id}`, {
+                onSuccess: () => {
+                    console.log('Fee item updated successfully');
+                    setIsItemModalOpen(false);
+                    itemForm.reset();
+                    setEditingItem(null);
+                },
+                onError: (errors) => {
+                    console.error('Error updating fee item:', errors);
+                },
+            });
+        } else {
+            console.log('Creating new fee item:', itemForm.data);
+            itemForm.post('/super-accounting/fee-management/items', {
+                onSuccess: () => {
+                    console.log('Fee item created successfully');
+                    setIsItemModalOpen(false);
+                    itemForm.reset();
+                },
+                onError: (errors) => {
+                    console.error('Error creating fee item:', errors);
+                },
+            });
+        }
+    };
+
+    const handleDeleteCategory = (id: number) => {
+        if (confirm('Are you sure you want to delete this category? All items in this category will also be deleted.')) {
+            router.delete(`/super-accounting/fee-management/categories/${id}`);
+        }
+    };
+
+    const handleDeleteItem = (id: number) => {
+        if (confirm('Are you sure you want to delete this fee item?')) {
+            router.delete(`/super-accounting/fee-management/items/${id}`);
+        }
+    };
+
+    const handleRecalculateFees = () => {
+        if (confirm('This will recalculate all student fees based on active fee items. This may take a moment. Continue?')) {
+            router.post('/super-accounting/fee-management/recalculate');
+        }
+    };
+
+    // Document Fee Handlers
+    const openDocFeeModal = (docFee?: DocumentFeeItem) => {
+        if (docFee) {
+            setEditingDocFee(docFee);
+            setIsAddingNewDocCategory(false);
+            setNewDocCategoryName('');
+            docFeeForm.setData({
+                category: docFee.category,
+                name: docFee.name,
+                price: docFee.price,
+                students_availed: docFee.students_availed || 0,
+                processing_days: docFee.processing_days,
+                processing_type: docFee.processing_type,
+                description: docFee.description || '',
+                is_active: docFee.is_active,
+            });
+        } else {
+            setEditingDocFee(null);
+            setIsAddingNewDocCategory(false);
+            setNewDocCategoryName('');
+            docFeeForm.reset();
+        }
+        setIsDocFeeModalOpen(true);
+    };
+
+    const handleDocFeeSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        // If adding a new category, use the new category name
+        const submitData = { ...docFeeForm.data };
+        if (isAddingNewDocCategory && newDocCategoryName.trim()) {
+            submitData.category = newDocCategoryName.trim();
+        }
+        
+        if (editingDocFee) {
+            router.put(`/super-accounting/fee-management/document-fees/${editingDocFee.id}`, submitData, {
+                onSuccess: () => {
+                    setIsDocFeeModalOpen(false);
+                    docFeeForm.reset();
+                    setEditingDocFee(null);
+                    setIsAddingNewDocCategory(false);
+                    setNewDocCategoryName('');
+                },
+            });
+        } else {
+            router.post('/super-accounting/fee-management/document-fees', submitData, {
+                onSuccess: () => {
+                    setIsDocFeeModalOpen(false);
+                    docFeeForm.reset();
+                    setIsAddingNewDocCategory(false);
+                    setNewDocCategoryName('');
+                },
+            });
+        }
+    };
+
+    const handleDeleteDocFee = (id: number) => {
+        if (confirm('Are you sure you want to delete this document fee item?')) {
+            router.delete(`/super-accounting/fee-management/document-fees/${id}`);
+        }
+    };
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        if (value !== 'projected') {
+            router.get('/super-accounting/fee-management', { tab: value }, { preserveState: true, preserveScroll: true });
+        }
+    };
+
+    // ── Projected Revenue helpers ──────────────────────────────────────────────
+    const projFilteredDepartments = useMemo(() =>
+        projClassification ? departments.filter(d => d.classification === projClassification) : departments
+    , [projClassification, departments]);
+
+    const projFilteredYearLevels = useMemo(() =>
+        projDepartmentId ? yearLevels.filter(yl => yl.department_id === projDepartmentId) : yearLevels
+    , [projDepartmentId, yearLevels]);
+
+    const projStudentCount = useMemo(() => {
+        return studentCounts
+            .filter(c => !projSchoolYear || c.school_year === projSchoolYear)
+            .filter(c => !projClassification || c.classification === projClassification)
+            .filter(c => !projDepartmentId || c.department_id === projDepartmentId)
+            .filter(c => !projYearLevelId || c.year_level_id === projYearLevelId)
+            .reduce((sum, c) => sum + Number(c.count), 0);
+    }, [studentCounts, projSchoolYear, projClassification, projDepartmentId, projYearLevelId]);
+
+    const projTotalGeneralRevenue = useMemo(() =>
+        categories.flatMap(cat => cat.items).reduce((sum, item) => sum + parseFloat(item.selling_price || '0') * projStudentCount, 0)
+    , [categories, projStudentCount]);
+
+    const projTotalDocRevenue = useMemo(() =>
+        documentFees.reduce((sum, d) => sum + parseFloat(d.price || '0') * projStudentCount, 0)
+    , [documentFees, projStudentCount]);
+
+    // Group document fees by category
+    const groupedDocFees = documentFees?.reduce((acc, fee) => {
+        if (!acc[fee.category]) {
+            acc[fee.category] = [];
+        }
+        acc[fee.category].push(fee);
+        return acc;
+    }, {} as Record<string, DocumentFeeItem[]>) || {};
+
+    // Filtered year levels based on selected department
+    const filteredYearLevels = yearLevels.filter(yl => 
+        yl.classification === assignClassification && 
+        (!assignDepartmentId || yl.department_id === assignDepartmentId)
+    );
+
+    // Filtered departments based on selected classification
+    const filteredDepartments = departments.filter(d => d.classification === assignClassification);
+
+    // Load assignments when classification/department/year_level are all selected
+    useEffect(() => {
+        if (assignClassification && assignDepartmentId && assignYearLevelId) {
+            setLoadingAssignments(true);
+            fetch(`/super-accounting/fee-management/assignments?classification=${assignClassification}&department_id=${assignDepartmentId}&year_level_id=${assignYearLevelId}`)
+                .then(res => res.json())
+                .then(data => {
+                    setSelectedFeeItemIds(data.assignments || []);
+                    setLoadingAssignments(false);
+                })
+                .catch(() => {
+                    setSelectedFeeItemIds([]);
+                    setLoadingAssignments(false);
+                });
+        } else {
+            setSelectedFeeItemIds([]);
+        }
+    }, [assignClassification, assignDepartmentId, assignYearLevelId]);
+
+    const toggleFeeItemSelection = (itemId: number) => {
+        setSelectedFeeItemIds(prev => 
+            prev.includes(itemId) 
+                ? prev.filter(id => id !== itemId) 
+                : [...prev, itemId]
+        );
+    };
+
+    const toggleCategorySelection = (categoryId: number) => {
+        const categoryItems = categories.find(c => c.id === categoryId)?.items || [];
+        const categoryItemIds = categoryItems.filter(item => item.is_active).map(item => item.id);
+        const allSelected = categoryItemIds.every(id => selectedFeeItemIds.includes(id));
+        
+        if (allSelected) {
+            // Deselect all items in this category
+            setSelectedFeeItemIds(prev => prev.filter(id => !categoryItemIds.includes(id)));
+        } else {
+            // Select all items in this category
+            setSelectedFeeItemIds(prev => [...new Set([...prev, ...categoryItemIds])]);
+        }
+    };
+
+    const handleSaveAssignments = () => {
+        if (!assignClassification || !assignDepartmentId || !assignYearLevelId) return;
+        
+        setSavingAssignments(true);
+        router.post('/super-accounting/fee-management/assignments', {
+            classification: assignClassification,
+            department_id: assignDepartmentId,
+            year_level_id: assignYearLevelId,
+            fee_item_ids: selectedFeeItemIds,
+            school_year: '2024-2025',
+        }, {
+            onSuccess: () => {
+                setSavingAssignments(false);
+            },
+            onError: () => {
+                setSavingAssignments(false);
+            },
+        });
+    };
+
+    // Get selected department and year level names for display
+    const selectedDepartment = departments.find(d => d.id === assignDepartmentId);
+    const selectedYearLevel = yearLevels.find(yl => yl.id === assignYearLevelId);
+
+    return (
+        <SuperAccountingLayout>
+            <Head title="Fee Management" />
+
+            <div className="space-y-6 p-6">
+                <PageHeader
+                    title="Fee Management"
+                    description="Manage fee categories, items, and document request fees"
+                    action={
+                        <div className="flex gap-2">
+                            {activeTab === 'general' && (
+                            <>
+                            <Button variant="outline" onClick={handleRecalculateFees}>
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Recalculate All Fees
+                            </Button>
+                            <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
+                            setIsCategoryModalOpen(open);
+                            if (!open) {
+                                setEditingCategory(null);
+                                categoryForm.reset();
+                            }
+                        }}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <FolderPlus className="mr-2 h-4 w-4" />
+                                    Add Category
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                                <form onSubmit={handleCategorySubmit}>
+                                    <DialogHeader>
+                                        <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
+                                        <DialogDescription>
+                                            {editingCategory ? 'Update fee category details' : 'Create a new fee category'}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="category_name">Name *</Label>
+                                            <Input
+                                                id="category_name"
+                                                value={categoryForm.data.name}
+                                                onChange={(e) => categoryForm.setData('name', e.target.value)}
+                                                placeholder="e.g., Tuition Fees"
+                                            />
+                                            {categoryForm.errors.name && <p className="text-sm text-red-500">{categoryForm.errors.name}</p>}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="category_code">Code *</Label>
+                                            <Input
+                                                id="category_code"
+                                                value={categoryForm.data.code}
+                                                onChange={(e) => categoryForm.setData('code', e.target.value)}
+                                                placeholder="e.g., TF"
+                                            />
+                                            {categoryForm.errors.code && <p className="text-sm text-red-500">{categoryForm.errors.code}</p>}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="category_description">Description</Label>
+                                            <Textarea
+                                                id="category_description"
+                                                value={categoryForm.data.description}
+                                                onChange={(e) => categoryForm.setData('description', e.target.value)}
+                                                placeholder="Optional description..."
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="sort_order">Sort Order</Label>
+                                            <Input
+                                                id="sort_order"
+                                                type="number"
+                                                value={categoryForm.data.sort_order}
+                                                onChange={(e) => categoryForm.setData('sort_order', parseInt(e.target.value) || 0)}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                id="category_is_active"
+                                                checked={categoryForm.data.is_active}
+                                                onCheckedChange={(checked) => categoryForm.setData('is_active', checked)}
+                                            />
+                                            <Label htmlFor="category_is_active">Active</Label>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button type="submit" disabled={categoryForm.processing}>
+                                            {editingCategory ? 'Update' : 'Create'}
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                        </>
+                        )}
+                        {activeTab === 'documents' && (
+                            <Button onClick={() => openDocFeeModal()}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Document Fee
+                            </Button>
+                        )}
+                        </div>
+                    }
+                />
+
+                <Tabs value={activeTab} onValueChange={handleTabChange}>
+                    <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+                        <TabsTrigger value="general">General Fees</TabsTrigger>
+                        <TabsTrigger value="assignments">Assign Fees</TabsTrigger>
+                        <TabsTrigger value="documents">Document Fees</TabsTrigger>
+                        <TabsTrigger value="projected">
+                            <TrendingUp className="mr-1 h-3.5 w-3.5" />Projected
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="general" className="space-y-6 mt-6">
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+                                    <Calculator className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{formatCurrency(totals?.cost ?? 0)}</div>
+                                    <p className="text-xs text-muted-foreground">Base cost of all fee items</p>
+                                </CardContent>
+                            </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Selling</CardTitle>
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(totals?.selling ?? 0)}</div>
+                            <p className="text-xs text-muted-foreground">Total fees charged to students</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Profit</CardTitle>
+                            <DollarSign className="h-4 w-4 text-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-green-600">{formatCurrency(totals?.profit ?? 0)}</div>
+                            <p className="text-xs text-muted-foreground">Revenue margin on all fees</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Search and Filter Bar */}
+                <Card>
+                    <CardContent className="pt-4">
+                        <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex-1 min-w-[250px]">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search fee items by name or description..."
+                                        className="pl-9"
+                                        value={feeSearch}
+                                        onChange={(e) => setFeeSearch(e.target.value)}
+                                    />
+                                    {feeSearch && (
+                                        <button
+                                            onClick={() => setFeeSearch('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="w-[180px]">
+                                <Select value={feeClassificationFilter} onValueChange={setFeeClassificationFilter}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Classification" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Classifications</SelectItem>
+                                        <SelectItem value="K-12">K-12</SelectItem>
+                                        <SelectItem value="College">College</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {(feeSearch || feeClassificationFilter !== 'all') && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setFeeSearch('');
+                                        setFeeClassificationFilter('all');
+                                    }}
+                                >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Clear Filters
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Categories Accordion */}
+                {filteredCategories.length === 0 ? (
+                    <Card>
+                        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                            {categories.length === 0 ? (
+                                <>
+                                    <FolderPlus className="h-12 w-12 mb-4" />
+                                    <p>No fee categories yet. Create your first category to get started.</p>
+                                </>
+                            ) : (
+                                <>
+                                    <Search className="h-12 w-12 mb-4" />
+                                    <p>No fee items match your search criteria.</p>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Accordion type="multiple" defaultValue={filteredCategories.map(c => c.id.toString())} className="space-y-4">
+                        {filteredCategories.map((category) => (
+                            <AccordionItem key={category.id} value={category.id.toString()} className="border rounded-lg px-4">
+                                <AccordionTrigger className="hover:no-underline">
+                                    <div className="flex items-center justify-between w-full pr-4">
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold">{category.name}</span>
+                                            {!category.is_active && (
+                                                <Badge variant="outline">Inactive</Badge>
+                                            )}
+                                            <Badge variant="secondary">{category.items.length} items</Badge>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            <span className="text-muted-foreground">
+                                                Cost: <span className="text-foreground font-medium">{formatCurrency(category.total_cost)}</span>
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                Selling: <span className="text-foreground font-medium">{formatCurrency(category.total_selling)}</span>
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                Profit: <span className="text-green-600 font-medium">{formatCurrency(category.total_profit)}</span>
+                                            </span>
+                                            {(category.total_revenue ?? 0) > 0 && (
+                                                <span className="text-muted-foreground">
+                                                    Revenue: <span className="text-blue-600 font-medium">{formatCurrency(category.total_revenue ?? 0)}</span>
+                                                </span>
+                                            )}
+                                            {(category.total_income ?? 0) > 0 && (
+                                                <span className="text-muted-foreground">
+                                                    Income: <span className="text-purple-600 font-medium">{formatCurrency(category.total_income ?? 0)}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-4 pt-4">
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm text-muted-foreground">{category.description}</p>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => openItemModal(category.id)}
+                                                >
+                                                    <Plus className="h-4 w-4 mr-1" />
+                                                    Add Item
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => openCategoryModal(category)}
+                                                >
+                                                    <Edit className="h-4 w-4 mr-1" />
+                                                    Edit Category
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteCategory(category.id)}
+                                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {category.items.length === 0 ? (
+                                            <div className="text-center py-8 text-muted-foreground">
+                                                No items in this category yet.
+                                            </div>
+                                        ) : (
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Item Name</TableHead>
+                                                        <TableHead>Description</TableHead>
+                                                        <TableHead className="text-right">Cost Price</TableHead>
+                                                        <TableHead className="text-right">Selling Price</TableHead>
+                                                        <TableHead className="text-right">Profit</TableHead>
+                                                        <TableHead className="text-right">Students Availed</TableHead>
+                                                        <TableHead className="text-right">Total Revenue</TableHead>
+                                                        <TableHead className="text-right">Total Income</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead className="text-right">Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {category.items.map((item) => (
+                                                        <TableRow key={item.id}>
+                                                            <TableCell className="font-medium">
+                                                                {item.name}
+                                                                {item.is_per_unit && (
+                                                                    <Badge variant="outline" className="ml-2 text-xs border-amber-400 text-amber-700 bg-amber-50">
+                                                                        ₱{item.unit_price}/unit
+                                                                    </Badge>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell className="text-muted-foreground max-w-[200px] truncate">
+                                                                {item.description || '-'}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">{formatCurrency(item.cost_price)}</TableCell>
+                                                            <TableCell className="text-right">
+                                                                {item.is_per_unit
+                                                                    ? <span className="text-amber-600 text-xs italic">per unit</span>
+                                                                    : formatCurrency(item.selling_price)}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                <span className={parseFloat(item.profit) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                                                    {formatCurrency(item.profit)}
+                                                                </span>
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {(item.students_availed ?? 0).toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="text-right text-blue-600 font-medium">
+                                                                {formatCurrency(item.total_revenue ?? 0)}
+                                                            </TableCell>
+                                                            <TableCell className="text-right text-purple-600 font-medium">
+                                                                {formatCurrency(item.total_income ?? 0)}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {item.is_active ? (
+                                                                    <Badge className="bg-green-500">Active</Badge>
+                                                                ) : (
+                                                                    <Badge variant="outline">Inactive</Badge>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button variant="ghost" size="sm">
+                                                                            <MoreHorizontal className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end">
+                                                                        <DropdownMenuItem onClick={() => openItemModal(category.id, item)}>
+                                                                            <Edit className="h-4 w-4 mr-2" />
+                                                                            Edit
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => handleDeleteItem(item.id)}
+                                                                            className="text-red-600"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                                            Delete
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        )}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                )}
+                    </TabsContent>
+
+                    {/* Fee Assignment Tab */}
+                    <TabsContent value="assignments" className="space-y-6 mt-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <CheckSquare className="h-5 w-5" />
+                                    Assign Fees to Student Groups
+                                </CardTitle>
+                                <CardDescription>
+                                    Select a classification, department, and year level to assign fee items
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {/* Selection Dropdowns */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label>Classification *</Label>
+                                        <Select
+                                            value={assignClassification}
+                                            onValueChange={(value) => {
+                                                setAssignClassification(value);
+                                                setAssignDepartmentId(null);
+                                                setAssignYearLevelId(null);
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select classification" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="K-12">K-12</SelectItem>
+                                                <SelectItem value="College">College</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Department *</Label>
+                                        <Select
+                                            value={assignDepartmentId?.toString() || ''}
+                                            onValueChange={(value) => {
+                                                setAssignDepartmentId(parseInt(value));
+                                                setAssignYearLevelId(null);
+                                            }}
+                                            disabled={!assignClassification}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select department" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {filteredDepartments.map(dept => (
+                                                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                        {dept.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label>Grade/Year Level *</Label>
+                                        <Select
+                                            value={assignYearLevelId?.toString() || ''}
+                                            onValueChange={(value) => setAssignYearLevelId(parseInt(value))}
+                                            disabled={!assignDepartmentId}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select year level" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {filteredYearLevels.map(yl => (
+                                                    <SelectItem key={yl.id} value={yl.id.toString()}>
+                                                        {yl.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                {/* Selected Group Display */}
+                                {assignClassification && assignDepartmentId && assignYearLevelId && (
+                                    <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                                        <p className="text-sm font-medium text-blue-800">
+                                            Select Fee Items for: {assignClassification} &gt; {selectedDepartment?.name} &gt; {selectedYearLevel?.name}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Fee Categories with Checkboxes */}
+                                {assignClassification && assignDepartmentId && assignYearLevelId ? (
+                                    loadingAssignments ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <p className="text-muted-foreground">Loading assignments...</p>
+                                        </div>
+                                    ) : categories.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            <p>No fee categories available. Create fee items in the General Fees tab first.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {categories.map(category => {
+                                                const activeItems = category.items.filter(item => item.is_active);
+                                                const categoryItemIds = activeItems.map(item => item.id);
+                                                const allSelected = categoryItemIds.length > 0 && categoryItemIds.every(id => selectedFeeItemIds.includes(id));
+                                                const someSelected = categoryItemIds.some(id => selectedFeeItemIds.includes(id));
+                                                
+                                                if (activeItems.length === 0) return null;
+                                                
+                                                return (
+                                                    <Card key={category.id}>
+                                                        <CardHeader className="py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <Checkbox
+                                                                    checked={allSelected}
+                                                                    className={someSelected && !allSelected ? 'opacity-50' : ''}
+                                                                    onCheckedChange={() => toggleCategorySelection(category.id)}
+                                                                />
+                                                                <div>
+                                                                    <CardTitle className="text-base">{category.name}</CardTitle>
+                                                                    {category.description && (
+                                                                        <CardDescription className="text-xs">{category.description}</CardDescription>
+                                                                    )}
+                                                                </div>
+                                                                <Badge variant="secondary" className="ml-auto">
+                                                                    {categoryItemIds.filter(id => selectedFeeItemIds.includes(id)).length} / {activeItems.length} selected
+                                                                </Badge>
+                                                            </div>
+                                                        </CardHeader>
+                                                        <CardContent className="pt-0">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                {activeItems.map(item => (
+                                                                    <div
+                                                                        key={item.id}
+                                                                        className="flex items-center gap-3 p-2 rounded border hover:bg-muted/50 cursor-pointer"
+                                                                        onClick={() => toggleFeeItemSelection(item.id)}
+                                                                    >
+                                                                        <Checkbox
+                                                                            checked={selectedFeeItemIds.includes(item.id)}
+                                                                            onCheckedChange={() => toggleFeeItemSelection(item.id)}
+                                                                        />
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-sm font-medium truncate">{item.name}</p>
+                                                                            <p className="text-xs text-muted-foreground">{formatCurrency(item.selling_price)}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                );
+                                            })}
+                                            
+                                            {/* Save Button */}
+                                            <div className="flex justify-end pt-4">
+                                                <Button onClick={handleSaveAssignments} disabled={savingAssignments}>
+                                                    <Save className="mr-2 h-4 w-4" />
+                                                    {savingAssignments ? 'Saving...' : 'Save Assignments'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <CheckSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>Select a classification, department, and grade/year level to assign fees.</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="documents" className="space-y-6 mt-6">
+                        {/* Document Fee Categories */}
+                        {Object.keys(groupedDocFees).length === 0 ? (
+                            <Card>
+                                <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                    <FileText className="h-12 w-12 mb-4" />
+                                    <p>No document fees configured yet.</p>
+                                    <p className="text-sm mt-2">Add document fees for items like transcripts, certificates, etc.</p>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="space-y-6">
+                                {Object.entries(groupedDocFees).map(([category, fees]) => (
+                                    <Card key={category}>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <FileText className="h-5 w-5" />
+                                                {category}
+                                            </CardTitle>
+                                            <CardDescription>
+                                                {fees.length} fee option{fees.length !== 1 ? 's' : ''} available
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Name</TableHead>
+                                                        <TableHead>Type</TableHead>
+                                                        <TableHead>Processing Days</TableHead>
+                                                        <TableHead className="text-right">Price</TableHead>
+                                                        <TableHead className="text-right">Students Availed</TableHead>
+                                                        <TableHead className="text-right">Total Revenue</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead className="text-right">Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {fees.map((fee) => (
+                                                        <TableRow key={fee.id}>
+                                                            <TableCell className="font-medium">{fee.name}</TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={fee.processing_type === 'rush' ? 'destructive' : 'secondary'}>
+                                                                    {fee.processing_type === 'rush' ? 'Rush' : 'Normal'}
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell className="flex items-center gap-1">
+                                                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                                                {fee.processing_days} day{fee.processing_days !== 1 ? 's' : ''}
+                                                            </TableCell>
+                                                            <TableCell className="text-right font-medium">
+                                                                {formatCurrency(fee.price)}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {(fee.students_availed ?? 0).toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="text-right text-blue-600 font-medium">
+                                                                {formatCurrency(fee.total_revenue ?? 0)}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={fee.is_active ? 'default' : 'outline'}>
+                                                                    {fee.is_active ? 'Active' : 'Inactive'}
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button variant="ghost" size="icon">
+                                                                            <MoreHorizontal className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end">
+                                                                        <DropdownMenuItem onClick={() => openDocFeeModal(fee)}>
+                                                                            <Edit className="h-4 w-4 mr-2" />
+                                                                            Edit
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => handleDeleteDocFee(fee.id)}
+                                                                            className="text-red-600"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                                            Delete
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </TabsContent>
+
+                    {/* ── Projected Revenue Tab ─────────────────────────────── */}
+                    <TabsContent value="projected" className="space-y-6 mt-6">
+                        {/* Filters */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4" />
+                                    Projected Revenue by Student Filter
+                                </CardTitle>
+                                <p className="text-xs text-muted-foreground">Select filters to see how many enrolled students qualify and the projected fee revenue.</p>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">School Year</label>
+                                        <Select value={projSchoolYear || 'all'} onValueChange={v => setProjSchoolYear(v === 'all' ? '' : v)}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All Years" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All School Years</SelectItem>
+                                                {studentSchoolYears.map(sy => <SelectItem key={sy} value={sy}>{sy}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Classification</label>
+                                        <Select value={projClassification || 'all'} onValueChange={v => { setProjClassification(v === 'all' ? '' : v); setProjDepartmentId(null); setProjYearLevelId(null); }}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Classifications</SelectItem>
+                                                {[...new Set(departments.map(d => d.classification))].filter(Boolean).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department</label>
+                                        <Select value={projDepartmentId?.toString() || 'all'} onValueChange={v => { setProjDepartmentId(v === 'all' ? null : Number(v)); setProjYearLevelId(null); }}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Departments</SelectItem>
+                                                {projFilteredDepartments.map(d => <SelectItem key={d.id} value={d.id.toString()}>{d.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Year Level</label>
+                                        <Select value={projYearLevelId?.toString() || 'all'} onValueChange={v => setProjYearLevelId(v === 'all' ? null : Number(v))}>
+                                            <SelectTrigger className="h-9"><SelectValue placeholder="All" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Year Levels</SelectItem>
+                                                {projFilteredYearLevels.map(yl => <SelectItem key={yl.id} value={yl.id.toString()}>{yl.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Summary Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Projected Students</CardTitle>
+                                    <Calculator className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{projStudentCount.toLocaleString()}</div>
+                                    <p className="text-xs text-muted-foreground">Enrolled students matching filter</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">General Fee Revenue</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-blue-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(projTotalGeneralRevenue)}</div>
+                                    <p className="text-xs text-muted-foreground">All general fees × projected students</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Document Fee Revenue</CardTitle>
+                                    <FileText className="h-4 w-4 text-purple-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(projTotalDocRevenue)}</div>
+                                    <p className="text-xs text-muted-foreground">All document fees × projected students</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* General Fee Items Table */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base">General Fees ({projStudentCount} students)</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>Fee Item</TableHead>
+                                            <TableHead>School Year</TableHead>
+                                            <TableHead className="text-right">Unit Price</TableHead>
+                                            <TableHead className="text-right">Students</TableHead>
+                                            <TableHead className="text-right">Projected Revenue</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {categories.flatMap(cat => cat.items.map(item => ({ ...item, categoryName: cat.name }))).length === 0 ? (
+                                            <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No general fee items found.</TableCell></TableRow>
+                                        ) : categories.flatMap(cat => cat.items.map(item => ({ ...item, categoryName: cat.name }))).map(item => (
+                                            <TableRow key={item.id}>
+                                                <TableCell className="text-sm text-muted-foreground">{item.categoryName}</TableCell>
+                                                <TableCell className="font-medium">{item.name}</TableCell>
+                                                <TableCell className="text-sm">{item.school_year || '—'}</TableCell>
+                                                <TableCell className="text-right font-mono text-sm">{formatCurrency(item.selling_price)}</TableCell>
+                                                <TableCell className="text-right text-sm">{projStudentCount.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right font-semibold text-blue-700">{formatCurrency(parseFloat(item.selling_price || '0') * projStudentCount)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+
+                        {/* Document Fee Items Table */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base">Document Fees ({projStudentCount} students)</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>Document</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead className="text-right">Price</TableHead>
+                                            <TableHead className="text-right">Students</TableHead>
+                                            <TableHead className="text-right">Projected Revenue</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {documentFees.length === 0 ? (
+                                            <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">No document fees found.</TableCell></TableRow>
+                                        ) : documentFees.map(doc => (
+                                            <TableRow key={doc.id}>
+                                                <TableCell className="text-sm text-muted-foreground">{doc.category}</TableCell>
+                                                <TableCell className="font-medium">{doc.name}</TableCell>
+                                                <TableCell><Badge variant="outline" className="text-xs capitalize">{doc.processing_type}</Badge></TableCell>
+                                                <TableCell className="text-right font-mono text-sm">{formatCurrency(doc.price)}</TableCell>
+                                                <TableCell className="text-right text-sm">{projStudentCount.toLocaleString()}</TableCell>
+                                                <TableCell className="text-right font-semibold text-purple-700">{formatCurrency(parseFloat(doc.price || '0') * projStudentCount)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </div>
+
+            {/* Document Fee Modal */}
+            <Dialog open={isDocFeeModalOpen} onOpenChange={(open) => {
+                setIsDocFeeModalOpen(open);
+                if (!open) {
+                    setEditingDocFee(null);
+                    setIsAddingNewDocCategory(false);
+                    setNewDocCategoryName('');
+                    docFeeForm.reset();
+                }
+            }}>
+                <DialogContent className="max-w-md">
+                    <form onSubmit={handleDocFeeSubmit}>
+                        <DialogHeader>
+                            <DialogTitle>{editingDocFee ? 'Edit Document Fee' : 'Add Document Fee'}</DialogTitle>
+                            <DialogDescription>
+                                {editingDocFee ? 'Update document fee details' : 'Create a new document fee item'}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="doc_category">Category *</Label>
+                                <div className="flex gap-2">
+                                    <Select
+                                        value={isAddingNewDocCategory ? '__new__' : docFeeForm.data.category}
+                                        onValueChange={(value) => {
+                                            if (value === '__new__') {
+                                                setIsAddingNewDocCategory(true);
+                                                setNewDocCategoryName('');
+                                            } else {
+                                                setIsAddingNewDocCategory(false);
+                                                setNewDocCategoryName('');
+                                                docFeeForm.setData('category', value);
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className="flex-1">
+                                            <SelectValue placeholder="Select or type category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {documentCategories?.map((cat) => (
+                                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                            ))}
+                                            <SelectItem value="__new__">+ Add New Category</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {isAddingNewDocCategory && (
+                                    <Input
+                                        placeholder="Enter new category name"
+                                        value={newDocCategoryName}
+                                        onChange={(e) => setNewDocCategoryName(e.target.value)}
+                                    />
+                                )}
+                                {docFeeForm.errors.category && <p className="text-sm text-red-500">{docFeeForm.errors.category}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="doc_name">Name *</Label>
+                                <Input
+                                    id="doc_name"
+                                    value={docFeeForm.data.name}
+                                    onChange={(e) => docFeeForm.setData('name', e.target.value)}
+                                    placeholder="e.g., Form 137 (Normal Processing)"
+                                />
+                                {docFeeForm.errors.name && <p className="text-sm text-red-500">{docFeeForm.errors.name}</p>}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="doc_price">Price *</Label>
+                                    <Input
+                                        id="doc_price"
+                                        type="number"
+                                        step="0.01"
+                                        value={docFeeForm.data.price}
+                                        onChange={(e) => docFeeForm.setData('price', e.target.value)}
+                                        placeholder="0.00"
+                                    />
+                                    {docFeeForm.errors.price && <p className="text-sm text-red-500">{docFeeForm.errors.price}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="doc_availed">Students Availed</Label>
+                                    <Input
+                                        id="doc_availed"
+                                        type="number"
+                                        min="0"
+                                        value={docFeeForm.data.students_availed}
+                                        onChange={(e) => docFeeForm.setData('students_availed', parseInt(e.target.value) || 0)}
+                                        placeholder="0"
+                                    />
+                                </div>
+                            </div>
+                            {docFeeForm.data.students_availed > 0 && docFeeForm.data.price && (
+                                <div className="rounded-lg bg-muted p-3 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Revenue:</span>
+                                        <span className="font-semibold text-blue-600">{formatCurrency((parseFloat(docFeeForm.data.price) || 0) * docFeeForm.data.students_availed)}</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="doc_days">Processing Days *</Label>
+                                    <Input
+                                        id="doc_days"
+                                        type="number"
+                                        min="1"
+                                        value={docFeeForm.data.processing_days}
+                                        onChange={(e) => docFeeForm.setData('processing_days', parseInt(e.target.value) || 1)}
+                                    />
+                                    {docFeeForm.errors.processing_days && <p className="text-sm text-red-500">{docFeeForm.errors.processing_days}</p>}
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Processing Type *</Label>
+                                <RadioGroup
+                                    value={docFeeForm.data.processing_type}
+                                    onValueChange={(value: 'normal' | 'rush') => docFeeForm.setData('processing_type', value)}
+                                    className="flex gap-4"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="normal" id="type_normal" />
+                                        <Label htmlFor="type_normal">Normal</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="rush" id="type_rush" />
+                                        <Label htmlFor="type_rush">Rush</Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="doc_description">Description</Label>
+                                <Textarea
+                                    id="doc_description"
+                                    value={docFeeForm.data.description}
+                                    onChange={(e) => docFeeForm.setData('description', e.target.value)}
+                                    placeholder="Optional description..."
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id="doc_is_active"
+                                    checked={docFeeForm.data.is_active}
+                                    onCheckedChange={(checked) => docFeeForm.setData('is_active', checked)}
+                                />
+                                <Label htmlFor="doc_is_active">Active</Label>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit" disabled={docFeeForm.processing}>
+                                {editingDocFee ? 'Update' : 'Create'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Item Modal */}
+            <Dialog open={isItemModalOpen} onOpenChange={(open) => {
+                setIsItemModalOpen(open);
+                if (!open) {
+                    setEditingItem(null);
+                    setSelectedCategoryId(null);
+                    itemForm.reset();
+                }
+            }}>
+                <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>{editingItem ? 'Edit Fee Item' : 'Add Fee Item'}</DialogTitle>
+                        <DialogDescription>
+                            {editingItem ? 'Update fee item details' : 'Create a new fee item'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleItemSubmit} className="flex flex-col overflow-hidden">
+                        <div className="overflow-y-auto px-1 space-y-4 max-h-[calc(90vh-180px)]">
+                            <div className="grid gap-2">
+                                <Label htmlFor="item_name">Name *</Label>
+                                <Input
+                                    id="item_name"
+                                    value={itemForm.data.name}
+                                    onChange={(e) => itemForm.setData('name', e.target.value)}
+                                    placeholder="e.g., Monthly Tuition"
+                                />
+                                {itemForm.errors.name && <p className="text-sm text-red-500">{itemForm.errors.name}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="item_description">Description</Label>
+                                <Textarea
+                                    id="item_description"
+                                    value={itemForm.data.description}
+                                    onChange={(e) => itemForm.setData('description', e.target.value)}
+                                    placeholder="Optional description..."
+                                />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                                <Label htmlFor="school_year">School Year *</Label>
+                                <Input
+                                    id="school_year"
+                                    value={itemForm.data.school_year}
+                                    onChange={(e) => itemForm.setData('school_year', e.target.value)}
+                                    placeholder="e.g., 2024-2025"
+                                />
+                                {itemForm.errors.school_year && <p className="text-sm text-red-500">{itemForm.errors.school_year}</p>}
+                                <p className="text-xs text-muted-foreground">
+                                    Format: YYYY-YYYY (e.g., 2024-2025)
+                                </p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="cost_price">Cost Price *</Label>
+                                    <Input
+                                        id="cost_price"
+                                        type="number"
+                                        step="0.01"
+                                        value={itemForm.data.cost_price}
+                                        onChange={(e) => itemForm.setData('cost_price', e.target.value)}
+                                        placeholder="0.00"
+                                    />
+                                    {itemForm.errors.cost_price && <p className="text-sm text-red-500">{itemForm.errors.cost_price}</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="selling_price">Selling Price *</Label>
+                                    <Input
+                                        id="selling_price"
+                                        type="number"
+                                        step="0.01"
+                                        value={itemForm.data.selling_price}
+                                        disabled={itemForm.data.is_per_unit}
+                                        onChange={(e) => itemForm.setData('selling_price', e.target.value)}
+                                        placeholder={itemForm.data.is_per_unit ? 'Computed per unit' : '0.00'}
+                                    />
+                                    {itemForm.errors.selling_price && <p className="text-sm text-red-500">{itemForm.errors.selling_price}</p>}
+                                </div>
+                            </div>
+
+                            {/* Per-unit tuition toggle (College Tuition category) */}
+                            {/* <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <Switch
+                                        id="is_per_unit"
+                                        checked={itemForm.data.is_per_unit}
+                                        onCheckedChange={(checked) => itemForm.setData('is_per_unit', checked)}
+                                    />
+                                    <div>
+                                        <Label htmlFor="is_per_unit" className="font-medium">Per-Unit Tuition (College)</Label>
+                                        <p className="text-xs text-muted-foreground">When enabled, tuition = <em>rate × enrolled units</em>. Selling Price is computed automatically.</p>
+                                    </div>
+                                </div>
+                                {itemForm.data.is_per_unit && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="unit_price">Rate per Unit (₱) *</Label>
+                                        <Input
+                                            id="unit_price"
+                                            type="number"
+                                            step="0.01"
+                                            value={itemForm.data.unit_price}
+                                            onChange={(e) => itemForm.setData('unit_price', e.target.value)}
+                                            placeholder="e.g. 350.00"
+                                        />
+                                        {itemForm.errors.unit_price && <p className="text-sm text-red-500">{itemForm.errors.unit_price}</p>}
+                                        <p className="text-xs text-muted-foreground">Final amount = rate × number of enrolled subject units per student.</p>
+                                    </div>
+                                )}
+                            </div> */}
+                            <div className="rounded-lg bg-muted p-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">Calculated Profit:</span>
+                                    <span className={`font-semibold ${parseFloat(calculateProfit()) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {formatCurrency(calculateProfit())}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="item_availed">Students Availed</Label>
+                                <Input
+                                    id="item_availed"
+                                    type="number"
+                                    min="0"
+                                    value={itemForm.data.students_availed}
+                                    onChange={(e) => itemForm.setData('students_availed', parseInt(e.target.value) || 0)}
+                                    placeholder="0"
+                                />
+                                <p className="text-xs text-muted-foreground">Number of students who availed this fee</p>
+                            </div>
+                            {itemForm.data.students_availed > 0 && itemForm.data.selling_price && (
+                                <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm space-y-1">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Revenue ({itemForm.data.students_availed} × ₱{itemForm.data.selling_price}):</span>
+                                        <span className="font-semibold text-blue-600">{formatCurrency((parseFloat(itemForm.data.selling_price) || 0) * itemForm.data.students_availed)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Total Income (profit × {itemForm.data.students_availed}):</span>
+                                        <span className="font-semibold text-purple-600">{formatCurrency(parseFloat(calculateProfit()) * itemForm.data.students_availed)}</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id="item_is_active"
+                                    checked={itemForm.data.is_active}
+                                    onCheckedChange={(checked) => itemForm.setData('is_active', checked)}
+                                />
+                                <Label htmlFor="item_is_active">Active</Label>
+                            </div>
+                        </div>
+                        <DialogFooter className="mt-4">
+                            <Button type="submit" disabled={itemForm.processing}>
+                                {editingItem ? 'Update' : 'Create'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </SuperAccountingLayout>
+    );
+}
