@@ -24,7 +24,7 @@ class ArchivedStudentController extends Controller
         $filters = $request->only(['search', 'classification', 'department_id', 'year_level', 'school_year', 'semester']);
 
         $query = Student::onlyTrashed()
-            ->with(['department:id,name,classification', 'yearLevel:id,name'])
+            ->with(['department:id,name,classification'])
             ->when($filters['search'] ?? null, function ($q, $search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
