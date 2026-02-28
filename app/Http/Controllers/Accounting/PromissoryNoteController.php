@@ -48,7 +48,7 @@ class PromissoryNoteController extends Controller
             'total' => PromissoryNote::count(),
         ];
 
-        return Inertia::render('accounting/promissory-notes/index', [
+        return Inertia::render($this->viewPrefix() . '/promissory-notes/index', [
             'notes' => $notes,
             'stats' => $stats,
             'filters' => [
