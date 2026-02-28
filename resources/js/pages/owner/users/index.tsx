@@ -198,6 +198,7 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
         if (editingUser) {
             form.put(`/owner/users/${editingUser.id}`, {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsModalOpen(false);
                     form.reset();
                 },
@@ -205,6 +206,7 @@ export default function UsersIndex({ users, roleCounts, departments, filters }: 
         } else {
             form.post('/owner/users', {
                 onSuccess: () => {
+                    toast.success('Changes saved successfully');
                     setIsModalOpen(false);
                     form.reset();
                 },
