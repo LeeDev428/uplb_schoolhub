@@ -76,7 +76,7 @@ class DropApprovalController extends Controller
                     'name' => $fi->name,
                     'amount' => (float) $fi->pivot->amount,
                 ]),
-                'student' => [
+                'student' => $r->student ? [
                     'id' => $r->student->id,
                     'full_name' => $r->student->full_name,
                     'lrn' => $r->student->lrn,
@@ -87,7 +87,7 @@ class DropApprovalController extends Controller
                     'student_photo_url' => $r->student->student_photo_url,
                     'enrollment_status' => $r->student->enrollment_status,
                     'classification' => $r->student->department?->classification,
-                ],
+                ] : null,
             ];
         });
 
