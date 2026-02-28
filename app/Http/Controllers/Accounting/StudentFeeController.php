@@ -62,7 +62,7 @@ class StudentFeeController extends Controller
                 ];
             });
 
-        return Inertia::render('accounting/fees/index', [
+        return Inertia::render($this->viewPrefix() . '/fees/index', [
             'fees' => $fees,
             'filters' => $request->only(['search', 'status', 'school_year']),
             'schoolYears' => $schoolYears,
