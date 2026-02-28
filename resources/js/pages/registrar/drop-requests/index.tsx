@@ -203,6 +203,7 @@ export default function DropRequestsIndex({ requests, stats, tab, filters, dropF
         }));
         approveForm.post(`/registrar/drop-requests/${selectedRequest.id}/approve`, {
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setShowApproveModal(false);
                 setSelectedRequest(null);
                 setSelectedFeeItemIds([]);
@@ -215,6 +216,7 @@ export default function DropRequestsIndex({ requests, stats, tab, filters, dropF
         if (!selectedRequest) return;
         rejectForm.post(`/registrar/drop-requests/${selectedRequest.id}/reject`, {
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setShowRejectModal(false);
                 setSelectedRequest(null);
             },
