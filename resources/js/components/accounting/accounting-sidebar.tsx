@@ -15,6 +15,7 @@ import {
     Receipt,
     RotateCcw,
     Settings,
+    UserMinus,
     Users,
 } from 'lucide-react';
 import {
@@ -73,6 +74,11 @@ export function AccountingSidebar() {
             title: 'Document Request',
             href: '/accounting/document-approvals',
             icon: FileCheck,
+        },
+        {
+            title: 'Drop Request',
+            href: '/accounting/drop-approvals',
+            icon: UserMinus,
         },
         {
             title: 'Payment Processing',
