@@ -103,6 +103,7 @@ export default function DropRequestIndex({
         e.preventDefault();
         form.post('/student/drop-request', {
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setIsOpen(false);
                 form.reset();
             },
