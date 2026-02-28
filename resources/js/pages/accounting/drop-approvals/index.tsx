@@ -158,6 +158,7 @@ export default function DropApprovals({ requests, stats, tab, filters }: Props) 
         approveForm.post(`/accounting/drop-approvals/${selectedRequest.id}/approve`, {
             preserveScroll: true,
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setShowApproveModal(false);
                 setSelectedRequest(null);
                 approveForm.reset();
@@ -170,6 +171,7 @@ export default function DropApprovals({ requests, stats, tab, filters }: Props) 
         rejectForm.post(`/accounting/drop-approvals/${selectedRequest.id}/reject`, {
             preserveScroll: true,
             onSuccess: () => {
+                toast.success('Changes saved successfully');
                 setShowRejectModal(false);
                 setSelectedRequest(null);
                 rejectForm.reset();
