@@ -191,6 +191,10 @@ class StudentAccountController extends Controller
                     ->orWhere(function ($q) use ($student) {
                         $q->where('assignment_scope', 'specific');
                         $this->applyStudentFilters($q, $student);
+                    })
+                    // Or items assigned via the Assignments tab
+                    ->orWhereHas('assignments', function ($q) use ($student) {
+                        $this->applyAssignmentFilters($q, $student);
                     });
             })
             ->sum('selling_price');
@@ -341,6 +345,31 @@ class StudentAccountController extends Controller
         $query->where(function ($sq) use ($student) {
             $sq->whereNull('section_id')
                 ->orWhere('section_id', $student->section_id);
+        });
+    }
+
+    /**
+     * Apply assignment-specific filters to fee_item_assignments query.
+     */
+    private function applyAssignmentFilters($query, Student $student): void
+    {
+        $query->where('is_active', true);
+
+        if ($student->department) {
+            $query->where(function ($sq) use ($student) {
+                $sq->whereNull('classification')
+                    ->orWhere('classification', $student->department->classification);
+            });
+        }
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('department_id')
+                ->orWhere('department_id', $student->department_id);
+        });
+
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('year_level_id')
+                ->orWhere('year_level_id', $student->year_level_id);
         });
     }
 
