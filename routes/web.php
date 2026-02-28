@@ -214,6 +214,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 
     // Drop Request Management
     Route::get('drop-requests', [App\Http\Controllers\Registrar\DropRequestController::class, 'index'])->name('drop-requests.index');
+    Route::get('drop-requests/{dropRequest}/fee-items', [App\Http\Controllers\Registrar\DropRequestController::class, 'getApplicableFeeItems'])->name('drop-requests.fee-items');
     Route::post('drop-requests/{dropRequest}/approve', [App\Http\Controllers\Registrar\DropRequestController::class, 'approve'])->name('drop-requests.approve');
     Route::post('drop-requests/{dropRequest}/reject', [App\Http\Controllers\Registrar\DropRequestController::class, 'reject'])->name('drop-requests.reject');
     Route::post('students/{student}/reactivate', [App\Http\Controllers\Registrar\DropRequestController::class, 'reactivate'])->name('students.reactivate');
