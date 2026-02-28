@@ -622,6 +622,10 @@ class StudentController extends Controller
             $student->update(['enrollment_status' => 'enrolled']);
         } else {
             $clearance->update(['enrollment_status' => 'in_progress']);
+            // If student was previously enrolled, revert to not-enrolled
+            if ($student->enrollment_status === 'enrolled') {
+                $student->update(['enrollment_status' => 'not-enrolled']);
+            }
         }
 
         return back()->with('success', 'Clearance status updated successfully');
