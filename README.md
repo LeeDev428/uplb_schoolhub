@@ -48,7 +48,7 @@ The system includes the following modules and user accounts:
 - [x] **Landing Page CMS** — Edit hero (title, subtitle, image gallery carousel), faculty section, principal's message (with author photo), alumni/notable graduates section, footer, and navigation links — all from a 4-tab settings editor
 - [x] **App Settings** — App name, academic structure type (K12/College), theme colors, logo/favicon upload
 
-#### **1.2 Registrar Account** ✅ `80% COMPLETE`
+#### **1.2 Registrar Account** ✅ `90% COMPLETE`
 
 - [x] Student record management (full CRUD with enrollment status)
 - [x] Enrollment and registration processing (clearance workflow)
@@ -62,10 +62,11 @@ The system includes the following modules and user accounts:
 - [x] Announcements viewing (role-targeted)
 - [x] **Student Subjects tab** — On the Registrar's student detail page, a Subjects tab appears for college students showing their enrolled subjects pulled from the `student_subjects` table
 - [ ] Academic record and transcript generation
-- [ ] Archived students page (`registrar/archived.tsx` missing — route is defined but page file does not exist)
+- [x] Archived students page — View/filter dropped/withdrawn/graduated students by classification (K-12/College), school year, semester, department; restore or permanently delete
+- [x] **Drop Request Management** — Review student drop requests with dual-approval workflow (registrar → accounting); attach fee items for accounting to collect
 - [ ] Integration with e-LMS for student academic tracking
 
-#### **1.3 Accounting Account** ✅ `75% COMPLETE`
+#### **1.3 Accounting Account** ✅ `85% COMPLETE`
 
 - [x] Student billing and fees management (CRUD)
 - [x] Student payments processing (CRUD)
@@ -78,8 +79,21 @@ The system includes the following modules and user accounts:
 - [x] **Account dashboard** — Per-student account view with payment history, daily collection bar chart, payment method breakdown (Cash/GCash/Bank), transaction history table
 - [x] **Per-unit fee items** — `FeeItem` model supports `is_per_unit` (boolean) and `unit_price`; fee management UI shows an amber per-unit card; `StudentPaymentController` auto-calculates charges based on enrolled unit count from `student_subjects`
 - [x] **Auto carry-forward balance** — When the Registrar grants registrar clearance for a student, any outstanding balances from prior school years are automatically summed and written to the new year's fee record as `carried_forward_balance`
+- [x] **Drop Request Approval** — Second-stage approval for drop requests; verify payment of attached fees before final approval
+- [x] **Document Request Approval** — Process document fee payments and approve requests
+- [x] **Promissory Notes** — Review and approve/decline student promissory notes
+- [x] **Exam Approval** — Grant exam permits for students with outstanding balances
+- [x] **Grant Management** — Create scholarships/grants and assign to students
+- [x] **Online Transaction Verification** — Verify online payments (GCash, bank transfers)
 - [ ] Advanced financial auditing
 - [ ] Monitoring and approval of student wallet/load transactions
+
+#### **1.3.1 Super Accounting Account** ✅ `85% COMPLETE`
+
+- [x] All features from Accounting Account
+- [x] Full access to all accounting functions with elevated privileges
+- [x] Cross-department financial oversight
+- [x] Same dashboard and management pages as Accounting role
 
 #### **1.4 Teacher Portal** 🔄 `55% COMPLETE`
 
@@ -98,7 +112,7 @@ The system includes the following modules and user accounts:
 - [ ] Attendance monitoring
 - [ ] Uploading of lessons, modules, and learning materials
 - [ ] Creation of assignments
-#### **1.5 Student Portal** 🔄 `55% COMPLETE`
+#### **1.5 Student Portal** 🔄 `70% COMPLETE`
 
 - [x] Dashboard with quick links
 - [x] View class schedules (PDF viewer, filtered by department/program)
@@ -112,6 +126,10 @@ The system includes the following modules and user accounts:
 - [x] **Self-Enrollment** — Students with `not-enrolled` or `dropped` status can apply for re-enrollment from their dashboard; `SelfEnrollmentController` creates/updates the `EnrollmentClearance` record and sets status to `pending-registrar`
 - [x] **Enrollment Status Dashboard** — Dashboard banner now surfaces the correct context per status: `not-enrolled`/`dropped` shows the Apply button; `pending-registrar` shows a yellow clock notice; `pending-accounting` shows a blue accounting notice
 - [x] **Enrolled Subjects view** — `/student/subjects` shows subjects pulled from `student_subjects` (requires enrolled middleware)
+- [x] **Drop Request Submission** — Submit drop requests with reason; tracked through dual-approval workflow (registrar → accounting)
+- [x] **Promissory Note Submission** — Submit promissory notes for fee deferral
+- [x] **Document Request Submission** — Request official documents (transcripts, certificates, etc.) with fee tracking
+- [x] **Online Payment Submission** — Submit online payment proofs (GCash, bank transfer) for verification
 - [ ] Viewing grades and report cards
 - [ ] Attendance records using RFID Portal
 - [ ] Enrollment fees viewing (no dedicated student fee summary page)
@@ -226,18 +244,30 @@ school-mgmt_lms_pos/
 │   │   │   │   ├── AnnouncementController.php
 │   │   │   │   ├── CalendarController.php
 │   │   │   │   └── ReportsController.php
-│   │   │   ├── Registrar/              # Registrar portal (6 controllers)
+│   │   │   ├── Registrar/              # Registrar portal (8 controllers)
 │   │   │   │   ├── ClassController.php
 │   │   │   │   ├── DocumentRequestController.php
+│   │   │   │   ├── DocumentApprovalController.php
+│   │   │   │   ├── DropRequestController.php
+│   │   │   │   ├── ArchivedStudentController.php
 │   │   │   │   ├── RegistrarDeadlineController.php
 │   │   │   │   ├── RegistrarSubjectController.php
 │   │   │   │   ├── ScheduleController.php
 │   │   │   │   └── ReportsController.php
-│   │   │   ├── Accounting/             # Accounting portal (5 controllers)
+│   │   │   ├── Accounting/             # Accounting & Super-Accounting portal (12 controllers)
 │   │   │   │   ├── AccountingDashboardController.php
+│   │   │   │   ├── StudentAccountController.php
 │   │   │   │   ├── StudentFeeController.php
 │   │   │   │   ├── StudentPaymentController.php
 │   │   │   │   ├── StudentClearanceController.php
+│   │   │   │   ├── DropApprovalController.php
+│   │   │   │   ├── DocumentApprovalController.php
+│   │   │   │   ├── DocumentRequestController.php
+│   │   │   │   ├── PromissoryNoteController.php
+│   │   │   │   ├── ExamApprovalController.php
+│   │   │   │   ├── GrantController.php
+│   │   │   │   ├── OnlineTransactionController.php
+│   │   │   │   ├── RefundController.php
 │   │   │   │   └── ReportsController.php
 │   │   │   ├── Teacher/                # Teacher portal (8 controllers)
 │   │   │   │   ├── DashboardController.php
@@ -319,18 +349,32 @@ school-mgmt_lms_pos/
 │   │   │   │   ├── classes/
 │   │   │   │   ├── requirements/
 │   │   │   │   ├── documents/
+│   │   │   │   ├── drop-requests/
 │   │   │   │   ├── deadlines/
 │   │   │   │   ├── subjects/
 │   │   │   │   ├── schedule/
+│   │   │   │   ├── archived.tsx
 │   │   │   │   ├── reports/
 │   │   │   │   └── announcements/
-│   │   │   ├── accounting/             # Accounting portal (7 page groups)
+│   │   │   ├── accounting/             # Accounting portal (15 page groups)
 │   │   │   │   ├── dashboard.tsx
 │   │   │   │   ├── fees/
+│   │   │   │   ├── fee-management/
 │   │   │   │   ├── payments/
+│   │   │   │   ├── student-accounts/
 │   │   │   │   ├── clearance/
+│   │   │   │   ├── drop-approvals/
+│   │   │   │   ├── document-approvals/
+│   │   │   │   ├── document-requests/
+│   │   │   │   ├── promissory-notes/
+│   │   │   │   ├── exam-approval/
+│   │   │   │   ├── grants/
+│   │   │   │   ├── online-transactions/
+│   │   │   │   ├── refunds/
 │   │   │   │   ├── reports.tsx
 │   │   │   │   └── announcements/
+│   │   │   ├── super-accounting/       # Super-Accounting portal (mirrors accounting)
+│   │   │   │   └── ...                 # Same structure as accounting/
 │   │   │   ├── teacher/                # Teacher portal (9 page groups)
 │   │   │   │   ├── dashboard.tsx
 │   │   │   │   ├── students/
@@ -341,13 +385,18 @@ school-mgmt_lms_pos/
 │   │   │   │   ├── grades/
 │   │   │   │   ├── attendance/
 │   │   │   │   └── announcements/
-│   │   │   ├── student/                # Student portal (7 page groups)
+│   │   │   ├── student/                # Student portal (12 page groups)
 │   │   │   │   ├── dashboard.tsx
 │   │   │   │   ├── profile.tsx
 │   │   │   │   ├── subjects/
 │   │   │   │   ├── schedules/
 │   │   │   │   ├── requirements.tsx
 │   │   │   │   ├── quizzes/            # Quiz taking UI
+│   │   │   │   ├── drop-request/
+│   │   │   │   ├── document-requests/
+│   │   │   │   ├── promissory-notes/
+│   │   │   │   ├── online-payments/
+│   │   │   │   ├── refund-requests/
 │   │   │   │   └── announcements/
 │   │   │   ├── parent/                 # Parent portal
 │   │   │   ├── guidance/               # Guidance portal
