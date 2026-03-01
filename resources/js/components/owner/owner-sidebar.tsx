@@ -13,6 +13,7 @@ import {
     Megaphone,
     Settings,
     UserSquare2,
+    Scale,
 } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -111,6 +112,11 @@ export function OwnerSidebar() {
             title: 'Export Reports',
             href: '/owner/reports',
             icon: FileText,
+        },
+        {
+            title: 'Audit Logs',
+            href: '/owner/audit-logs',
+            icon: Scale,
         },
         {
             title: 'App Settings',
