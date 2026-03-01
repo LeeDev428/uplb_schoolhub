@@ -98,6 +98,11 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::post('app-settings/alumni-photo', [App\Http\Controllers\Owner\AppSettingsController::class, 'uploadAlumniPhoto'])->name('app-settings.alumni-photo');
     Route::post('app-settings/nav-links', [App\Http\Controllers\Owner\AppSettingsController::class, 'updateNavLinks'])->name('app-settings.nav-links');
 
+
+    // Faculty Management
+    Route::post('faculty', [\App\Http\Controllers\Owner\FacultyController::class, 'store'])->name('faculty.store');
+    Route::post('faculty/{teacher}', [\App\Http\Controllers\Owner\FacultyController::class, 'update'])->name('faculty.update');
+    Route::delete('faculty/{teacher}', [\App\Http\Controllers\Owner\FacultyController::class, 'destroy'])->name('faculty.destroy');
     // Academic Structure Management
     Route::resource('departments', \App\Http\Controllers\Owner\DepartmentController::class)->only([
         'index', 'store', 'update', 'destroy'

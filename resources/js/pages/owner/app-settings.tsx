@@ -5,7 +5,9 @@ import {
     Upload, Save, Palette, Globe, Image as ImageIcon, GraduationCap,
     Layout, Users, MessageSquare, Trophy, Footprints, Navigation,
     Plus, Trash2, GripVertical, X, Camera, Calendar,
+    Pencil, Building2, ChevronDown, ChevronRight, UserPlus,
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import OwnerLayout from '@/layouts/owner/owner-layout';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -47,6 +49,32 @@ const ICON_NAMES = [
     'FileText','Globe','Heart','Home','Key','Layers','LifeBuoy','Lock',
     'Mail','PieChart','Settings','Star','Zap',
 ];
+
+interface FacultyMember {
+    id: number;
+    full_name: string;
+    first_name: string;
+    last_name: string;
+    middle_name: string | null;
+    suffix: string | null;
+    employee_id: string;
+    email: string;
+    specialization: string | null;
+    photo_url: string | null;
+    is_active: boolean;
+    show_on_landing: boolean;
+    employment_status: string;
+}
+
+interface DepartmentItem {
+    id: number;
+    classification: 'K-12' | 'College';
+    name: string;
+    code: string;
+    description: string | null;
+    is_active: boolean;
+    teachers: FacultyMember[];
+}
 
 interface AlumniItem {
     name: string;
@@ -108,9 +136,10 @@ interface AppSettingsData {
 
 interface Props {
     settings: AppSettingsData;
+    departments: DepartmentItem[];
 }
 
-export default function AppSettings({ settings }: Props) {
+export default function AppSettings({ settings, departments }: Props) {
     // ── General / branding ────────────────────────────────
     const { data, setData, post, processing, errors } = useForm({
         app_name:        settings.app_name || '',
@@ -350,6 +379,109 @@ export default function AppSettings({ settings }: Props) {
         });
     };
 
+    // ── Departments & Faculty ─────────────────────────────
+    const emptyDeptForm = { classification: 'K-12' as 'K-12' | 'College', name: '', code: '', description: '', is_active: true };
+    const emptyFacultyForm = { first_name: '', last_name: '', middle_name: '', suffix: '', employee_id: '', email: '', specialization: '', employment_status: 'full-time', is_active: true, show_on_landing: true };
+
+    const [expandedDepts, setExpandedDepts] = useState<Set<number>>(new Set());
+    const [deptModalOpen, setDeptModalOpen] = useState(false);
+    const [editingDept, setEditingDept]     = useState<DepartmentItem | null>(null);
+    const [deptForm, setDeptForm]           = useState(emptyDeptForm);
+    const [deptSaving, setDeptSaving]       = useState(false);
+
+    const [facultyModalOpen, setFacultyModalOpen]   = useState(false);
+    const [editingFaculty, setEditingFaculty]       = useState<FacultyMember | null>(null);
+    const [currentDeptId, setCurrentDeptId]         = useState<number | null>(null);
+    const [facultyForm, setFacultyForm]             = useState(emptyFacultyForm);
+    const [facultyPhotoFile, setFacultyPhotoFile]   = useState<File | null>(null);
+    const [facultyPhotoPreview, setFacultyPhotoPreview] = useState<string | null>(null);
+    const [facultySaving, setFacultySaving]         = useState(false);
+
+    const toggleDeptExpand = (id: number) => setExpandedDepts(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+    });
+
+    const openAddDeptModal = () => {
+        setEditingDept(null);
+        setDeptForm(emptyDeptForm);
+        setDeptModalOpen(true);
+    };
+
+    const openEditDeptModal = (dept: DepartmentItem) => {
+        setEditingDept(dept);
+        setDeptForm({ classification: dept.classification, name: dept.name, code: dept.code, description: dept.description ?? '', is_active: dept.is_active });
+        setDeptModalOpen(true);
+    };
+
+    const handleDeptSubmit = () => {
+        setDeptSaving(true);
+        if (editingDept) {
+            router.put(`/owner/departments/${editingDept.id}`, deptForm, {
+                preserveScroll: true,
+                onSuccess: () => { toast.success('Department updated'); setDeptModalOpen(false); setDeptSaving(false); },
+                onError:   () => { toast.error('Failed to save');        setDeptSaving(false); },
+            });
+        } else {
+            router.post('/owner/departments', deptForm, {
+                preserveScroll: true,
+                onSuccess: () => { toast.success('Department added'); setDeptModalOpen(false); setDeptSaving(false); },
+                onError:   () => { toast.error('Failed to save');      setDeptSaving(false); },
+            });
+        }
+    };
+
+    const handleDeptDelete = (id: number) => {
+        if (!confirm('Delete this department? This cannot be undone.')) return;
+        router.delete(`/owner/departments/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Department deleted'),
+            onError:   () => toast.error('Failed to delete'),
+        });
+    };
+
+    const openAddFacultyModal = (deptId: number) => {
+        setEditingFaculty(null);
+        setCurrentDeptId(deptId);
+        setFacultyForm(emptyFacultyForm);
+        setFacultyPhotoFile(null);
+        setFacultyPhotoPreview(null);
+        setFacultyModalOpen(true);
+    };
+
+    const openEditFacultyModal = (t: FacultyMember, deptId: number) => {
+        setEditingFaculty(t);
+        setCurrentDeptId(deptId);
+        setFacultyForm({ first_name: t.first_name, last_name: t.last_name, middle_name: t.middle_name ?? '', suffix: t.suffix ?? '', employee_id: t.employee_id, email: t.email, specialization: t.specialization ?? '', employment_status: t.employment_status, is_active: t.is_active, show_on_landing: t.show_on_landing });
+        setFacultyPhotoFile(null);
+        setFacultyPhotoPreview(t.photo_url);
+        setFacultyModalOpen(true);
+    };
+
+    const handleFacultySubmit = () => {
+        const fd = new FormData();
+        fd.append('department_id', String(currentDeptId));
+        Object.entries(facultyForm).forEach(([k, v]) => fd.append(k, String(v)));
+        if (facultyPhotoFile) fd.append('photo', facultyPhotoFile);
+        setFacultySaving(true);
+        const url = editingFaculty ? `/owner/faculty/${editingFaculty.id}` : '/owner/faculty';
+        router.post(url, fd, {
+            forceFormData: true, preserveScroll: true,
+            onSuccess: () => { toast.success(editingFaculty ? 'Faculty updated' : 'Faculty added'); setFacultyModalOpen(false); setFacultySaving(false); },
+            onError:   () => { toast.error('Failed to save'); setFacultySaving(false); },
+        });
+    };
+
+    const handleFacultyDelete = (id: number) => {
+        if (!confirm('Remove this faculty member?')) return;
+        router.delete(`/owner/faculty/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Faculty removed'),
+            onError:   () => toast.error('Failed to remove'),
+        });
+    };
+
     return (
         <OwnerLayout breadcrumbs={breadcrumbs}>
             <Head title="App Settings" />
@@ -362,10 +494,11 @@ export default function AppSettings({ settings }: Props) {
 
                 <Tabs defaultValue="general" className="space-y-6">
                     <TabsList className="flex flex-wrap gap-1 h-auto">
-                        <TabsTrigger value="general"  className="flex items-center gap-1.5"><Globe className="h-4 w-4" /> General</TabsTrigger>
-                        <TabsTrigger value="landing"  className="flex items-center gap-1.5"><Layout className="h-4 w-4" /> Landing Page</TabsTrigger>
-                        <TabsTrigger value="alumni"   className="flex items-center gap-1.5"><Trophy className="h-4 w-4" /> Alumni</TabsTrigger>
-                        <TabsTrigger value="nav"      className="flex items-center gap-1.5"><Navigation className="h-4 w-4" /> Navigation</TabsTrigger>
+                        <TabsTrigger value="general"     className="flex items-center gap-1.5"><Globe className="h-4 w-4" /> General</TabsTrigger>
+                        <TabsTrigger value="landing"     className="flex items-center gap-1.5"><Layout className="h-4 w-4" /> Landing Page</TabsTrigger>
+                        <TabsTrigger value="alumni"      className="flex items-center gap-1.5"><Trophy className="h-4 w-4" /> Alumni</TabsTrigger>
+                        <TabsTrigger value="nav"         className="flex items-center gap-1.5"><Navigation className="h-4 w-4" /> Navigation</TabsTrigger>
+                        <TabsTrigger value="departments" className="flex items-center gap-1.5"><Building2 className="h-4 w-4" /> Departments</TabsTrigger>
                     </TabsList>
 
                     {/* ══ GENERAL ══════════════════════════════════════════ */}
@@ -1039,8 +1172,250 @@ export default function AppSettings({ settings }: Props) {
                             </Button>
                         </div>
                     </TabsContent>
+
+                    {/* ══ DEPARTMENTS ═══════════════════════════════════════ */}
+                    <TabsContent value="departments" className="space-y-6">
+                        <Card>
+                            <CardHeader className="flex flex-row items-start justify-between gap-4">
+                                <div>
+                                    <CardTitle className="flex items-center gap-2"><Building2 className="h-5 w-5" /> Departments &amp; Faculty</CardTitle>
+                                    <CardDescription>Manage departments and the faculty assigned to each</CardDescription>
+                                </div>
+                                <Button type="button" size="sm" onClick={openAddDeptModal} className="flex-shrink-0">
+                                    <Plus className="mr-2 h-4 w-4" /> Add Department
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {departments.length === 0 && (
+                                    <p className="text-center text-muted-foreground text-sm py-8">No departments yet. Click "Add Department" to get started.</p>
+                                )}
+                                {(['K-12', 'College'] as const).map(cls => {
+                                    const clsDepts = departments.filter(d => d.classification === cls);
+                                    if (clsDepts.length === 0) return null;
+                                    return (
+                                        <div key={cls}>
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{cls}</p>
+                                            <div className="space-y-2">
+                                                {clsDepts.map(dept => (
+                                                    <div key={dept.id} className="rounded-lg border">
+                                                        {/* Department row */}
+                                                        <div className="flex items-center gap-2 p-3">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleDeptExpand(dept.id)}
+                                                                className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                                                            >
+                                                                {expandedDepts.has(dept.id)
+                                                                    ? <ChevronDown className="h-4 w-4" />
+                                                                    : <ChevronRight className="h-4 w-4" />}
+                                                            </button>
+                                                            <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded flex-shrink-0">{dept.code}</span>
+                                                            <span className="font-medium flex-1 truncate">{dept.name}</span>
+                                                            <span className="hidden sm:inline text-xs px-2 py-0.5 rounded flex-shrink-0 bg-muted text-muted-foreground">
+                                                                {dept.teachers.length} faculty
+                                                            </span>
+                                                            <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 ${dept.is_active ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                                                                {dept.is_active ? 'Active' : 'Inactive'}
+                                                            </span>
+                                                            <Button type="button" variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => openEditDeptModal(dept)}>
+                                                                <Pencil className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                            <Button type="button" variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-destructive hover:text-destructive" onClick={() => handleDeptDelete(dept.id)}>
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </div>
+                                                        {/* Faculty section */}
+                                                        {expandedDepts.has(dept.id) && (
+                                                            <div className="border-t bg-muted/30 px-3 py-3 space-y-2">
+                                                                <div className="flex items-center justify-between">
+                                                                    <p className="text-xs font-medium text-muted-foreground">Faculty ({dept.teachers.length})</p>
+                                                                    <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => openAddFacultyModal(dept.id)}>
+                                                                        <UserPlus className="mr-1.5 h-3 w-3" /> Add Faculty
+                                                                    </Button>
+                                                                </div>
+                                                                {dept.teachers.length === 0 && (
+                                                                    <p className="text-xs text-muted-foreground text-center py-3">No faculty assigned yet.</p>
+                                                                )}
+                                                                {dept.teachers.map(t => (
+                                                                    <div key={t.id} className="flex items-center gap-3 rounded-md bg-background border p-2">
+                                                                        <Avatar className="h-9 w-9 flex-shrink-0">
+                                                                            <AvatarImage src={t.photo_url ?? undefined} />
+                                                                            <AvatarFallback className="text-xs">{t.first_name[0]}{t.last_name[0]}</AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-sm font-medium truncate">{t.full_name}</p>
+                                                                            <p className="text-xs text-muted-foreground truncate">{t.specialization || t.employment_status}</p>
+                                                                        </div>
+                                                                        <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
+                                                                            <span className={`text-xs px-1.5 py-0.5 rounded ${t.is_active ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                                                                                {t.is_active ? 'Active' : 'Inactive'}
+                                                                            </span>
+                                                                            {t.show_on_landing && (
+                                                                                <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Landing</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => openEditFacultyModal(t, dept.id)}>
+                                                                            <Pencil className="h-3 w-3" />
+                                                                        </Button>
+                                                                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-destructive hover:text-destructive" onClick={() => handleFacultyDelete(t.id)}>
+                                                                            <Trash2 className="h-3 w-3" />
+                                                                        </Button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
                 </Tabs>
             </div>
+
+            {/* ── Department Dialog ───────────────────────────── */}
+            <Dialog open={deptModalOpen} onOpenChange={setDeptModalOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{editingDept ? 'Edit Department' : 'Add Department'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="grid gap-1.5">
+                            <label className="text-sm font-medium">Classification *</label>
+                            <Select value={deptForm.classification} onValueChange={v => setDeptForm(p => ({ ...p, classification: v as 'K-12' | 'College' }))}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="K-12">K-12</SelectItem>
+                                    <SelectItem value="College">College</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-1.5">
+                            <Label>Name *</Label>
+                            <Input value={deptForm.name} onChange={e => setDeptForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g., Junior High School" />
+                        </div>
+                        <div className="grid gap-1.5">
+                            <Label>Code *</Label>
+                            <Input value={deptForm.code} onChange={e => setDeptForm(p => ({ ...p, code: e.target.value.toUpperCase() }))} placeholder="e.g., JHS, BSIT" maxLength={50} />
+                        </div>
+                        <div className="grid gap-1.5">
+                            <Label>Description</Label>
+                            <Textarea value={deptForm.description} onChange={e => setDeptForm(p => ({ ...p, description: e.target.value }))} rows={2} placeholder="Optional" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Switch checked={deptForm.is_active} onCheckedChange={v => setDeptForm(p => ({ ...p, is_active: v }))} id="dept_modal_active" />
+                            <Label htmlFor="dept_modal_active">Active</Label>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeptModalOpen(false)}>Cancel</Button>
+                        <Button onClick={handleDeptSubmit} disabled={deptSaving || !deptForm.name || !deptForm.code}>
+                            {deptSaving ? 'Saving…' : 'Save'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* ── Faculty Dialog ──────────────────────────────── */}
+            <Dialog open={facultyModalOpen} onOpenChange={setFacultyModalOpen}>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>{editingFaculty ? 'Edit Faculty Member' : 'Add Faculty Member'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        {/* Photo */}
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={facultyPhotoPreview ?? undefined} />
+                                <AvatarFallback><Users className="h-6 w-6" /></AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <Label htmlFor="faculty_photo_input" className="cursor-pointer text-sm text-primary hover:underline">
+                                    {facultyPhotoPreview ? 'Change Photo' : 'Upload Photo'}
+                                </Label>
+                                <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG or WebP, max 2 MB</p>
+                                <input id="faculty_photo_input" type="file" accept="image/jpg,image/jpeg,image/png,image/webp" className="hidden"
+                                    onChange={e => {
+                                        const f = e.target.files?.[0];
+                                        if (!f) return;
+                                        setFacultyPhotoFile(f);
+                                        const r = new FileReader();
+                                        r.onload = ev => setFacultyPhotoPreview(ev.target?.result as string);
+                                        r.readAsDataURL(f);
+                                        e.target.value = '';
+                                    }} />
+                            </div>
+                        </div>
+                        {/* Name fields */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="grid gap-1.5">
+                                <Label>First Name *</Label>
+                                <Input value={facultyForm.first_name} onChange={e => setFacultyForm(p => ({ ...p, first_name: e.target.value }))} />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label>Last Name *</Label>
+                                <Input value={facultyForm.last_name} onChange={e => setFacultyForm(p => ({ ...p, last_name: e.target.value }))} />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label>Middle Name</Label>
+                                <Input value={facultyForm.middle_name} onChange={e => setFacultyForm(p => ({ ...p, middle_name: e.target.value }))} />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label>Suffix</Label>
+                                <Input value={facultyForm.suffix} onChange={e => setFacultyForm(p => ({ ...p, suffix: e.target.value }))} placeholder="Jr., Sr., III" />
+                            </div>
+                        </div>
+                        {/* IDs */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="grid gap-1.5">
+                                <Label>Employee ID *</Label>
+                                <Input value={facultyForm.employee_id} onChange={e => setFacultyForm(p => ({ ...p, employee_id: e.target.value }))} />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label>Email *</Label>
+                                <Input type="email" value={facultyForm.email} onChange={e => setFacultyForm(p => ({ ...p, email: e.target.value }))} />
+                            </div>
+                        </div>
+                        <div className="grid gap-1.5">
+                            <Label>Specialization</Label>
+                            <Input value={facultyForm.specialization} onChange={e => setFacultyForm(p => ({ ...p, specialization: e.target.value }))} placeholder="e.g., Mathematics, Computer Science" />
+                        </div>
+                        <div className="grid gap-1.5">
+                            <Label>Employment Status</Label>
+                            <Select value={facultyForm.employment_status} onValueChange={v => setFacultyForm(p => ({ ...p, employment_status: v }))}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="full-time">Full-time</SelectItem>
+                                    <SelectItem value="part-time">Part-time</SelectItem>
+                                    <SelectItem value="contractual">Contractual</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex flex-col gap-3 pt-1">
+                            <div className="flex items-center gap-2">
+                                <Switch checked={facultyForm.is_active} onCheckedChange={v => setFacultyForm(p => ({ ...p, is_active: v }))} id="fac_modal_active" />
+                                <Label htmlFor="fac_modal_active">Active</Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Switch checked={facultyForm.show_on_landing} onCheckedChange={v => setFacultyForm(p => ({ ...p, show_on_landing: v }))} id="fac_modal_landing" />
+                                <Label htmlFor="fac_modal_landing">Show on Landing Page</Label>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setFacultyModalOpen(false)}>Cancel</Button>
+                        <Button
+                            onClick={handleFacultySubmit}
+                            disabled={facultySaving || !facultyForm.first_name || !facultyForm.last_name || !facultyForm.employee_id || !facultyForm.email}
+                        >
+                            {facultySaving ? 'Saving…' : 'Save'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </OwnerLayout>
     );
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
+use App\Models\Department;
 use App\Models\Teacher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,6 +63,35 @@ class AppSettingsController extends Controller
                 'footer_facebook'           => $settings->footer_facebook,
                 'nav_links'                 => $settings->nav_links ?? [],
             ],
+            'departments' => Department::with([
+                'teachers' => fn ($q) => $q->select(
+                    'id', 'first_name', 'last_name', 'middle_name', 'suffix',
+                    'employee_id', 'email', 'specialization', 'photo_url',
+                    'department_id', 'is_active', 'show_on_landing', 'employment_status'
+                )->orderBy('first_name'),
+            ])->orderBy('classification')->orderBy('name')->get()->map(fn ($d) => [
+                'id'             => $d->id,
+                'classification' => $d->classification,
+                'name'           => $d->name,
+                'code'           => $d->code,
+                'description'    => $d->description,
+                'is_active'      => (bool) $d->is_active,
+                'teachers'       => $d->teachers->map(fn ($t) => [
+                    'id'               => $t->id,
+                    'full_name'        => $t->full_name,
+                    'first_name'       => $t->first_name,
+                    'last_name'        => $t->last_name,
+                    'middle_name'      => $t->middle_name,
+                    'suffix'           => $t->suffix,
+                    'employee_id'      => $t->employee_id,
+                    'email'            => $t->email,
+                    'specialization'   => $t->specialization,
+                    'photo_url'        => $t->photo_url,
+                    'is_active'        => (bool) $t->is_active,
+                    'show_on_landing'  => (bool) $t->show_on_landing,
+                    'employment_status'=> $t->employment_status,
+                ])->values()->all(),
+            ])->values()->all(),
         ]);
     }
 
