@@ -26,6 +26,7 @@ class AppSettingsController extends Controller
                 'primary_color'             => $settings->primary_color,
                 'secondary_color'           => $settings->secondary_color,
                 'school_year'               => $settings->school_year ?? '2024-2025',
+                'active_semester'           => (int) ($settings->active_semester ?? 1),
                 'has_k12'                   => (bool) $settings->has_k12,
                 'has_college'               => (bool) $settings->has_college,
                 // Enrollment period settings
@@ -91,6 +92,7 @@ class AppSettingsController extends Controller
             'college_enrollment_open'  => 'required|boolean',
             'college_enrollment_start' => 'nullable|date',
             'college_enrollment_end'   => 'nullable|date|after_or_equal:college_enrollment_start',
+            'active_semester'          => 'nullable|integer|in:1,2,3',
         ]);
 
         $settings = AppSetting::current();
@@ -100,6 +102,9 @@ class AppSettingsController extends Controller
         $settings->college_enrollment_open  = (bool) $request->input('college_enrollment_open');
         $settings->college_enrollment_start = $request->input('college_enrollment_start');
         $settings->college_enrollment_end   = $request->input('college_enrollment_end');
+        if ($request->filled('active_semester')) {
+            $settings->active_semester = (int) $request->input('active_semester');
+        }
         $settings->save();
 
         return redirect()->back()->with('success', 'Enrollment period settings updated.');
