@@ -93,6 +93,7 @@ class HandleInertiaRequests extends Middleware
                 'has_college'               => (bool) $settings->has_college,
                 'k12_enrollment_open'       => (bool) $settings->k12_enrollment_open,
                 'college_enrollment_open'   => (bool) $settings->college_enrollment_open,
+                'active_semester'           => (int) ($settings->active_semester ?? 1),
                 // Landing page fields
                 'hero_title'                => $settings->hero_title,
                 'hero_subtitle'             => $settings->hero_subtitle,
