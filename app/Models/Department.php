@@ -11,6 +11,7 @@ class Department extends Model
         'classification',
         'name',
         'code',
+        'level',
         'description',
         'is_active',
     ];
@@ -18,6 +19,19 @@ class Department extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Auto-generate code from name when not provided.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Department $department) {
+            if (empty($department->code)) {
+                $base = strtoupper(substr(str_replace(' ', '', $department->name ?? ''), 0, 4));
+                $department->code = $base . '_' . uniqid();
+            }
+        });
+    }
 
     /**
      * Programs under this department (college)

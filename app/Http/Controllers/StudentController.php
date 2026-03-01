@@ -215,8 +215,10 @@ class StudentController extends Controller
         if ($existingParent) {
             // Link student to existing parent if not already linked
             if (!$existingParent->students()->where('student_id', $student->id)->exists()) {
+                $rawRel = strtolower($student->guardian_relationship ?? 'guardian');
+                $relType = in_array($rawRel, ['father', 'mother', 'guardian', 'other']) ? $rawRel : 'other';
                 $existingParent->students()->attach($student->id, [
-                    'relationship_type' => $student->guardian_relationship ?? 'guardian',
+                    'relationship_type' => $relType,
                 ]);
             }
             return;
@@ -234,18 +236,23 @@ class StudentController extends Controller
         $lastName = $nameParts[1] ?? $student->last_name;
 
         // Create parent record
+        $rawRelationship = strtolower($student->guardian_relationship ?? 'guardian');
+        $relationship = in_array($rawRelationship, ['father', 'mother', 'guardian', 'other'])
+            ? $rawRelationship
+            : 'other';
+
         $parent = ParentModel::create([
             'first_name' => $firstName,
             'last_name' => $lastName,
             'email' => $student->guardian_email,
             'phone' => $student->guardian_contact,
-            'relationship' => $student->guardian_relationship ?? 'guardian',
+            'relationship' => $relationship,
             'is_active' => true,
         ]);
 
         // Link student to parent via pivot
         $parent->students()->attach($student->id, [
-            'relationship_type' => $student->guardian_relationship ?? 'guardian',
+            'relationship_type' => $relationship,
         ]);
 
         // Create user account for parent (email-only login)

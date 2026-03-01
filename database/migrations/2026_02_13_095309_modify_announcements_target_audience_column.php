@@ -16,6 +16,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return; // SQLite doesn't support MODIFY COLUMN; test DBs are rebuilt fresh
+        }
         // Change ENUM to VARCHAR(50) to allow any value including 'custom'
         DB::statement("ALTER TABLE announcements MODIFY COLUMN target_audience VARCHAR(50) DEFAULT 'all'");
     }
@@ -25,6 +28,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
         // Revert to original ENUM (note: this may fail if data contains values not in the enum)
         DB::statement("ALTER TABLE announcements MODIFY COLUMN target_audience ENUM('all', 'students', 'teachers', 'parents', 'staff') DEFAULT 'all'");
     }

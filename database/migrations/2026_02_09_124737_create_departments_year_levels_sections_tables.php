@@ -26,8 +26,17 @@ return new class extends Migration
             });
         }
         
-        // Populate code column with auto-generated values for any empty codes
-        DB::statement("UPDATE departments SET code = CONCAT(UPPER(SUBSTRING(REPLACE(name, ' ', ''), 1, 4)), '_', id) WHERE code IS NULL OR code = ''");
+        // Populate code column with auto-generated values for any empty codes (PHP-level for SQLite compatibility)
+        $departments = DB::table('departments')
+            ->where(function ($q) {
+                $q->whereNull('code')->orWhere('code', '');
+            })
+            ->get(['id', 'name']);
+
+        foreach ($departments as $dept) {
+            $code = strtoupper(substr(str_replace(' ', '', $dept->name), 0, 4)) . '_' . $dept->id;
+            DB::table('departments')->where('id', $dept->id)->update(['code' => $code]);
+        }
         
         // Check if unique index exists before adding
         try {

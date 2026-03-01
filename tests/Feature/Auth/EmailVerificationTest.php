@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 
 test('email verification screen can be rendered', function () {
-    $user = User::factory()->unverified()->create();
+    $user = User::factory()->unverified()->create(['role' => 'student']);
 
     $response = $this->actingAs($user)->get(route('verification.notice'));
 
@@ -14,7 +14,7 @@ test('email verification screen can be rendered', function () {
 });
 
 test('email can be verified', function () {
-    $user = User::factory()->unverified()->create();
+    $user = User::factory()->unverified()->create(['role' => 'student']);
 
     Event::fake();
 
@@ -32,7 +32,7 @@ test('email can be verified', function () {
 });
 
 test('email is not verified with invalid hash', function () {
-    $user = User::factory()->unverified()->create();
+    $user = User::factory()->unverified()->create(['role' => 'student']);
 
     Event::fake();
 
@@ -49,7 +49,7 @@ test('email is not verified with invalid hash', function () {
 });
 
 test('email is not verified with invalid user id', function () {
-    $user = User::factory()->unverified()->create();
+    $user = User::factory()->unverified()->create(['role' => 'student']);
 
     Event::fake();
 
