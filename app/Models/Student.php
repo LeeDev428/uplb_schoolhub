@@ -153,6 +153,45 @@ class Student extends Model
     }
 
     /**
+     * Resolve the student's department classification.
+     * Falls back to looking up via the program name when department_id is null.
+     */
+    public function resolveDepartmentClassification(): ?string
+    {
+        // Direct relation
+        if ($this->department_id) {
+            return $this->department?->classification;
+        }
+
+        // Fallback: look up via program name
+        if ($this->program) {
+            return Program::where('programs.name', $this->program)
+                ->join('departments', 'programs.department_id', '=', 'departments.id')
+                ->value('departments.classification');
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve the student's department ID.
+     * Falls back to looking up via the program name when department_id is null.
+     */
+    public function resolveDepartmentId(): ?int
+    {
+        if ($this->department_id) {
+            return $this->department_id;
+        }
+
+        if ($this->program) {
+            return Program::where('name', $this->program)
+                ->value('department_id');
+        }
+
+        return null;
+    }
+
+    /**
      * Get the year level of this student
      */
     public function yearLevelModel()

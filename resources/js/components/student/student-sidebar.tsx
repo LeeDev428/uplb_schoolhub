@@ -59,6 +59,8 @@ export function StudentSidebar() {
     // Show Enrollment link for College students when college enrollment period is open
     // This covers both re-enrollment (not-enrolled/dropped) and subject enrollment (enrolled)
     const showEnrollment = isCollegeDept && !!appSettings?.college_enrollment_open;
+    // Enrolled students go straight to subject enrollment; others go to the re-enrollment form
+    const enrollmentHref = isEnrolled ? '/student/enrollment/subjects' : '/student/enrollment';
 
     const mainNavItems: NavItem[] = [
         {
@@ -74,7 +76,7 @@ export function StudentSidebar() {
         },
         ...(showEnrollment ? [{
             title: 'Enrollment',
-            href: '/student/enrollment',
+            href: enrollmentHref,
             icon: ClipboardList,
         }] : []),
         {

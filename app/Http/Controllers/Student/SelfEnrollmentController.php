@@ -36,8 +36,7 @@ class SelfEnrollmentController extends Controller
 
         if ($student->enrollment_status === 'enrolled' && $student->school_year === $currentSchoolYear) {
             // For enrolled college students, redirect to subject enrollment when enrollment is open
-            $dept = Department::find($student->department_id);
-            $classification = $dept?->classification ?? 'K-12';
+            $classification = $student->resolveDepartmentClassification();
             
             if ($classification === 'College' && $settings->isEnrollmentOpen('College')) {
                 return redirect()->route('student.enrollment.subjects');
@@ -51,8 +50,7 @@ class SelfEnrollmentController extends Controller
         $hasPendingRequest = $student->enrollment_status === 'pending-registrar';
 
         // Check if enrollment is open for student's classification
-        $dept = Department::find($student->department_id);
-        $classification = $dept?->classification ?? 'K-12';
+        $classification = $student->resolveDepartmentClassification() ?? 'K-12';
         $enrollmentOpen = $settings->isEnrollmentOpen($classification);
 
         // Get available options from database
@@ -109,8 +107,7 @@ class SelfEnrollmentController extends Controller
         $currentSchoolYear = $settings->school_year ?? date('Y') . '-' . (date('Y') + 1);
 
         // Check if enrollment is open for student's classification
-        $dept = Department::find($student->department_id);
-        $classification = $dept?->classification ?? 'K-12';
+        $classification = $student->resolveDepartmentClassification() ?? 'K-12';
         
         if (!$settings->isEnrollmentOpen($classification)) {
             return back()->with('error', "Enrollment for {$classification} is currently closed.");

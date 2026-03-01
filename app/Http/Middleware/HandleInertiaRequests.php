@@ -49,7 +49,7 @@ class HandleInertiaRequests extends Middleware
                 // Resolve department classification: prefer direct relation, fall back to program lookup
                 $classification = $student->department?->classification;
                 if (!$classification && $student->program) {
-                    $classification = \App\Models\Program::where('name', $student->program)
+                    $classification = \App\Models\Program::where('programs.name', $student->program)
                         ->join('departments', 'programs.department_id', '=', 'departments.id')
                         ->value('departments.classification');
                 }

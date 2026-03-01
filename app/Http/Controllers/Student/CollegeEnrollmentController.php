@@ -54,9 +54,9 @@ class CollegeEnrollmentController extends Controller
                 ->with('error', 'You must be officially enrolled to access subject enrollment.');
         }
 
-        // Verify enrollment is open
-        $dept           = Department::find($student->department_id);
-        $classification = $dept?->classification ?? 'K-12';
+        // Verify enrollment is open — resolve classification even when department_id is null
+        $classification = $student->resolveDepartmentClassification();
+        $departmentId   = $student->resolveDepartmentId();
 
         if ($classification !== 'College') {
             return redirect()->route('student.dashboard')
@@ -70,12 +70,12 @@ class CollegeEnrollmentController extends Controller
 
         // Resolve student's program
         $program = Program::where('name', $student->program)
-            ->where('department_id', $student->department_id)
+            ->when($departmentId, fn ($q) => $q->where('department_id', $departmentId))
             ->first();
 
         // Resolve student's year level
         $yearLevel = YearLevel::where('name', $student->year_level)
-            ->where('department_id', $student->department_id)
+            ->when($departmentId, fn ($q) => $q->where('department_id', $departmentId))
             ->first();
 
         // ── Get available subjects for the active semester ───────────────
@@ -159,9 +159,8 @@ class CollegeEnrollmentController extends Controller
             return back()->with('error', 'You must be officially enrolled to enroll in subjects.');
         }
 
-        // Verify enrollment is open
-        $dept = Department::find($student->department_id);
-        $classification = $dept?->classification ?? 'K-12';
+        // Verify enrollment is open — resolve classification even when department_id is null
+        $classification = $student->resolveDepartmentClassification();
         if (!$settings->isEnrollmentOpen('College') || $classification !== 'College') {
             return back()->with('error', 'College enrollment is currently closed.');
         }
@@ -326,11 +325,12 @@ class CollegeEnrollmentController extends Controller
                   ->orWhereNull('semester'); // Include subjects with no specific semester
             });
 
-        // Filter by department
-        if ($student->department_id) {
-            $query->where(function ($q) use ($student) {
-                $q->where('department_id', $student->department_id)
-                  ->orWhereHas('departments', fn ($dq) => $dq->where('departments.id', $student->department_id));
+        // Filter by department (resolve department_id if missing)
+        $departmentId = $student->resolveDepartmentId();
+        if ($departmentId) {
+            $query->where(function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId)
+                  ->orWhereHas('departments', fn ($dq) => $dq->where('departments.id', $departmentId));
             });
         }
 

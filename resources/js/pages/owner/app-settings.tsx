@@ -463,7 +463,9 @@ export default function AppSettings({ settings, departments }: Props) {
     const handleFacultySubmit = () => {
         const fd = new FormData();
         fd.append('department_id', String(currentDeptId));
-        Object.entries(facultyForm).forEach(([k, v]) => fd.append(k, String(v)));
+        Object.entries(facultyForm).forEach(([k, v]) =>
+            fd.append(k, typeof v === 'boolean' ? (v ? '1' : '0') : String(v))
+        );
         if (facultyPhotoFile) fd.append('photo', facultyPhotoFile);
         setFacultySaving(true);
         const url = editingFaculty ? `/owner/faculty/${editingFaculty.id}` : '/owner/faculty';
