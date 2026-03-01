@@ -84,24 +84,24 @@ class AppSetting extends Model
 
     public function getLogoUrlAttribute(): ?string
     {
-        return $this->logo_path ? Storage::url($this->logo_path) : null;
+        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
     }
 
     public function getFaviconUrlAttribute(): ?string
     {
-        return $this->favicon_path ? Storage::url($this->favicon_path) : null;
+        return $this->favicon_path ? Storage::disk('public')->url($this->favicon_path) : null;
     }
 
     public function getMessageAuthorPhotoUrlAttribute(): ?string
     {
-        return $this->message_author_photo ? Storage::url($this->message_author_photo) : null;
+        return $this->message_author_photo ? Storage::disk('public')->url($this->message_author_photo) : null;
     }
 
     /** Return hero images as public URLs */
     public function getHeroImageUrlsAttribute(): array
     {
         if (empty($this->hero_images)) return [];
-        return array_map(fn ($p) => Storage::url($p), $this->hero_images);
+        return array_map(fn ($p) => Storage::disk('public')->url($p), $this->hero_images);
     }
 
     /** Return alumni items with resolved photo URLs */
@@ -109,7 +109,7 @@ class AppSetting extends Model
     {
         if (empty($this->alumni_items)) return [];
         return array_map(function ($item) {
-            $item['photo_url'] = isset($item['photo_path']) ? Storage::url($item['photo_path']) : null;
+            $item['photo_url'] = isset($item['photo_path']) ? Storage::disk('public')->url($item['photo_path']) : null;
             return $item;
         }, $this->alumni_items);
     }
