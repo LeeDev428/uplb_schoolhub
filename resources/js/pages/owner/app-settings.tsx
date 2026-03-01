@@ -384,6 +384,7 @@ export default function AppSettings({ settings, departments }: Props) {
     const [facultyPhotoFile, setFacultyPhotoFile]   = useState<File | null>(null);
     const [facultyPhotoPreview, setFacultyPhotoPreview] = useState<string | null>(null);
     const [facultySaving, setFacultySaving]         = useState(false);
+    const [facultyErrors, setFacultyErrors]           = useState<Record<string, string>>({});
 
     const toggleDeptExpand = (id: number) => setExpandedDepts(prev => {
         const next = new Set(prev);
@@ -435,6 +436,7 @@ export default function AppSettings({ settings, departments }: Props) {
         setFacultyForm(emptyFacultyForm);
         setFacultyPhotoFile(null);
         setFacultyPhotoPreview(null);
+        setFacultyErrors({});
         setFacultyModalOpen(true);
     };
 
@@ -444,6 +446,7 @@ export default function AppSettings({ settings, departments }: Props) {
         setFacultyForm({ first_name: t.first_name, last_name: t.last_name, middle_name: t.middle_name ?? '', suffix: t.suffix ?? '', employee_id: t.employee_id, email: t.email, specialization: t.specialization ?? '', employment_status: t.employment_status, is_active: t.is_active, show_on_landing: t.show_on_landing });
         setFacultyPhotoFile(null);
         setFacultyPhotoPreview(t.photo_url);
+        setFacultyErrors({});
         setFacultyModalOpen(true);
     };
 
@@ -459,7 +462,7 @@ export default function AppSettings({ settings, departments }: Props) {
         router.post(url, fd, {
             forceFormData: true, preserveScroll: true,
             onSuccess: () => { toast.success(editingFaculty ? 'Faculty updated' : 'Faculty added'); setFacultyModalOpen(false); setFacultySaving(false); },
-            onError:   () => { toast.error('Failed to save'); setFacultySaving(false); },
+            onError:   (errors) => { setFacultyErrors(errors); toast.error((Object.values(errors)[0] as string) ?? 'Failed to save'); setFacultySaving(false); },
         });
     };
 
@@ -1379,11 +1382,13 @@ export default function AppSettings({ settings, departments }: Props) {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-1.5">
                                 <Label>Employee ID *</Label>
-                                <Input value={facultyForm.employee_id} onChange={e => setFacultyForm(p => ({ ...p, employee_id: e.target.value }))} />
+                                <Input value={facultyForm.employee_id} onChange={e => { setFacultyForm(p => ({ ...p, employee_id: e.target.value })); setFacultyErrors(p => ({ ...p, employee_id: '' })); }} />
+                                {facultyErrors.employee_id && <p className="text-xs text-destructive">{facultyErrors.employee_id}</p>}
                             </div>
                             <div className="grid gap-1.5">
                                 <Label>Email *</Label>
-                                <Input type="email" value={facultyForm.email} onChange={e => setFacultyForm(p => ({ ...p, email: e.target.value }))} />
+                                <Input type="email" value={facultyForm.email} onChange={e => { setFacultyForm(p => ({ ...p, email: e.target.value })); setFacultyErrors(p => ({ ...p, email: '' })); }} />
+                                {facultyErrors.email && <p className="text-xs text-destructive">{facultyErrors.email}</p>}
                             </div>
                         </div>
                         <div className="grid gap-1.5">

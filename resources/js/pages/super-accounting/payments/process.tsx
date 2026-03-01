@@ -17,6 +17,8 @@ import {
     RefreshCw,
     CreditCard,
     Printer,
+    Scale,
+    History,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -54,8 +56,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-    Scale,
-    History,
 import { Textarea } from '@/components/ui/textarea';
 import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
 
