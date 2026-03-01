@@ -1,10 +1,9 @@
-name: Deploy to Hostinger
+name: Deploy to Production
 
 on:
   push:
     branches:
       - master
-      - SPRINT
 
 jobs:
   build-and-deploy:
@@ -13,29 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set environment variables
-        id: vars
-        run: |
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            echo "DEPLOY_PATH=${{ secrets.PROD_DEPLOY_PATH }}" >> $GITHUB_OUTPUT
-            echo "APP_URL=https://westerncollegesinc.ph" >> $GITHUB_OUTPUT
-            echo "DB_DATABASE=${{ secrets.PROD_DB_DATABASE }}" >> $GITHUB_OUTPUT
-            echo "DB_USERNAME=${{ secrets.PROD_DB_USERNAME }}" >> $GITHUB_OUTPUT
-            echo "DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
-            echo "APP_ENV=production" >> $GITHUB_OUTPUT
-            echo "APP_DEBUG=false" >> $GITHUB_OUTPUT
-            echo "ENV_NAME=production" >> $GITHUB_OUTPUT
-          else
-            echo "DEPLOY_PATH=${{ secrets.STAGING_DEPLOY_PATH }}" >> $GITHUB_OUTPUT
-            echo "APP_URL=https://test.westerncollegesinc.ph" >> $GITHUB_OUTPUT
-            echo "DB_DATABASE=${{ secrets.STAGING_DB_DATABASE }}" >> $GITHUB_OUTPUT
-            echo "DB_USERNAME=${{ secrets.STAGING_DB_USERNAME }}" >> $GITHUB_OUTPUT
-            echo "DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}" >> $GITHUB_OUTPUT
-            echo "APP_ENV=staging" >> $GITHUB_OUTPUT
-            echo "APP_DEBUG=true" >> $GITHUB_OUTPUT
-            echo "ENV_NAME=staging" >> $GITHUB_OUTPUT
-          fi
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -72,10 +48,10 @@ jobs:
         run: |
           cat > .env << EOF
           APP_NAME="Western Colleges Inc"
-          APP_ENV=${{ steps.vars.outputs.APP_ENV }}
+          APP_ENV=production
           APP_KEY=${{ secrets.APP_KEY }}
-          APP_DEBUG=${{ steps.vars.outputs.APP_DEBUG }}
-          APP_URL=${{ steps.vars.outputs.APP_URL }}
+          APP_DEBUG=false
+          APP_URL=https://westerncollegesinc.ph
 
           APP_LOCALE=en
           APP_FALLBACK_LOCALE=en
@@ -93,9 +69,9 @@ jobs:
           DB_CONNECTION=mysql
           DB_HOST=localhost
           DB_PORT=3306
-          DB_DATABASE=${{ steps.vars.outputs.DB_DATABASE }}
-          DB_USERNAME=${{ steps.vars.outputs.DB_USERNAME }}
-          DB_PASSWORD=${{ steps.vars.outputs.DB_PASSWORD }}
+          DB_DATABASE=${{ secrets.PROD_DB_DATABASE }}
+          DB_USERNAME=${{ secrets.PROD_DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
 
           SESSION_DRIVER=database
           SESSION_LIFETIME=120
@@ -146,12 +122,12 @@ jobs:
             --exclude='pint.json' \
             --exclude='*.md' \
             -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ steps.vars.outputs.DEPLOY_PATH }}/
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.PROD_DEPLOY_PATH }}/
 
       - name: Run post-deploy commands
         run: |
           ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          cd ${{ steps.vars.outputs.DEPLOY_PATH }}
+          cd ${{ secrets.PROD_DEPLOY_PATH }}
           
           # Ensure storage directories exist with proper permissions
           mkdir -p storage/app/public
@@ -172,12 +148,12 @@ jobs:
           # Run migrations
           php artisan migrate --force
           
-          echo "✅ Deployment to ${{ steps.vars.outputs.ENV_NAME }} completed successfully!"
+          echo "✅ Deployment to production completed successfully!"
           ENDSSH
 
       - name: Deployment summary
         run: |
-          echo "🚀 Deployed to ${{ steps.vars.outputs.ENV_NAME }}"
-          echo "📍 URL: ${{ steps.vars.outputs.APP_URL }}"
+          echo "🚀 Deployed to production"
+          echo "📍 URL: https://westerncollegesinc.ph"
           echo "🌿 Branch: ${{ github.ref_name }}"
           echo "📝 Commit: ${{ github.sha }}"
