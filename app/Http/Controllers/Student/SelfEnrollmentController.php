@@ -30,11 +30,19 @@ class SelfEnrollmentController extends Controller
                 ->with('error', 'No student record linked to your account.');
         }
 
-        // If already enrolled in current school year, redirect with notice
+        // If already enrolled in current school year, redirect to subject enrollment
         $settings           = AppSetting::current();
         $currentSchoolYear  = $settings->school_year ?? date('Y') . '-' . (date('Y') + 1);
 
         if ($student->enrollment_status === 'enrolled' && $student->school_year === $currentSchoolYear) {
+            // For enrolled college students, redirect to subject enrollment when enrollment is open
+            $dept = Department::find($student->department_id);
+            $classification = $dept?->classification ?? 'K-12';
+            
+            if ($classification === 'College' && $settings->isEnrollmentOpen('College')) {
+                return redirect()->route('student.enrollment.subjects');
+            }
+
             return redirect()->route('student.dashboard')
                 ->with('info', 'You are already enrolled for the current school year.');
         }
