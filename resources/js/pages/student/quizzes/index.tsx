@@ -1,7 +1,4 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import StudentLayout from '@/layouts/student/student-layout';
 import {
     FileQuestion,
     Search,
@@ -15,7 +12,11 @@ import {
     AlertCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Pagination } from '@/components/ui/pagination';
 import {
     Select,
     SelectContent,
@@ -23,8 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Pagination } from '@/components/ui/pagination';
-import { Badge } from '@/components/ui/badge';
+import StudentLayout from '@/layouts/student/student-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

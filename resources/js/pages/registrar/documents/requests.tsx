@@ -1,17 +1,17 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 import { FileCheck, FileX, FileClock, FileText, Eye, Check, X, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { FilterBar } from '@/components/filters/filter-bar';
 import { Pagination } from '@/components/ui/pagination';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Textarea } from '@/components/ui/textarea';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import type { BreadcrumbItem } from '@/types';
 

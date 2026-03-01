@@ -1,11 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
 import { CreditCard, Upload, CheckCircle2, XCircle, Clock, AlertTriangle, DollarSign, Receipt, Send, UserMinus } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Table,
     TableBody,
@@ -14,9 +15,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import StudentLayout from '@/layouts/student/student-layout';
-import { useState, useRef } from 'react';
-import { toast } from 'sonner';
 
 interface FeeItem {
     id: number;

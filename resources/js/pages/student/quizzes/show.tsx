@@ -1,7 +1,4 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import StudentLayout from '@/layouts/student/student-layout';
 import {
     FileQuestion,
     Clock,
@@ -16,6 +13,8 @@ import {
     RefreshCw,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -24,6 +23,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import StudentLayout from '@/layouts/student/student-layout';
 import type { BreadcrumbItem } from '@/types';
 
 interface Subject {

@@ -1,8 +1,8 @@
+import { router, usePage } from '@inertiajs/react';
 import { CheckCircle2, Printer } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { router, usePage } from '@inertiajs/react';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface EnrollmentClearance {

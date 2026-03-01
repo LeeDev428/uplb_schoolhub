@@ -1,7 +1,4 @@
 import { Head, Link } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import StudentLayout from '@/layouts/student/student-layout';
 import {
     CheckCircle,
     XCircle,
@@ -13,8 +10,11 @@ import {
     BookOpen,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import type { BreadcrumbItem } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import StudentLayout from '@/layouts/student/student-layout';
 import { cn } from '@/lib/utils';
+import type { BreadcrumbItem } from '@/types';
 
 interface Answer {
     id: number;

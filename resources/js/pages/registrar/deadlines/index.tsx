@@ -1,24 +1,24 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import { Plus, Pencil, Trash2, Calendar, Clock, FileText } from 'lucide-react';
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { Pagination } from '@/components/ui/pagination';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { BreadcrumbItem } from '@/types';
 import { toast } from 'sonner';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Pagination } from '@/components/ui/pagination';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import RegistrarLayout from '@/layouts/registrar/registrar-layout';
+import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

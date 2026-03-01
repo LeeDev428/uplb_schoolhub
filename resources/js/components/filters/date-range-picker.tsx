@@ -1,10 +1,10 @@
+import { format } from 'date-fns';
 import { CalendarIcon, X } from 'lucide-react';
+import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
-import { format } from 'date-fns';
-import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface DateRangePickerProps {
     label?: string;

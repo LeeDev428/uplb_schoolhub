@@ -1,15 +1,15 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
     Users, UserCheck, UserX, GraduationCap, BarChart3,
     FileText, Download, TrendingUp,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RegistrarLayout from '@/layouts/registrar/registrar-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

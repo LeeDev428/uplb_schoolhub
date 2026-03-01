@@ -1,7 +1,7 @@
+import { User } from 'lucide-react';
 import * as React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { User } from 'lucide-react';
 
 export interface StudentPhotoProps {
     /** The URL of the student's photo */

@@ -1,9 +1,19 @@
 import { Head, router, Link } from '@inertiajs/react';
+import { Search, ArrowRight, DollarSign, Users, AlertCircle, Wallet, TrendingDown, CreditCard, Receipt } from 'lucide-react';
 import { useState } from 'react';
-import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
 import { PageHeader } from '@/components/page-header';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { StudentPhoto } from '@/components/ui/student-photo';
 import {
     Table,
     TableBody,
@@ -12,17 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, ArrowRight, DollarSign, Users, AlertCircle, Wallet, TrendingDown, CreditCard, Receipt } from 'lucide-react';
-import { StudentPhoto } from '@/components/ui/student-photo';
+import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
 
 interface Student {
     id: number;

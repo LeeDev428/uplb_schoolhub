@@ -1,7 +1,9 @@
 import { useForm } from '@inertiajs/react';
 import { format } from 'date-fns';
+import { Upload, X, User, Info } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { store as storeStudent, update as updateStudent } from '@/routes/registrar/students';
+import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -21,9 +23,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { Upload, X, User, Info } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { store as storeStudent, update as updateStudent } from '@/routes/registrar/students';
 
 interface Department {
     id: number;

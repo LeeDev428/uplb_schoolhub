@@ -1,13 +1,13 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Card, CardContent } from '@/components/ui/card';
-import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import { BookOpen } from 'lucide-react';
 import { useState } from 'react';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
-import { Pagination } from '@/components/ui/pagination';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Pagination } from '@/components/ui/pagination';
+import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

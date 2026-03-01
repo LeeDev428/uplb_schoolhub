@@ -1,18 +1,24 @@
 import { Head, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { 
+    Clock, 
+    CheckCircle2, 
+    XCircle, 
+    FileText,
+    Check,
+    X,
+    Filter,
+    User,
+} from 'lucide-react';
 import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
+import { toast } from 'sonner';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import {
     Select,
     SelectContent,
@@ -29,22 +35,16 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { useForm } from '@inertiajs/react';
-import { 
-    Clock, 
-    CheckCircle2, 
-    XCircle, 
-    FileText,
-    Check,
-    X,
-    Filter,
-    User,
-} from 'lucide-react';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { toast } from 'sonner';
+import AccountingLayout from '@/layouts/accounting-layout';
 
 interface PromissoryNote {
     id: number;

@@ -1,8 +1,8 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { RegistrarSidebar } from '@/components/registrar/registrar-sidebar';
 import { FlashMessages } from '@/components/flash-messages';
+import { RegistrarSidebar } from '@/components/registrar/registrar-sidebar';
 import type { AppLayoutProps } from '@/types';
 
 export default function RegistrarLayout({

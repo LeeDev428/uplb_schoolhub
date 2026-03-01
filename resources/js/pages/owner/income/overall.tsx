@@ -1,6 +1,9 @@
 import { Head } from '@inertiajs/react';
 import { BarChart3, Users, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { IncomeCard } from '@/components/owner/income-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import {
     Table,
     TableBody,
@@ -9,9 +12,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { IncomeCard } from '@/components/owner/income-card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
 import type { BreadcrumbItem } from '@/types';
 

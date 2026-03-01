@@ -1,19 +1,25 @@
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
-import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Pagination } from '@/components/ui/pagination';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+    Check,
+    Circle,
+    Clock,
+    Globe,
+    MoreHorizontal,
+    RefreshCcw,
+    X,
+    DollarSign,
+    AlertTriangle,
+    Undo2,
+    ExternalLink,
+} from 'lucide-react';
+import { useState } from 'react';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
+import { PageHeader } from '@/components/page-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -29,23 +35,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { Pagination } from '@/components/ui/pagination';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-    Check,
-    Circle,
-    Clock,
-    Globe,
-    MoreHorizontal,
-    RefreshCcw,
-    X,
-    DollarSign,
-    AlertTriangle,
-    Undo2,
-    ExternalLink,
-} from 'lucide-react';
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import AccountingLayout from '@/layouts/accounting-layout';
 
 interface Student {
     id: number;

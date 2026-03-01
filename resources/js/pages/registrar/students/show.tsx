@@ -1,6 +1,4 @@
 import { Head, router } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
-import { toast } from 'sonner';
 import { 
     ArrowLeft, 
     Edit, 
@@ -24,19 +22,16 @@ import {
     MinusCircle,
     ChevronRight,
 } from 'lucide-react';
-import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
+import { useState, useMemo } from 'react';
+import { toast } from 'sonner';
+import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
+import { EnrollmentHistoryModal } from '@/components/registrar/enrollment-history-modal';
+import { StudentFormModal } from '@/components/registrar/student-form-modal';
+import { UpdateHistory } from '@/components/registrar/update-history';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -50,11 +45,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { StudentFormModal } from '@/components/registrar/student-form-modal';
-import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-clearance-progress';
-import { EnrollmentHistoryModal } from '@/components/registrar/enrollment-history-modal';
-import { UpdateHistory } from '@/components/registrar/update-history';
+import { index as studentsIndex, destroy as destroyStudent } from '@/routes/registrar/students';
 
 interface StudentRequirement {
     id: number;

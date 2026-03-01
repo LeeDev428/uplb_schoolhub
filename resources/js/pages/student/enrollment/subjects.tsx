@@ -1,6 +1,4 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
-import { toast } from 'sonner';
 import {
     BookOpen,
     CheckCircle2,
@@ -15,13 +13,23 @@ import {
     Filter,
     X,
 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { toast } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import {
     Select,
     SelectContent,
@@ -29,6 +37,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import {
     Table,
     TableBody,
@@ -43,15 +52,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 import StudentLayout from '@/layouts/student/student-layout';
 
 interface Prerequisite {

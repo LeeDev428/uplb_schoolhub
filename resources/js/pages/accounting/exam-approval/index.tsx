@@ -1,10 +1,16 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { Check, MoreHorizontal, Plus, Trash2, X, CheckCircle, Users } from 'lucide-react';
 import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
+import { toast } from 'sonner';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import AccountingLayout from '@/layouts/accounting-layout';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -37,15 +43,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { Check, MoreHorizontal, Plus, Trash2, X, CheckCircle, Users } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'sonner';
 
 interface Student {
     id: number;

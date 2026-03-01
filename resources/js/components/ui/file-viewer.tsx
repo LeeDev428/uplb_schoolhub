@@ -1,8 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Download, ExternalLink, FileText } from 'lucide-react';
-import { PdfViewer } from './pdf-viewer';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ImageViewer } from './image-viewer';
+import { PdfViewer } from './pdf-viewer';
 
 interface FileViewerProps {
     open: boolean;

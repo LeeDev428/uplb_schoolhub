@@ -1,9 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import { BookOpen, GraduationCap, Users, ChevronDown, ChevronRight, Star } from 'lucide-react';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

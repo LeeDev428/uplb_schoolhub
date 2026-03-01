@@ -1,9 +1,20 @@
 import { Head, router, usePage } from '@inertiajs/react';
+import { BadgeDollarSign, TrendingUp, Users, Wallet, CalendarDays, CheckCircle, AlertTriangle, XCircle, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -12,18 +23,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { BadgeDollarSign, TrendingUp, Users, Wallet, CalendarDays, CheckCircle, AlertTriangle, XCircle, BarChart3 } from 'lucide-react';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import AccountingLayout from '@/layouts/accounting-layout';
 
 interface FilterOption {
     value: string;

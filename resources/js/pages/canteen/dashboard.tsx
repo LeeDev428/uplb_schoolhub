@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Utensils, ShoppingCart, DollarSign, Package } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CanteenLayout from '@/layouts/canteen/canteen-layout';
 
 export default function CanteenDashboard() {

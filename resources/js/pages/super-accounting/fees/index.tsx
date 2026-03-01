@@ -1,25 +1,10 @@
 import { Head, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { Search, Plus, Edit, Trash2, FileText } from 'lucide-react';
 import { useState } from 'react';
-import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
 import { PageHeader } from '@/components/page-header';
-import { index as feesIndex, store as storeFor, update as updateFee, destroy as destroyFee } from '@/routes/super-accounting/fees';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     Dialog,
     DialogContent,
@@ -29,10 +14,25 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit, Trash2, FileText } from 'lucide-react';
-import { useForm } from '@inertiajs/react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
+import { index as feesIndex, store as storeFor, update as updateFee, destroy as destroyFee } from '@/routes/super-accounting/fees';
 
 interface Student {
     id: number;

@@ -1,10 +1,22 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard, List } from 'lucide-react';
 import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
+import { toast } from 'sonner';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
+import { ImportButton } from '@/components/import-button';
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StudentPhoto } from '@/components/ui/student-photo';
@@ -18,12 +30,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
     Dialog,
     DialogContent,
@@ -40,13 +46,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { ImportButton } from '@/components/import-button';
-import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard, List } from 'lucide-react';
-import { Link } from '@inertiajs/react';
-import { toast } from 'sonner';
+import AccountingLayout from '@/layouts/accounting-layout';
 
 interface Student {
     id: number;

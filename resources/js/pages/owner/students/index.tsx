@@ -1,14 +1,14 @@
 import { Head, router } from '@inertiajs/react';
+import { Users, CalendarDays } from 'lucide-react';
 import { useState } from 'react';
-import OwnerLayout from '@/layouts/owner/owner-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StudentPhoto } from '@/components/ui/student-photo';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, CalendarDays } from 'lucide-react';
+import OwnerLayout from '@/layouts/owner/owner-layout';
 
 interface Student {
     id: number;

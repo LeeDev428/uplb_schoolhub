@@ -1,10 +1,27 @@
 import { Head, router } from '@inertiajs/react';
+import { FileDown, FileText, Calendar, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
+import { ExportButton } from '@/components/export-button';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { PageHeader } from '@/components/page-header';
-import { reports as reportsRoute } from '@/routes/accounting';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { StudentPhoto } from '@/components/ui/student-photo';
 import {
     Table,
@@ -14,27 +31,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ExportButton } from '@/components/export-button';
-import { FileDown, FileText, Calendar, TrendingUp, Users } from 'lucide-react';
+import AccountingLayout from '@/layouts/accounting-layout';
+import { reports as reportsRoute } from '@/routes/accounting';
 
 interface Student {
     id: number;

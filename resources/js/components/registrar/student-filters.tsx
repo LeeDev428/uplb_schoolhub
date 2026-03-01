@@ -1,7 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
-import { index as studentsIndex } from '@/routes/registrar/students';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,6 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { index as studentsIndex } from '@/routes/registrar/students';
 
 interface StudentFiltersProps {
     programs?: string[];

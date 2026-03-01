@@ -1,13 +1,13 @@
 import { Head, Link } from '@inertiajs/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import ParentLayout from '@/layouts/parent/parent-layout';
 import {
     CreditCard, CheckCircle, AlertCircle, Clock, FileText, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import ParentLayout from '@/layouts/parent/parent-layout';
 
 interface Payment {
     id: number;

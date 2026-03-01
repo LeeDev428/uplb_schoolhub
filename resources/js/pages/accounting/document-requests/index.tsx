@@ -1,20 +1,26 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
-import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+    Check,
+    Circle,
+    Clock,
+    FileCheck,
+    FileOutput,
+    MoreHorizontal,
+    Printer,
+    Plus,
+    Trash2,
+    X,
+    DollarSign,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
+import { PageHeader } from '@/components/page-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -24,6 +30,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -38,24 +55,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { toast } from 'sonner';
-import {
-    Check,
-    Circle,
-    Clock,
-    FileCheck,
-    FileOutput,
-    MoreHorizontal,
-    Printer,
-    Plus,
-    Trash2,
-    X,
-    DollarSign,
-} from 'lucide-react';
+import AccountingLayout from '@/layouts/accounting-layout';
 
 interface Student {
     id: number;

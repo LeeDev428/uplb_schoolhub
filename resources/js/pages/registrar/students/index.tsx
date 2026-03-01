@@ -2,7 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, UserX, MailCheck, MailWarning, RotateCcw, Archive, Trash2, CalendarDays, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
+import { RegistrarMessages, showSuccess, showError } from '@/components/registrar/registrar-messages';
 import { StudentFilters } from '@/components/registrar/student-filters';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { StudentStatCard } from '@/components/registrar/student-stat-card';
@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Table,
     TableBody,
@@ -20,9 +19,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
+import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import type { BreadcrumbItem } from '@/types';
-import { RegistrarMessages, showSuccess, showError } from '@/components/registrar/registrar-messages';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

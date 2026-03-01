@@ -1,16 +1,16 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Megaphone, Pin, FileText, Image as ImageIcon, File, Download } from 'lucide-react';
+import { useState } from 'react';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pagination } from '@/components/ui/pagination';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { FilterBar } from '@/components/filters/filter-bar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileViewer } from '@/components/ui/file-viewer';
 import { ImageViewer } from '@/components/ui/image-viewer';
-import { Megaphone, Pin, FileText, Image as ImageIcon, File, Download } from 'lucide-react';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Department {
     id: number;

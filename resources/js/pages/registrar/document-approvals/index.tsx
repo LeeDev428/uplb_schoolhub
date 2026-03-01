@@ -1,5 +1,4 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 import {
     CheckCircle2,
     XCircle,
@@ -12,18 +11,12 @@ import {
     Filter,
     AlertCircle,
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -32,6 +25,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -39,12 +34,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PageHeader } from '@/components/page-header';
+import { Textarea } from '@/components/ui/textarea';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { toast } from 'sonner';
 
 interface Student {
     id: number;

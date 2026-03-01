@@ -1,14 +1,14 @@
 import { Head, Link } from '@inertiajs/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import {
     Users, BookOpen, ClipboardList, GraduationCap, FileQuestion,
     CheckSquare, Calendar, BarChart3, ChevronRight, PenSquare,
     UserCheck, BookMarked, Eye,
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import TeacherLayout from '@/layouts/teacher/teacher-layout';
 
 interface TeacherSection {
     id: number;

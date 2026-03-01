@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
-import AccountingLayout from '@/layouts/accounting-layout';
 import { PageHeader } from '@/components/page-header';
+import AccountingLayout from '@/layouts/accounting-layout';
 
 export default function AccountingSettings() {
     return (

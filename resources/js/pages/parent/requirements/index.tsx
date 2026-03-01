@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2, Clock, XCircle, FileText, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import ParentLayout from '@/layouts/parent/parent-layout';
-import { CheckCircle2, Clock, XCircle, FileText, AlertCircle } from 'lucide-react';
 
 interface Requirement {
     id: number;

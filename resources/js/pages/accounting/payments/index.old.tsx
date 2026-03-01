@@ -1,9 +1,21 @@
 import { Head, router } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { Search, Plus, Edit, Trash2, DollarSign, FileText } from 'lucide-react';
 import { useState } from 'react';
-import AccountingLayout from '@/layouts/accounting-layout';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
 import { PageHeader } from '@/components/page-header';
-import { index as paymentsIndex, store as storePayment, update as updatePayment, destroy as destroyPayment } from '@/routes/accounting/payments';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
     Table,
@@ -20,23 +32,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { Search, Plus, Edit, Trash2, DollarSign, FileText } from 'lucide-react';
-import { useForm } from '@inertiajs/react';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AccountingLayout from '@/layouts/accounting-layout';
+import { index as paymentsIndex, store as storePayment, update as updatePayment, destroy as destroyPayment } from '@/routes/accounting/payments';
 
 interface Student {
     id: number;

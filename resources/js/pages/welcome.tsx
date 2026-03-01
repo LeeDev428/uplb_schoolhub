@@ -1,6 +1,4 @@
 ﻿import { Head, Link, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import React from 'react';
 import {
     BookOpen,
     CheckCircle,
@@ -35,8 +33,10 @@ import {
     Star,
     Zap,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { login, register } from '@/routes';
 
 const ICON_MAP: Record<string, React.ElementType> = {

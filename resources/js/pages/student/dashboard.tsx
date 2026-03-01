@@ -1,10 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle, CheckCircle, Clock, FileText, GraduationCap, CreditCard, XCircle, ArrowRight, BookOpen, CalendarDays, ChevronRight, Receipt, Lock } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import StudentLayout from '@/layouts/student/student-layout';
 
 interface Requirement {

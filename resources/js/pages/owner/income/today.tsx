@@ -7,7 +7,10 @@ import {
     Receipt,
     TrendingUp,
 } from 'lucide-react';
+import { IncomeCard } from '@/components/owner/income-card';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import {
     Table,
     TableBody,
@@ -16,9 +19,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { IncomeCard } from '@/components/owner/income-card';
 import OwnerLayout from '@/layouts/owner/owner-layout';
 import type { BreadcrumbItem } from '@/types';
 

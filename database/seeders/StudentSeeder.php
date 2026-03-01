@@ -2,8 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
+use App\Models\Program;
+use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
+use App\Models\YearLevel;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -35,6 +39,36 @@ class StudentSeeder extends Seeder
      */
     public function run(): void
     {
+        // ── Resolve department IDs ──────────────────────────────────────────
+        $ccs = Department::where('code', 'CCS')->first();
+        $cba = Department::where('code', 'CBA')->first();
+
+        if (!$ccs || !$cba) {
+            $this->command->warn('⚠️  College departments not found. Run DepartmentSeeder first.');
+            return;
+        }
+
+        // ── Resolve programs ────────────────────────────────────────────────
+        $bsit = Program::where('name', 'Bachelor of Science in Information Technology')->first();
+        $bscs = Program::where('name', 'Bachelor of Science in Computer Science')->first();
+        $bsba = Program::where('name', 'Bachelor of Science in Business Administration')->first();
+        $bsa  = Program::where('name', 'Bachelor of Science in Accountancy')->first();
+
+        if (!$bsit || !$bscs || !$bsba || !$bsa) {
+            $this->command->warn('⚠️  Some programs not found. Run ProgramSeeder first.');
+            return;
+        }
+
+        // ── Helper to resolve year level & section ─────────────────────────
+        $resolveYearLevel = fn (int $deptId, string $name) =>
+            YearLevel::where('department_id', $deptId)->where('name', $name)->first();
+
+        $resolveSection = fn (?int $ylId, ?int $progId, string $name) =>
+            Section::where('year_level_id', $ylId)
+                ->where('program_id', $progId)
+                ->where('name', $name)
+                ->first();
+
         $students = [
             [
                 'first_name' => 'John',
@@ -51,9 +85,10 @@ class StudentSeeder extends Seeder
                 'zip_code' => '1000',
                 'student_type' => 'new',
                 'school_year' => '2024-2025',
-                'program' => 'BS Information Technology',
+                'department_id' => $ccs->id,
+                'program' => $bsit->name,
                 'year_level' => '3rd Year',
-                'section' => 'Section A',
+                'section' => 'Section Einstein',
                 'enrollment_status' => 'enrolled',
                 'requirements_status' => 'complete',
                 'requirements_percentage' => 100,
@@ -62,6 +97,7 @@ class StudentSeeder extends Seeder
                 'guardian_contact' => '+63 912 345 6788',
                 'guardian_email' => 'john.sr@example.com',
                 'remarks' => 'graduating',
+                '_program_model' => $bsit,
             ],
             [
                 'first_name' => 'Maria',
@@ -78,10 +114,11 @@ class StudentSeeder extends Seeder
                 'zip_code' => '1100',
                 'student_type' => 'transferee',
                 'school_year' => '2024-2025',
-                'program' => 'BS Computer Science',
+                'department_id' => $ccs->id,
+                'program' => $bscs->name,
                 'year_level' => '2nd Year',
-                'section' => 'Section B',
-                'enrollment_status' => 'pending-accounting',
+                'section' => 'Section Einstein',
+                'enrollment_status' => 'enrolled',
                 'requirements_status' => 'pending',
                 'requirements_percentage' => 75,
                 'guardian_name' => 'Rosa Santos',
@@ -89,6 +126,7 @@ class StudentSeeder extends Seeder
                 'guardian_contact' => '+63 923 456 7891',
                 'guardian_email' => 'rosa.santos@example.com',
                 'remarks' => 'part-time',
+                '_program_model' => $bscs,
             ],
             [
                 'first_name' => 'Carlos',
@@ -105,9 +143,10 @@ class StudentSeeder extends Seeder
                 'zip_code' => '1200',
                 'student_type' => 'returnee',
                 'school_year' => '2024-2025',
-                'program' => 'BS Business Administration',
+                'department_id' => $cba->id,
+                'program' => $bsba->name,
                 'year_level' => '4th Year',
-                'section' => 'Section A',
+                'section' => 'Section Einstein',
                 'enrollment_status' => 'pending-registrar',
                 'requirements_status' => 'incomplete',
                 'requirements_percentage' => 45,
@@ -116,6 +155,7 @@ class StudentSeeder extends Seeder
                 'guardian_contact' => '+63 934 567 8902',
                 'guardian_email' => null,
                 'remarks' => 'full-time',
+                '_program_model' => $bsba,
             ],
             [
                 'first_name' => 'Ana',
@@ -132,9 +172,10 @@ class StudentSeeder extends Seeder
                 'zip_code' => '1400',
                 'student_type' => 'new',
                 'school_year' => '2024-2025',
-                'program' => 'BS Information Technology',
+                'department_id' => $ccs->id,
+                'program' => $bsit->name,
                 'year_level' => '1st Year',
-                'section' => 'Section C',
+                'section' => 'Section Newton',
                 'enrollment_status' => 'not-enrolled',
                 'requirements_status' => 'pending',
                 'requirements_percentage' => 60,
@@ -143,6 +184,7 @@ class StudentSeeder extends Seeder
                 'guardian_contact' => '+63 945 678 9013',
                 'guardian_email' => 'carmen.cruz@example.com',
                 'remarks' => null,
+                '_program_model' => $bsit,
             ],
             [
                 'first_name' => 'Luis',
@@ -159,9 +201,10 @@ class StudentSeeder extends Seeder
                 'zip_code' => '1000',
                 'student_type' => 'new',
                 'school_year' => '2024-2025',
-                'program' => 'BS Accountancy',
+                'department_id' => $cba->id,
+                'program' => $bsa->name,
                 'year_level' => '2nd Year',
-                'section' => 'TBD',
+                'section' => 'Section Einstein',
                 'enrollment_status' => 'pending-registrar',
                 'requirements_status' => 'incomplete',
                 'requirements_percentage' => 30,
@@ -170,10 +213,23 @@ class StudentSeeder extends Seeder
                 'guardian_contact' => '+63 956 789 0124',
                 'guardian_email' => 'eduardo.torres@example.com',
                 'remarks' => null,
+                '_program_model' => $bsa,
             ],
         ];
 
         foreach ($students as $student) {
+            // Extract and remove the temporary program model reference
+            $programModel = $student['_program_model'];
+            unset($student['_program_model']);
+
+            // Resolve year_level_id from department + year level name
+            $yl = $resolveYearLevel($student['department_id'], $student['year_level']);
+            $student['year_level_id'] = $yl?->id;
+
+            // Resolve section_id from year_level + program + section name
+            $sec = $resolveSection($yl?->id, $programModel->id, $student['section']);
+            $student['section_id'] = $sec?->id;
+
             // Create or update student record
             $createdStudent = Student::updateOrCreate(
                 ['lrn' => $student['lrn']],

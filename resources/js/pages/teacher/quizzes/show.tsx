@@ -1,7 +1,4 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import {
     FileQuestion,
     Edit,
@@ -18,15 +15,7 @@ import {
     Award,
     BookOpen,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { useState } from 'react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -37,9 +26,20 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
-import type { BreadcrumbItem } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Pagination } from '@/components/ui/pagination';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import TeacherLayout from '@/layouts/teacher/teacher-layout';
+import type { BreadcrumbItem } from '@/types';
 
 interface Subject {
     id: number;

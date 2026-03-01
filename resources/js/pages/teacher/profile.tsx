@@ -1,6 +1,4 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useRef, useState } from 'react';
-import { toast } from 'sonner';
 import {
     Camera,
     Save,
@@ -14,17 +12,19 @@ import {
     EyeOff,
     BadgeCheck,
 } from 'lucide-react';
-import TeacherLayout from '@/layouts/teacher/teacher-layout';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { PageHeader } from '@/components/page-header';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import TeacherLayout from '@/layouts/teacher/teacher-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

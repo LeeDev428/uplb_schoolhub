@@ -1,14 +1,14 @@
 import { Head } from '@inertiajs/react';
-import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
-import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, CheckCircle, Clock, DollarSign, Download, FileText, RefreshCw, TrendingUp, Users, XCircle, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
+import { PageHeader } from '@/components/page-header';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
 
 interface Stats {
     total_students: number;

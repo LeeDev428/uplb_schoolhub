@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Calendar, Users, ClipboardList } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ClinicLayout from '@/layouts/clinic/clinic-layout';
 
 export default function ClinicDashboard() {

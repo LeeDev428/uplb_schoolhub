@@ -1,3 +1,5 @@
+import { X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -5,7 +7,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import {
     Table,
     TableBody,
@@ -14,7 +15,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EnrollmentHistory {

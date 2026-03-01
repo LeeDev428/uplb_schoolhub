@@ -1,8 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import GuidanceLayout from '@/layouts/guidance/guidance-layout';
 import { ArrowLeft, Calendar, User, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import GuidanceLayout from '@/layouts/guidance/guidance-layout';
 
 interface GuidanceRecord {
     id: number;

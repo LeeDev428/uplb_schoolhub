@@ -1,13 +1,13 @@
 import { Head, router } from '@inertiajs/react';
+import { Users, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 import { useState } from 'react';
+import { DashboardCard } from '@/components/registrar/dashboard-card';
+import { RecentActivity } from '@/components/registrar/recent-activity';
+import { RequirementsStatus } from '@/components/registrar/requirements-status-chart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import RegistrarLayout from '@/layouts/registrar/registrar-layout';
-import { DashboardCard } from '@/components/registrar/dashboard-card';
-import { RecentActivity } from '@/components/registrar/recent-activity';
-import { RequirementsStatus } from '@/components/registrar/requirements-status-chart';
-import { Users, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 
 interface Stats {
     activeStudents: number;

@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { CheckCircle2, Clock, XCircle, FileText } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import StudentLayout from '@/layouts/student/student-layout';
 
 type Requirement = {

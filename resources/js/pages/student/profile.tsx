@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { User, Mail, Phone, MapPin, Calendar, Users, BookOpen, GraduationCap, Shield } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StudentPhoto } from '@/components/ui/student-photo';
 import StudentLayout from '@/layouts/student/student-layout';
 

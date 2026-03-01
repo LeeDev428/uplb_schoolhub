@@ -9,6 +9,8 @@ import {
     Package,
     Users,
 } from 'lucide-react';
+import { NavMain } from '@/components/nav-main';
+import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
     SidebarContent,
@@ -19,8 +21,6 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import type { NavItem } from '@/types';
-import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 
 interface AppSettings {
     app_name?: string;

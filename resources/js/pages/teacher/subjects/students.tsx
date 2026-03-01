@@ -1,15 +1,15 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeft, BookOpen, Users, Eye } from 'lucide-react';
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FilterBar } from '@/components/filters/filter-bar';
+import { FilterDropdown } from '@/components/filters/filter-dropdown';
+import { SearchBar } from '@/components/filters/search-bar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pagination } from '@/components/ui/pagination';
-import { SearchBar } from '@/components/filters/search-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { FilterBar } from '@/components/filters/filter-bar';
 import { StudentPhoto } from '@/components/ui/student-photo';
 import TeacherLayout from '@/layouts/teacher/teacher-layout';
-import { ArrowLeft, BookOpen, Users, Eye } from 'lucide-react';
 import type { BreadcrumbItem } from '@/types';
 
 interface Department {

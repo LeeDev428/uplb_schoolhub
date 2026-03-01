@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import TeacherLayout from '@/layouts/teacher/teacher-layout';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { Link } from '@inertiajs/react';
 
 interface Student {
     id: number;

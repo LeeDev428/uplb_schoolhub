@@ -184,8 +184,7 @@ class Student extends Model
         }
 
         if ($this->program) {
-            return Program::where('name', $this->program)
-                ->value('department_id');
+            return Program::where('programs.name', $this->program)->value('department_id');
         }
 
         return null;

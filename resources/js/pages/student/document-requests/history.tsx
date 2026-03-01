@@ -1,8 +1,10 @@
 import { Head } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { FileText, Calendar, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -11,9 +13,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { PageHeader } from '@/components/page-header';
 import StudentLayout from '@/layouts/student/student-layout';
-import { Link } from '@inertiajs/react';
 
 interface CompletedRequest {
     id: number;
