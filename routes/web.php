@@ -204,16 +204,25 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 
     Route::get('reports', [App\Http\Controllers\Registrar\ReportsController::class, 'index'])->name('reports');
 
-    // Archived Students
+    // Archived Students (soft-deleted)
     Route::get('archived', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'index'])->name('archived');
     Route::post('archived/{id}/restore', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'restore'])->name('archived.restore');
     Route::delete('archived/{id}', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'forceDelete'])->name('archived.destroy');
     Route::post('archived/bulk-restore', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'bulkRestore'])->name('archived.bulk-restore');
 
+    // Inactive Students (deactivated — is_active = false, not soft-deleted)
+    Route::get('inactive-students', [App\Http\Controllers\Registrar\InactiveStudentController::class, 'index'])->name('inactive-students');
+
+    // Deactivate / Activate individual student
+    Route::post('students/bulk-deactivate', [\App\Http\Controllers\StudentController::class, 'bulkDeactivate'])->name('students.bulk-deactivate');
+    Route::post('students/{student}/deactivate', [\App\Http\Controllers\StudentController::class, 'deactivate'])->name('students.deactivate');
+    Route::post('students/{student}/activate', [\App\Http\Controllers\StudentController::class, 'activateStudent'])->name('students.activate');
+
     Route::get('schedule', [App\Http\Controllers\Registrar\ScheduleController::class, 'index'])->name('schedule');
 
     // Drop Request Management
     Route::get('drop-requests', [App\Http\Controllers\Registrar\DropRequestController::class, 'index'])->name('drop-requests.index');
+    Route::post('drop-requests/set-deadline', [App\Http\Controllers\Registrar\DropRequestController::class, 'setDeadline'])->name('drop-requests.set-deadline');
     Route::get('drop-requests/{dropRequest}/fee-items', [App\Http\Controllers\Registrar\DropRequestController::class, 'getApplicableFeeItems'])->name('drop-requests.fee-items');
     Route::post('drop-requests/{dropRequest}/approve', [App\Http\Controllers\Registrar\DropRequestController::class, 'approve'])->name('drop-requests.approve');
     Route::post('drop-requests/{dropRequest}/reject', [App\Http\Controllers\Registrar\DropRequestController::class, 'reject'])->name('drop-requests.reject');

@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, MailCheck, MailWarning, RotateCcw, Archive, Trash2, CalendarDays } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, UserX, MailCheck, MailWarning, RotateCcw, Archive, Trash2, CalendarDays } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { show as showStudent, destroy as destroyStudent } from '@/routes/registrar/students';
 import { StudentFilters } from '@/components/registrar/student-filters';
@@ -200,6 +200,20 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
         }
     };
 
+    const handleBulkDeactivate = () => {
+        if (selectedStudents.length === 0) return;
+        if (confirm(`Deactivate ${selectedStudents.length} student(s)? This will reset them to "not-enrolled" and they must re-register to enroll again.`)) {
+            router.post('/registrar/students/bulk-deactivate', { student_ids: selectedStudents }, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    showSuccess(`Successfully deactivated ${selectedStudents.length} student(s).`);
+                    setSelectedStudents([]);
+                },
+                onError: () => showError('Failed to deactivate students.'),
+            });
+        }
+    };
+
     const handleBulkArchive = () => {
         if (selectedStudents.length === 0) return;
         
@@ -304,14 +318,24 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
                     </div>
                     <div className="flex space-x-3">
                         {selectedStudents.length > 0 && (
-                            <Button 
-                                variant="destructive" 
-                                onClick={handleBulkArchive}
-                                disabled={isArchiving}
-                            >
-                                <Archive className="mr-2 h-4 w-4" />
-                                {isArchiving ? 'Archiving...' : `Archive (${selectedStudents.length})`}
-                            </Button>
+                            <>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleBulkDeactivate}
+                                    className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+                                >
+                                    <UserX className="mr-2 h-4 w-4" />
+                                    Deactivate ({selectedStudents.length})
+                                </Button>
+                                <Button 
+                                    variant="destructive" 
+                                    onClick={handleBulkArchive}
+                                    disabled={isArchiving}
+                                >
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    {isArchiving ? 'Archiving...' : `Archive (${selectedStudents.length})`}
+                                </Button>
+                            </>
                         )}
                         <Button
                             variant={viewMode === 'classlist' ? 'default' : 'outline'}
@@ -417,7 +441,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
                 )}
 
                 {/* Filters */}
-                <StudentFilters programs={programs} yearLevels={yearLevels} filters={filters} />
+                <StudentFilters programs={programs} yearLevels={yearLevels} schoolYears={schoolYears} filters={filters} />
 
                 {/* School Year Tabs */}
                 {schoolYears.length > 0 && (

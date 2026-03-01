@@ -14,6 +14,7 @@ class AppSetting extends Model
         'primary_color',
         'secondary_color',
         'school_year',
+        'drop_request_deadline',
         'has_k12',
         'has_college',
         // Enrollment period settings
@@ -63,6 +64,7 @@ class AppSetting extends Model
         'alumni_items'             => 'array',
         'features_items'           => 'array',
         'nav_links'                => 'array',
+        'drop_request_deadline'    => 'date',
     ];
 
     public static function current(): self

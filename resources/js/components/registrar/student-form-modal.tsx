@@ -563,6 +563,7 @@ export function StudentFormModal({
                                         <SelectValue placeholder={selectedYearLevelId ? "Select section" : "Select year level first"} />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="TBA">TBA (To Be Assigned)</SelectItem>
                                         {filteredSections.map((sec) => (
                                             <SelectItem key={sec.id} value={sec.name}>
                                                 {sec.name}

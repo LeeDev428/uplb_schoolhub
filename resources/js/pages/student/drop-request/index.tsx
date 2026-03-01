@@ -59,6 +59,8 @@ type Props = {
     hasApprovedRequest: boolean;
     isDropped: boolean;
     currentSchoolYear: string;
+    dropRequestDeadline: string | null;
+    deadlinePassed: boolean;
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -90,6 +92,8 @@ export default function DropRequestIndex({
     hasApprovedRequest,
     isDropped,
     currentSchoolYear,
+    dropRequestDeadline,
+    deadlinePassed,
 }: Props) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -134,6 +138,7 @@ export default function DropRequestIndex({
                         </p>
                     </div>
 
+                    {!deadlinePassed ? (
                     <Dialog open={isOpen} onOpenChange={setIsOpen}>
                         <DialogTrigger asChild>
                             <Button disabled={hasPendingRequest || isDropped}>
@@ -221,6 +226,12 @@ export default function DropRequestIndex({
                             </form>
                         </DialogContent>
                     </Dialog>
+                    ) : (
+                        <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                            <XCircle className="h-4 w-4 shrink-0" />
+                            Submission deadline passed ({dropRequestDeadline})
+                        </div>
+                    )}
                 </div>
 
                 {/* Warning Banner */}

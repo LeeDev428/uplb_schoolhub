@@ -15,6 +15,7 @@ import {
 interface StudentFiltersProps {
     programs?: string[];
     yearLevels?: string[];
+    schoolYears?: string[];
     filters?: {
         search?: string;
         type?: string;
@@ -23,10 +24,11 @@ interface StudentFiltersProps {
         enrollment_status?: string;
         requirements_status?: string;
         needs_sectioning?: string;
+        school_year?: string;
     };
 }
 
-export function StudentFilters({ programs = [], yearLevels = [], filters = {} }: StudentFiltersProps) {
+export function StudentFilters({ programs = [], yearLevels = [], schoolYears = [], filters = {} }: StudentFiltersProps) {
     const [localSearch, setLocalSearch] = useState(filters?.search || '');
 
     const handleFilterChange = (key: string, value: string) => {
@@ -79,7 +81,23 @@ export function StudentFilters({ programs = [], yearLevels = [], filters = {} }:
             </form>
 
             {/* Row 2: Dropdown filters in a responsive grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                <Select
+                    value={filters.school_year || 'all'}
+                    onValueChange={(value) => handleFilterChange('school_year', value)}
+                >
+                    <SelectTrigger className="h-10">
+                        <SelectValue placeholder="All School Years" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All School Years</SelectItem>
+                        {schoolYears.map((sy) => (
+                            <SelectItem key={sy} value={sy}>
+                                {sy}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <Select
                     value={filters.type || 'all'}
                     onValueChange={(value) => handleFilterChange('type', value)}

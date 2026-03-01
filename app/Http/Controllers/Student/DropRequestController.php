@@ -48,12 +48,17 @@ class DropRequestController extends Controller
             ->where('status', 'approved')
             ->exists();
 
+        $deadline = $settings?->drop_request_deadline;
+        $deadlinePassed = $deadline && now()->startOfDay()->gt($deadline);
+
         return Inertia::render('student/drop-request/index', [
             'requests' => $requests,
             'hasPendingRequest' => $hasPendingRequest,
             'hasApprovedRequest' => $hasApprovedRequest,
             'isDropped' => $student->enrollment_status === 'dropped',
             'currentSchoolYear' => $settings?->school_year ?? date('Y') . '-' . (date('Y') + 1),
+            'dropRequestDeadline' => $deadline?->format('M d, Y'),
+            'deadlinePassed' => $deadlinePassed,
         ]);
     }
 
@@ -68,6 +73,13 @@ class DropRequestController extends Controller
         // Check if already dropped
         if ($student->enrollment_status === 'dropped') {
             return back()->with('error', 'You are already dropped from enrollment.');
+        }
+
+        // Check drop request deadline
+        $settings = AppSetting::current();
+        $deadline = $settings?->drop_request_deadline;
+        if ($deadline && now()->startOfDay()->gt($deadline)) {
+            return back()->with('error', 'The drop request submission deadline has passed.');
         }
 
         // Check for existing pending request

@@ -787,4 +787,122 @@ class StudentController extends Controller
         $statusText = $autoClear ? 'pending-accounting (registrar cleared)' : 'pending-registrar';
         return back()->with('success', "Student re-enrolled for {$currentSchoolYear}. Status: {$statusText}");
     }
+
+    /**
+     * Deactivate a student — reset to "back to zero" state.
+     * Sets is_active = false, enrollment_status = not-enrolled, clears section.
+     * The student must register again when reactivated.
+     */
+    public function deactivate(Request $request, Student $student)
+    {
+        $oldStatus = $student->enrollment_status;
+
+        $student->update([
+            'is_active'         => false,
+            'enrollment_status' => 'not-enrolled',
+            'section'           => null,
+            'section_id'        => null,
+        ]);
+
+        // Clear any pending enrollment clearance so re-enrollment starts fresh
+        if ($student->enrollmentClearance) {
+            $student->enrollmentClearance()->update([
+                'registrar_clearance'   => false,
+                'accounting_clearance'  => false,
+                'official_enrollment'   => false,
+                'registrar_cleared_at'  => null,
+                'registrar_cleared_by'  => null,
+                'accounting_cleared_at' => null,
+                'accounting_cleared_by' => null,
+                'official_enrolled_at'  => null,
+                'official_enrolled_by'  => null,
+                'enrollment_status'     => 'not_started',
+            ]);
+        }
+
+        StudentActionLog::create([
+            'student_id'   => $student->id,
+            'performed_by' => auth()->id(),
+            'action'       => 'Student Deactivated',
+            'action_type'  => 'status_change',
+            'details'      => "Student deactivated by registrar. Enrollment reset to zero — must re-register to enroll again.",
+            'changes'      => [
+                'is_active'         => ['from' => true, 'to' => false],
+                'enrollment_status' => ['from' => $oldStatus, 'to' => 'not-enrolled'],
+                'section'           => ['from' => $student->getOriginal('section'), 'to' => null],
+            ],
+        ]);
+
+        return back()->with('success', 'Student deactivated. They must re-register to enroll again.');
+    }
+
+    /**
+     * Activate a previously deactivated student.
+     * Sets is_active = true; enrollment_status stays not-enrolled (they must re-register).
+     */
+    public function activateStudent(Request $request, Student $student)
+    {
+        $student->update(['is_active' => true]);
+
+        StudentActionLog::create([
+            'student_id'   => $student->id,
+            'performed_by' => auth()->id(),
+            'action'       => 'Student Activated',
+            'action_type'  => 'status_change',
+            'details'      => 'Student reactivated by registrar. Enrollment status remains not-enrolled — student must re-register.',
+            'changes'      => [
+                'is_active' => ['from' => false, 'to' => true],
+            ],
+        ]);
+
+        return back()->with('success', 'Student activated. They can now proceed to re-register for enrollment.');
+    }
+
+    /**
+     * Bulk deactivate selected students.
+     */
+    public function bulkDeactivate(Request $request)
+    {
+        $validated = $request->validate([
+            'student_ids'   => 'required|array|min:1',
+            'student_ids.*' => 'integer|exists:students,id',
+        ]);
+
+        $students = Student::whereIn('id', $validated['student_ids'])->get();
+
+        foreach ($students as $student) {
+            $student->update([
+                'is_active'         => false,
+                'enrollment_status' => 'not-enrolled',
+                'section'           => null,
+                'section_id'        => null,
+            ]);
+
+            if ($student->enrollmentClearance) {
+                $student->enrollmentClearance()->update([
+                    'registrar_clearance'   => false,
+                    'accounting_clearance'  => false,
+                    'official_enrollment'   => false,
+                    'registrar_cleared_at'  => null,
+                    'registrar_cleared_by'  => null,
+                    'accounting_cleared_at' => null,
+                    'accounting_cleared_by' => null,
+                    'official_enrolled_at'  => null,
+                    'official_enrolled_by'  => null,
+                    'enrollment_status'     => 'not_started',
+                ]);
+            }
+
+            StudentActionLog::create([
+                'student_id'   => $student->id,
+                'performed_by' => auth()->id(),
+                'action'       => 'Student Deactivated (Bulk)',
+                'action_type'  => 'status_change',
+                'details'      => 'Student deactivated via bulk action by registrar.',
+                'changes'      => ['is_active' => ['from' => true, 'to' => false]],
+            ]);
+        }
+
+        return back()->with('success', "{$students->count()} student(s) deactivated successfully.");
+    }
 }

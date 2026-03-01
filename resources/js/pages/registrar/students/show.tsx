@@ -412,6 +412,21 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                             <Archive className="mr-2 h-4 w-4" />
                             Archive Student
                         </Button>
+                        <Button
+                            variant="outline"
+                            className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+                            onClick={() => {
+                                if (window.confirm(`Deactivate ${fullName}? This will reset their enrollment to zero. They must re-register to continue.`)) {
+                                    router.post(`/registrar/students/${student.id}/deactivate`, {}, {
+                                        onSuccess: () => toast.success('Student deactivated. They must re-register to enroll again.'),
+                                        onError: () => toast.error('Failed to deactivate student.'),
+                                    });
+                                }
+                            }}
+                        >
+                            <UserX className="mr-2 h-4 w-4" />
+                            Deactivate
+                        </Button>
                     </div>
                 </div>
 

@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 import {
+    CalendarDays,
     CheckCircle2,
     Clock,
     DollarSign,
@@ -111,6 +112,7 @@ type Props = {
         search?: string;
     };
     dropFeeItems: DropFeeItem[];
+    dropRequestDeadline: string | null;
     appSettings: {
         has_k12: boolean;
         has_college: boolean;
@@ -143,11 +145,12 @@ const StatusBadge = ({ status }: { status: string }) => {
     }
 };
 
-export default function DropRequestsIndex({ requests, stats, tab, filters, dropFeeItems }: Props) {
+export default function DropRequestsIndex({ requests, stats, tab, filters, dropFeeItems, dropRequestDeadline }: Props) {
     const [activeTab, setActiveTab] = useState(tab);
     const [selectedRequest, setSelectedRequest] = useState<DropRequest | null>(null);
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
+    const [showDeadlineModal, setShowDeadlineModal] = useState(false);
     const [search, setSearch] = useState(filters.search || '');
     const [selectedFeeItemIds, setSelectedFeeItemIds] = useState<number[]>([]);
     const [applicableFeeItems, setApplicableFeeItems] = useState<DropFeeItem[]>([]);
@@ -155,6 +158,7 @@ export default function DropRequestsIndex({ requests, stats, tab, filters, dropF
 
     const approveForm = useForm({ registrar_remarks: '', fee_item_ids: [] as number[] });
     const rejectForm = useForm({ registrar_remarks: '' });
+    const deadlineForm = useForm({ drop_request_deadline: dropRequestDeadline || '' });
 
     const selectedFeeTotal = useMemo(() => {
         return applicableFeeItems
@@ -239,6 +243,26 @@ export default function DropRequestsIndex({ requests, stats, tab, filters, dropF
         });
     };
 
+    const handleDeadlineSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        deadlineForm.post('/registrar/drop-requests/set-deadline', {
+            onSuccess: () => {
+                toast.success('Deadline updated.');
+                setShowDeadlineModal(false);
+            },
+        });
+    };
+
+    const clearDeadline = () => {
+        deadlineForm.setData('drop_request_deadline', '');
+        deadlineForm.post('/registrar/drop-requests/set-deadline', {
+            onSuccess: () => {
+                toast.success('Deadline cleared.');
+                setShowDeadlineModal(false);
+            },
+        });
+    };
+
     const getInitials = (name: string) => {
         return name
             .split(' ')
@@ -254,12 +278,26 @@ export default function DropRequestsIndex({ requests, stats, tab, filters, dropF
 
             <div className="space-y-6 p-6">
                 {/* Header */}
-                <div>
-                    <h1 className="text-2xl font-bold">Drop Requests</h1>
-                    <p className="text-muted-foreground text-sm mt-1">
-                        Review student drop requests and assign applicable fees before forwarding to accounting.
-                    </p>
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold">Drop Requests</h1>
+                        <p className="text-muted-foreground text-sm mt-1">
+                            Review student drop requests and assign applicable fees before forwarding to accounting.
+                        </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setShowDeadlineModal(true)}>
+                        <CalendarDays className="h-4 w-4 mr-2" />
+                        {dropRequestDeadline ? 'Edit Deadline' : 'Set Deadline'}
+                    </Button>
                 </div>
+
+                {/* Deadline Banner */}
+                {dropRequestDeadline && (
+                    <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+                        <CalendarDays className="h-4 w-4 shrink-0" />
+                        <span>Drop request deadline: <strong>{new Date(dropRequestDeadline + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>. Students cannot submit after this date.</span>
+                    </div>
+                )}
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -585,6 +623,44 @@ export default function DropRequestsIndex({ requests, stats, tab, filters, dropF
                             </Button>
                             <Button type="submit" variant="destructive" disabled={rejectForm.processing}>
                                 Reject Request
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Set Deadline Modal */}
+            <Dialog open={showDeadlineModal} onOpenChange={setShowDeadlineModal}>
+                <DialogContent className="max-w-sm">
+                    <form onSubmit={handleDeadlineSubmit}>
+                        <DialogHeader>
+                            <DialogTitle>Set Drop Request Deadline</DialogTitle>
+                            <DialogDescription>
+                                Students cannot submit new drop requests after this date. Leave blank to remove the deadline.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="drop_deadline">Deadline Date</Label>
+                                <Input
+                                    id="drop_deadline"
+                                    type="date"
+                                    value={deadlineForm.data.drop_request_deadline}
+                                    onChange={(e) => deadlineForm.setData('drop_request_deadline', e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter className="gap-2">
+                            {dropRequestDeadline && (
+                                <Button type="button" variant="outline" onClick={clearDeadline} className="text-red-600 border-red-200 hover:bg-red-50">
+                                    Clear Deadline
+                                </Button>
+                            )}
+                            <Button type="button" variant="outline" onClick={() => setShowDeadlineModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={deadlineForm.processing}>
+                                Save
                             </Button>
                         </DialogFooter>
                     </form>

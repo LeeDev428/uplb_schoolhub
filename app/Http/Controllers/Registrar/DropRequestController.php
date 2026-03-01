@@ -109,11 +109,30 @@ class DropRequestController extends Controller
             'tab' => $tab,
             'filters' => $request->only(['search']),
             'dropFeeItems' => $dropFeeItems,
+            'dropRequestDeadline' => $appSettings->drop_request_deadline?->format('Y-m-d'),
             'appSettings' => [
                 'has_k12' => $appSettings->has_k12,
                 'has_college' => $appSettings->has_college,
             ],
         ]);
+    }
+
+    /**
+     * Set the global drop request submission deadline.
+     */
+    public function setDeadline(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'drop_request_deadline' => 'nullable|date',
+        ]);
+
+        AppSetting::current()->update([
+            'drop_request_deadline' => $validated['drop_request_deadline'] ?? null,
+        ]);
+
+        return back()->with('success', $validated['drop_request_deadline']
+            ? 'Drop request deadline set to ' . date('M d, Y', strtotime($validated['drop_request_deadline'])) . '.'
+            : 'Drop request deadline cleared.');
     }
 
     /**

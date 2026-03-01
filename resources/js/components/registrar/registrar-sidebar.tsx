@@ -12,6 +12,7 @@ import {
     Megaphone,
     Settings,
     UserMinus,
+    UserX,
     Users,
 } from 'lucide-react';
 import {
@@ -103,6 +104,11 @@ export function RegistrarSidebar() {
             title: 'Archived Students',
             href: '/registrar/archived',
             icon: Archive,
+        },
+        {
+            title: 'Inactive Students',
+            href: '/registrar/inactive-students',
+            icon: UserX,
         },
         {
             title: 'Deadlines',

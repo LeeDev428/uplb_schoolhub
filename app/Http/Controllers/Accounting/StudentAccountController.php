@@ -23,11 +23,18 @@ class StudentAccountController extends Controller
      */
     public function index(Request $request): Response
     {
-        // Get unique school years from fee_items
-        $schoolYears = FeeItem::where('is_active', true)
+        // Get unique school years from fee_items AND student records combined
+        $feeItemYears = FeeItem::where('is_active', true)
             ->whereNotNull('school_year')
             ->distinct()
-            ->pluck('school_year')
+            ->pluck('school_year');
+
+        $studentYears = Student::whereNotNull('school_year')
+            ->distinct()
+            ->pluck('school_year');
+
+        $schoolYears = $feeItemYears->merge($studentYears)
+            ->unique()
             ->sort()
             ->values();
 
