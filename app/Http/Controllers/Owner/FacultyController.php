@@ -22,8 +22,8 @@ class FacultyController extends Controller
             'email'             => 'required|email|max:150|unique:teachers,email',
             'specialization'    => 'nullable|string|max:200',
             'employment_status' => 'nullable|in:full-time,part-time,contractual',
-            'is_active'         => 'boolean',
-            'show_on_landing'   => 'boolean',
+            'is_active'         => 'nullable|in:0,1',
+            'show_on_landing'   => 'nullable|in:0,1',
             'photo'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
@@ -63,8 +63,8 @@ class FacultyController extends Controller
             'email'             => 'required|email|max:150|unique:teachers,email,' . $teacher->id,
             'specialization'    => 'nullable|string|max:200',
             'employment_status' => 'nullable|in:full-time,part-time,contractual',
-            'is_active'         => 'boolean',
-            'show_on_landing'   => 'boolean',
+            'is_active'         => 'nullable|in:0,1',
+            'show_on_landing'   => 'nullable|in:0,1',
             'photo'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
