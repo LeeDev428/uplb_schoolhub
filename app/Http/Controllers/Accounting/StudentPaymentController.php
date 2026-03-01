@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\BalanceAdjustment;
 use App\Models\Department;
 use App\Models\EnrollmentClearance;
 use App\Models\PromissoryNote;
 use App\Models\Student;
+use App\Models\StudentActionLog;
 use App\Models\StudentFee;
 use App\Models\StudentPayment;
 use Illuminate\Http\RedirectResponse;
@@ -441,6 +443,23 @@ class StudentPaymentController extends Controller
                 ];
             });
 
+        // Get balance adjustments for this student
+        $balanceAdjustments = BalanceAdjustment::where('student_id', $student->id)
+            ->with('adjuster:id,name')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($adj) {
+                return [
+                    'id' => $adj->id,
+                    'amount' => (float) $adj->amount,
+                    'reason' => $adj->reason,
+                    'school_year' => $adj->school_year,
+                    'notes' => $adj->notes,
+                    'adjusted_by' => $adj->adjuster?->name,
+                    'created_at' => $adj->created_at->format('M d, Y h:i A'),
+                ];
+            });
+
         // Get cashiers (accounting staff)
         $cashiers = \App\Models\User::where('role', 'accounting')
             ->orderBy('name')
@@ -466,6 +485,7 @@ class StudentPaymentController extends Controller
             'grants' => $grants,
             'summary' => $summary,
             'cashiers' => $cashiers,
+            'balanceAdjustments' => $balanceAdjustments,
             'currentUser' => [
                 'id' => $currentUser->id,
                 'name' => $currentUser->name,
@@ -751,5 +771,61 @@ class StudentPaymentController extends Controller
 
         // Calculate balance
         return max(0, $totalAmount - $grantDiscount - $totalPaid);
+    }
+
+    /**
+     * Add balance to a student's fee record.
+     * Only available for super-accounting role. Always logged.
+     */
+    public function addBalance(Request $request, Student $student): RedirectResponse
+    {
+        $validated = $request->validate([
+            'student_fee_id' => 'required|exists:student_fees,id',
+            'amount' => 'required|numeric|min:0.01',
+            'reason' => 'required|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $studentFee = StudentFee::findOrFail($validated['student_fee_id']);
+
+        // Ensure the fee belongs to this student
+        if ((int) $studentFee->student_id !== (int) $student->id) {
+            return redirect()->back()->with('error', 'Fee record does not belong to this student.');
+        }
+
+        // Add the balance to the fee record
+        $studentFee->total_amount = (float) $studentFee->total_amount + (float) $validated['amount'];
+        $studentFee->balance = max(0, (float) $studentFee->total_amount - (float) $studentFee->grant_discount - (float) $studentFee->total_paid);
+        $studentFee->save();
+
+        // Log the balance adjustment
+        BalanceAdjustment::create([
+            'student_id' => $student->id,
+            'student_fee_id' => $studentFee->id,
+            'adjusted_by' => $request->user()->id,
+            'amount' => $validated['amount'],
+            'reason' => $validated['reason'],
+            'school_year' => $studentFee->school_year,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        // Also log to student action logs
+        StudentActionLog::log(
+            studentId: $student->id,
+            action: "Balance added: ₱" . number_format($validated['amount'], 2) . " — {$validated['reason']}",
+            actionType: 'balance_adjustment',
+            details: "Added ₱" . number_format($validated['amount'], 2) . " to {$studentFee->school_year} fees",
+            notes: $validated['notes'] ?? null,
+            changes: [
+                'amount' => $validated['amount'],
+                'reason' => $validated['reason'],
+                'school_year' => $studentFee->school_year,
+                'new_total_amount' => (float) $studentFee->total_amount,
+                'new_balance' => (float) $studentFee->balance,
+            ],
+            performedBy: $request->user()->id,
+        );
+
+        return redirect()->back()->with('success', "Balance of ₱" . number_format($validated['amount'], 2) . " added successfully.");
     }
 }
