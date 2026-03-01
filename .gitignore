@@ -15,7 +15,10 @@
 .env.production
 .env.staging
 .env.server
+.env.production.example
+.env.staging.example
 CREDENTIALS.local
+DEPLOYMENT.md
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
