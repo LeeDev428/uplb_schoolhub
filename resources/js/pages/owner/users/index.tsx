@@ -61,6 +61,7 @@ interface Props {
 const ROLE_OPTIONS = [
     { value: 'registrar', label: 'Registrar' },
     { value: 'accounting', label: 'Accounting' },
+    { value: 'super-accounting', label: 'Super Accounting' },
     { value: 'student', label: 'Student' },
     { value: 'teacher', label: 'Teacher' },
     { value: 'parent', label: 'Parent' },
@@ -73,6 +74,7 @@ const ROLE_OPTIONS = [
 const ROLE_COLORS: Record<string, string> = {
     registrar: 'bg-blue-100 text-blue-700',
     accounting: 'bg-green-100 text-green-700',
+    'super-accounting': 'bg-indigo-100 text-indigo-700',
     student: 'bg-purple-100 text-purple-700',
     teacher: 'bg-orange-100 text-orange-700',
     parent: 'bg-pink-100 text-pink-700',
