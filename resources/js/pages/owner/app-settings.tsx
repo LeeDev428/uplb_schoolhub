@@ -11,6 +11,7 @@ import {
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/page-header';
+import InputError from '@/components/input-error';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1383,12 +1384,12 @@ export default function AppSettings({ settings, departments }: Props) {
                             <div className="grid gap-1.5">
                                 <Label>Employee ID *</Label>
                                 <Input value={facultyForm.employee_id} onChange={e => { setFacultyForm(p => ({ ...p, employee_id: e.target.value })); setFacultyErrors(p => ({ ...p, employee_id: '' })); }} />
-                                {facultyErrors.employee_id && <p className="text-xs text-destructive">{facultyErrors.employee_id}</p>}
+                                <InputError message={facultyErrors.employee_id} />
                             </div>
                             <div className="grid gap-1.5">
                                 <Label>Email *</Label>
                                 <Input type="email" value={facultyForm.email} onChange={e => { setFacultyForm(p => ({ ...p, email: e.target.value })); setFacultyErrors(p => ({ ...p, email: '' })); }} />
-                                {facultyErrors.email && <p className="text-xs text-destructive">{facultyErrors.email}</p>}
+                                <InputError message={facultyErrors.email} />
                             </div>
                         </div>
                         <div className="grid gap-1.5">
