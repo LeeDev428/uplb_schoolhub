@@ -13,3 +13,11 @@ return new class extends Migration
             $table->unsignedTinyInteger('active_semester')->default(1)->after('school_year');
         });
     }
+
+    public function down(): void
+    {
+        Schema::table('app_settings', function (Blueprint $table) {
+            $table->dropColumn('active_semester');
+        });
+    }
+};
