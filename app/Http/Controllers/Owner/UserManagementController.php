@@ -85,6 +85,7 @@ class UserManagementController extends Controller
             'role' => ['required', Rule::in([
                 User::ROLE_REGISTRAR,
                 User::ROLE_ACCOUNTING,
+                User::ROLE_SUPER_ACCOUNTING,
                 User::ROLE_STUDENT,
                 User::ROLE_TEACHER,
                 User::ROLE_PARENT,
@@ -141,6 +142,7 @@ class UserManagementController extends Controller
             'role' => ['required', Rule::in([
                 User::ROLE_REGISTRAR,
                 User::ROLE_ACCOUNTING,
+                User::ROLE_SUPER_ACCOUNTING,
                 User::ROLE_STUDENT,
                 User::ROLE_TEACHER,
                 User::ROLE_PARENT,
