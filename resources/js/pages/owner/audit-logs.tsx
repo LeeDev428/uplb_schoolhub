@@ -139,7 +139,7 @@ export default function AuditLogs({ adjustments, filters, schoolYears, stats }: 
             <Head title="Audit Logs - Balance Adjustments" />
 
             <div className="space-y-6 p-6">
-                <PageHeader heading="Audit Logs" description="Monitor all balance adjustments made by Super Accounting staff. Every balance addition is permanently logged here." />
+                <PageHeader title="Audit Logs" description="Monitor all balance adjustments made by Super Accounting staff. Every balance addition is permanently logged here." />
 
                 {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-4">
