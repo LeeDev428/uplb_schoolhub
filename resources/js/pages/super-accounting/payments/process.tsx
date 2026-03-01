@@ -54,6 +54,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+    Scale,
+    History,
 import { Textarea } from '@/components/ui/textarea';
 import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
 
@@ -142,6 +144,16 @@ interface Cashier {
     name: string;
 }
 
+interface BalanceAdjustment {
+    id: number;
+    amount: number;
+    reason: string;
+    school_year: string | null;
+    notes: string | null;
+    adjusted_by: string;
+    created_at: string;
+}
+
 interface Props {
     student: Student;
     fees: Fee[];
@@ -150,6 +162,7 @@ interface Props {
     grants: Grant[];
     summary: Summary;
     cashiers?: Cashier[];
+    balanceAdjustments: BalanceAdjustment[];
     currentUser: {
         id: number;
         name: string;
