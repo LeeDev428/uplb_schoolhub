@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -151,6 +151,9 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::resource('students', \App\Http\Controllers\StudentController::class)->only([
         'index', 'store', 'show', 'update', 'destroy'
     ]);
+    // Promote Students - bulk section / year-level promotion
+    Route::get('promote-students', [\App\Http\Controllers\Registrar\StudentPromotionController::class, 'index'])->name('promote-students.index');
+    Route::post('promote-students', [\App\Http\Controllers\Registrar\StudentPromotionController::class, 'promote'])->name('promote-students.promote');
     
     // Student Enrollment Clearance
     Route::put('students/{student}/clearance', [App\Http\Controllers\StudentController::class, 'updateClearance'])->name('students.clearance.update');
@@ -219,7 +222,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::delete('archived/{id}', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'forceDelete'])->name('archived.destroy');
     Route::post('archived/bulk-restore', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'bulkRestore'])->name('archived.bulk-restore');
 
-    // Inactive Students (deactivated â€” is_active = false, not soft-deleted)
+    // Inactive Students (deactivated — is_active = false, not soft-deleted)
     Route::get('inactive-students', [App\Http\Controllers\Registrar\InactiveStudentController::class, 'index'])->name('inactive-students');
 
     // Deactivate / Activate individual student
