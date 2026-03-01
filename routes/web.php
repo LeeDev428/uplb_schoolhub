@@ -53,20 +53,24 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Helper function to register settings routes for any role
-function registerSettingsRoutes(): void {
-    Route::redirect('settings', 'settings/profile');
-    Route::get('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editProfile'])->name('settings.profile');
-    Route::patch('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'updateProfile'])->name('settings.profile.update');
-    Route::delete('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'destroyProfile'])->name('settings.profile.destroy');
-    Route::get('settings/password', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editPassword'])->name('settings.password');
-    Route::put('settings/password', [App\Http\Controllers\Settings\RoleSettingsController::class, 'updatePassword'])->name('settings.password.update');
-    Route::get('settings/two-factor', [App\Http\Controllers\Settings\RoleSettingsController::class, 'showTwoFactor'])->name('settings.two-factor');
-    Route::get('settings/appearance', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editAppearance'])->name('settings.appearance');
+if (!function_exists('registerSettingsRoutes')) {
+    function registerSettingsRoutes(): void {
+        Route::redirect('settings', 'settings/profile');
+        Route::get('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editProfile'])->name('settings.profile');
+        Route::patch('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'updateProfile'])->name('settings.profile.update');
+        Route::delete('settings/profile', [App\Http\Controllers\Settings\RoleSettingsController::class, 'destroyProfile'])->name('settings.profile.destroy');
+        Route::get('settings/password', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editPassword'])->name('settings.password');
+        Route::put('settings/password', [App\Http\Controllers\Settings\RoleSettingsController::class, 'updatePassword'])->name('settings.password.update');
+        Route::get('settings/two-factor', [App\Http\Controllers\Settings\RoleSettingsController::class, 'showTwoFactor'])->name('settings.two-factor');
+        Route::get('settings/appearance', [App\Http\Controllers\Settings\RoleSettingsController::class, 'editAppearance'])->name('settings.appearance');
+    }
 }
 
 // Helper function to register announcements route for any role
-function registerAnnouncementsRoute(): void {
-    Route::get('announcements', [App\Http\Controllers\AnnouncementViewController::class, 'index'])->name('announcements.index');
+if (!function_exists('registerAnnouncementsRoute')) {
+    function registerAnnouncementsRoute(): void {
+        Route::get('announcements', [App\Http\Controllers\AnnouncementViewController::class, 'index'])->name('announcements.index');
+    }
 }
 
 // Owner Routes
@@ -284,6 +288,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::get('drop-approvals', [App\Http\Controllers\Accounting\DropApprovalController::class, 'index'])->name('drop-approvals.index');
     Route::post('drop-approvals/{dropRequest}/approve', [App\Http\Controllers\Accounting\DropApprovalController::class, 'approve'])->name('drop-approvals.approve');
     Route::post('drop-approvals/{dropRequest}/reject', [App\Http\Controllers\Accounting\DropApprovalController::class, 'reject'])->name('drop-approvals.reject');
+    Route::post('drop-approvals/{dropRequest}/set-fees', [App\Http\Controllers\Accounting\DropApprovalController::class, 'setFees'])->name('drop-approvals.set-fees');
     
     // Student Grants Management
     Route::get('grants', [App\Http\Controllers\Accounting\GrantController::class, 'index'])->name('grants.index');
@@ -382,6 +387,11 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'verified', 'rol
     // Self-Enrollment (returning students re-enroll for new school year)
     Route::get('enrollment', [App\Http\Controllers\Student\SelfEnrollmentController::class, 'index'])->name('enrollment.index');
     Route::post('enrollment', [App\Http\Controllers\Student\SelfEnrollmentController::class, 'store'])->name('enrollment.store');
+
+    // College Subject Enrollment (enrolled students pick subjects for the active semester)
+    Route::get('enrollment/subjects', [App\Http\Controllers\Student\CollegeEnrollmentController::class, 'index'])->name('enrollment.subjects');
+    Route::post('enrollment/subjects', [App\Http\Controllers\Student\CollegeEnrollmentController::class, 'store'])->name('enrollment.subjects.store');
+    Route::delete('enrollment/subjects/{enrollment}', [App\Http\Controllers\Student\CollegeEnrollmentController::class, 'drop'])->name('enrollment.subjects.drop');
 
     // Grades (available to all students to view historical grades)
     Route::get('grades', [App\Http\Controllers\Student\GradeController::class, 'index'])->name('grades.index');
@@ -546,6 +556,7 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
     Route::get('drop-approvals', [App\Http\Controllers\Accounting\DropApprovalController::class, 'index'])->name('drop-approvals.index');
     Route::post('drop-approvals/{dropRequest}/approve', [App\Http\Controllers\Accounting\DropApprovalController::class, 'approve'])->name('drop-approvals.approve');
     Route::post('drop-approvals/{dropRequest}/reject', [App\Http\Controllers\Accounting\DropApprovalController::class, 'reject'])->name('drop-approvals.reject');
+    Route::post('drop-approvals/{dropRequest}/set-fees', [App\Http\Controllers\Accounting\DropApprovalController::class, 'setFees'])->name('drop-approvals.set-fees');
     
     // Student Grants Management
     Route::get('grants', [App\Http\Controllers\Accounting\GrantController::class, 'index'])->name('grants.index');
