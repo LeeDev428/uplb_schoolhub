@@ -1,27 +1,13 @@
 name: Deploy to Production
 
-# ── How this works ───────────────────────────────────────────────────────
-# Your local workflow:
-#   1. Make code changes
-#   2. npm run build  (builds public/build locally)
-#   3. git add -A && git commit -m "..." && git push
-#   4. This Action fires automatically and deploys to production ✅
+# ── Local workflow ────────────────────────────────────────────────────────
+# 1. Make code changes
+# 2. npm run build
+# 3. git add -A && git commit -m "..." && git push
+# 4. This Action fires → rsync to server → php artisan optimize ✅
 #
-# Required GitHub Secrets (repo Settings → Secrets and variables → Actions):
-#   SSH_HOST          → 72.61.121.165
-#   SSH_PORT          → 65002
-#   SSH_USER          → u866511543
-#   SSH_PRIVATE_KEY   → contents of your SSH private key (hostinger_deploy)
-#   GH_PAT            → GitHub Personal Access Token (classic) with "repo" scope
-#                       Generate at: https://github.com/settings/tokens
-#                       ⚠️ If deploy fails with "Invalid username or token",
-#                          your PAT is expired — regenerate it and update this secret.
-#
-# One-time server setup (if git was never initialized on the server):
-#   ssh -i ~/.ssh/hostinger_deploy -p 65002 u866511543@72.61.121.165
-#   cd /home/u866511543/westerncollege
-#   git init && git remote add origin https://github.com/LeeDev428/uplb_schoolhub.git
-#   git branch -M master && git fetch origin master && git reset --hard origin/master
+# Required secrets (already set in your repo):
+#   SSH_HOST, SSH_PORT, SSH_USER, SSH_PRIVATE_KEY
 # ─────────────────────────────────────────────────────────────────────────
 
 on:
@@ -35,51 +21,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync files to server
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='.env' --exclude='storage/app/' --exclude='.git'
+          path: ./
+          remote_path: /home/u866511543/westerncollege
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_port: ${{ secrets.SSH_PORT }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Refresh Laravel caches
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
           script: |
-            set -e
             cd /home/u866511543/westerncollege
-
-            # Initialize git on very first deployment (only runs once)
-            if [ ! -d ".git" ]; then
-              echo "[deploy] First-time git init..."
-              git init
-              git remote add origin https://github.com/LeeDev428/uplb_schoolhub.git
-              git branch -M master
-            fi
-
-            # Validate PAT is set
-            if [ -z "$GH_PAT_VALUE" ]; then
-              echo "[deploy] ERROR: GH_PAT secret is empty or not set!"
-              echo "[deploy] Go to: https://github.com/LeeDev428/uplb_schoolhub/settings/secrets/actions"
-              echo "[deploy] Add secret 'GH_PAT' = a GitHub Personal Access Token (classic) with repo scope"
-              exit 1
-            fi
-
-            # Pull latest code using PAT
-            echo "[deploy] Pulling latest code..."
-            git remote set-url origin "https://x-access-token:${GH_PAT_VALUE}@github.com/LeeDev428/uplb_schoolhub.git"
-            git fetch origin master --quiet
-            git reset --hard origin/master
-            git remote set-url origin https://github.com/LeeDev428/uplb_schoolhub.git
-
-            # Refresh Laravel caches
-            echo "[deploy] Refreshing caches..."
             php artisan config:clear
             php artisan route:clear
             php artisan view:clear
             php artisan optimize
-
-            echo "[deploy] Done! Deployed commit: $(git log -1 --format='%h %s')"
-        env:
-          GH_PAT_VALUE: ${{ secrets.GH_PAT }}
-
-      - name: Summary
-        run: |
-          echo "✅ Deployed commit ${{ github.sha }} to https://westerncollegesinc.ph"
+            echo "Deployed ${{ github.sha }}"
