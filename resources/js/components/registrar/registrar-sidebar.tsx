@@ -46,12 +46,16 @@ interface AppSettings {
     app_name?: string;
     logo_url?: string | null;
     primary_color?: string;
+    sidebar_color?: string;
+    sidebar_font_size?: string;
 }
 
 export function RegistrarSidebar() {
     const { announcementCount, appSettings } = usePage<{ announcementCount: number; appSettings?: AppSettings }>().props;
     const appName = appSettings?.app_name || 'SchoolHub';
     const logoUrl = appSettings?.logo_url;
+    const sidebarColor = appSettings?.sidebar_color || undefined;
+    const sidebarFontSize = appSettings?.sidebar_font_size ? `${appSettings.sidebar_font_size}px` : undefined;
 
     const mainNavItems: NavItem[] = [
         {
@@ -133,7 +137,10 @@ export function RegistrarSidebar() {
     ];
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="inset" style={{
+            ...(sidebarColor ? { '--sidebar': sidebarColor } as React.CSSProperties : {}),
+            ...(sidebarFontSize ? { fontSize: sidebarFontSize } : {}),
+        }}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
