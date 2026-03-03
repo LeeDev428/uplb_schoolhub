@@ -19,6 +19,9 @@ import {
     Printer,
     Scale,
     History,
+    CheckCircle2,
+    ShieldCheck,
+    ShieldX,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -28,6 +31,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
     Dialog,
     DialogContent,
@@ -156,6 +169,13 @@ interface BalanceAdjustment {
     created_at: string;
 }
 
+interface EnrollmentClearance {
+    id: number;
+    accounting_clearance: boolean;
+    accounting_cleared_at: string | null;
+    accounting_notes: string | null;
+}
+
 interface Props {
     student: Student;
     fees: Fee[];
@@ -165,6 +185,7 @@ interface Props {
     summary: Summary;
     cashiers?: Cashier[];
     balanceAdjustments: BalanceAdjustment[];
+    enrollmentClearance?: EnrollmentClearance | null;
     currentUser: {
         id: number;
         name: string;
@@ -189,10 +210,12 @@ function formatDate(dateString: string): string {
     });
 }
 
-export default function PaymentProcess({ student, fees, payments, promissoryNotes, grants, summary, cashiers = [], balanceAdjustments, currentUser }: Props) {
+export default function PaymentProcess({ student, fees, payments, promissoryNotes, grants, summary, cashiers = [], balanceAdjustments, enrollmentClearance = null, currentUser }: Props) {
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
     const [isPromissoryDialogOpen, setIsPromissoryDialogOpen] = useState(false);
     const [isAddBalanceDialogOpen, setIsAddBalanceDialogOpen] = useState(false);
+    const [clearanceDialog, setClearanceDialog] = useState(false);
+    const [clearanceLoading, setClearanceLoading] = useState(false);
     const [selectedSchoolYear, setSelectedSchoolYear] = useState<string>('all');
     const [printReceipt, setPrintReceipt] = useState(true);
     const [amountReceived, setAmountReceived] = useState<string>('');
@@ -322,6 +345,24 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
 
     const handleRefresh = () => {
         router.reload({ only: ['promissoryNotes'] });
+    };
+
+    const handleClearanceToggle = () => {
+        const newStatus = !enrollmentClearance?.accounting_clearance;
+        setClearanceLoading(true);
+        router.put(`/accounting/clearance/${student.id}`, {
+            accounting_clearance: newStatus,
+        }, {
+            onSuccess: () => {
+                setClearanceDialog(false);
+                setClearanceLoading(false);
+                toast.success(newStatus ? 'Student cleared for accounting.' : 'Clearance removed.');
+            },
+            onError: () => {
+                setClearanceLoading(false);
+                toast.error('Failed to update clearance.');
+            },
+        });
     };
 
     const handleApprovePromissory = (noteId: number) => {
@@ -711,7 +752,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-4 gap-4 text-center">
+                            <div className="grid grid-cols-5 gap-4 text-center">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Total Fees</p>
                                     <p className="text-lg font-semibold">{formatCurrency(summary.total_fees)}</p>
@@ -727,6 +768,41 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                 <div>
                                     <p className="text-sm text-muted-foreground">Balance</p>
                                     <p className="text-lg font-semibold text-red-600">{formatCurrency(summary.total_balance)}</p>
+                                </div>
+                                <div className="flex flex-col items-center gap-1">
+                                    <p className="text-sm text-muted-foreground">Clearance</p>
+                                    {enrollmentClearance?.accounting_clearance ? (
+                                        <>
+                                            <Badge className="bg-green-100 text-green-700 border-green-200">
+                                                <ShieldCheck className="mr-1 h-3 w-3" />
+                                                Cleared
+                                            </Badge>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="text-xs h-6 px-2 mt-0.5"
+                                                onClick={() => setClearanceDialog(true)}
+                                            >
+                                                <ShieldX className="mr-1 h-3 w-3" />
+                                                Remove
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                                                <Clock className="mr-1 h-3 w-3" />
+                                                Pending
+                                            </Badge>
+                                            <Button
+                                                size="sm"
+                                                className="text-xs h-6 px-2 mt-0.5"
+                                                onClick={() => setClearanceDialog(true)}
+                                            >
+                                                <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                Clear
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1752,6 +1828,40 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                     </TabsContent>
                 </Tabs>
             </div>
+
+            {/* Clearance Confirmation Dialog */}
+            <AlertDialog open={clearanceDialog} onOpenChange={setClearanceDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {enrollmentClearance?.accounting_clearance ? 'Remove Clearance?' : 'Clear Student?'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {enrollmentClearance?.accounting_clearance ? (
+                                <>
+                                    Are you sure you want to remove accounting clearance for <strong>{student.full_name}</strong>?
+                                </>
+                            ) : (
+                                <>
+                                    Are you sure you want to clear <strong>{student.full_name}</strong> for accounting?
+                                    {summary.total_balance > 0 && (
+                                        <span className="block mt-2 text-orange-600">
+                                            <AlertTriangle className="inline mr-1 h-4 w-4" />
+                                            Note: This student still has an outstanding balance of {formatCurrency(summary.total_balance)}.
+                                        </span>
+                                    )}
+                                </>
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={clearanceLoading}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleClearanceToggle} disabled={clearanceLoading}>
+                            {clearanceLoading ? 'Processing...' : (enrollmentClearance?.accounting_clearance ? 'Remove Clearance' : 'Clear Student')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </SuperAccountingLayout>
     );
 }
