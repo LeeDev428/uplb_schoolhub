@@ -402,20 +402,23 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                     <TableHead className="text-right">Balance</TableHead>
                                     <TableHead className="text-center">Payment Status</TableHead>
                                     <TableHead className="text-center">Clearance Status</TableHead>
-                                    <TableHead className="text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {students.data.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                                        <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                                             No students found.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     students.data.map((student) => (
-                                        <TableRow key={student.id}>
-                                            <TableCell>
+                                        <TableRow
+                                            key={student.id}
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => router.visit(`/accounting/payments/process/${student.id}`)}
+                                        >
+                                            <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <Checkbox
                                                     checked={selectedStudents.includes(student.id)}
                                                     onCheckedChange={() => toggleSelect(student.id)}
@@ -464,37 +467,40 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                                     </Badge>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="text-center">
-                                                {student.enrollment_clearance?.accounting_clearance ? (
-                                                    <Badge className="bg-green-100 text-green-700">
-                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                        Cleared
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                                                        <Clock className="mr-1 h-3 w-3" />
-                                                        Pending
-                                                    </Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                {student.enrollment_clearance?.accounting_clearance ? (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => setConfirmDialog({ open: true, student, action: 'unclear' })}
-                                                    >
-                                                        Remove Clearance
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        size="sm"
-                                                        onClick={() => setConfirmDialog({ open: true, student, action: 'clear' })}
-                                                    >
-                                                        <CheckCircle2 className="mr-1 h-4 w-4" />
-                                                        Clear
-                                                    </Button>
-                                                )}
+                                            <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    {student.enrollment_clearance?.accounting_clearance ? (
+                                                        <>
+                                                            <Badge className="bg-green-100 text-green-700">
+                                                                <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                                Cleared
+                                                            </Badge>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="text-xs h-6 px-2 mt-0.5"
+                                                                onClick={(e) => { e.stopPropagation(); setConfirmDialog({ open: true, student, action: 'unclear' }); }}
+                                                            >
+                                                                Remove Clearance
+                                                            </Button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                                                                <Clock className="mr-1 h-3 w-3" />
+                                                                Pending
+                                                            </Badge>
+                                                            <Button
+                                                                size="sm"
+                                                                className="text-xs h-6 px-2 mt-0.5"
+                                                                onClick={(e) => { e.stopPropagation(); setConfirmDialog({ open: true, student, action: 'clear' }); }}
+                                                            >
+                                                                <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                                Clear
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))
