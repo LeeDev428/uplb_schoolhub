@@ -467,40 +467,18 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                                     </Badge>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                                                <div className="flex flex-col items-center gap-1">
-                                                    {student.enrollment_clearance?.accounting_clearance ? (
-                                                        <>
-                                                            <Badge className="bg-green-100 text-green-700">
-                                                                <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                                Cleared
-                                                            </Badge>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-xs h-6 px-2 mt-0.5"
-                                                                onClick={(e) => { e.stopPropagation(); setConfirmDialog({ open: true, student, action: 'unclear' }); }}
-                                                            >
-                                                                Remove Clearance
-                                                            </Button>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                                                                <Clock className="mr-1 h-3 w-3" />
-                                                                Pending
-                                                            </Badge>
-                                                            <Button
-                                                                size="sm"
-                                                                className="text-xs h-6 px-2 mt-0.5"
-                                                                onClick={(e) => { e.stopPropagation(); setConfirmDialog({ open: true, student, action: 'clear' }); }}
-                                                            >
-                                                                <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                                Clear
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </div>
+                                            <TableCell className="text-center">
+                                                {student.enrollment_clearance?.accounting_clearance ? (
+                                                    <Badge className="bg-green-100 text-green-700">
+                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                        Cleared
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                                                        <Clock className="mr-1 h-3 w-3" />
+                                                        Pending
+                                                    </Badge>
+                                                )}
                                             </TableCell>
                                         </TableRow>
                                     ))
