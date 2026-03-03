@@ -280,6 +280,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::get('payments/create', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'create'])->name('payments.create');
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
     Route::post('payments/process/{student}/carry-forward', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'carryForwardBalance'])->name('payments.carry-forward');
+    Route::post('payments/process/{student}/add-balance', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'addBalance'])->name('payments.add-balance');
     Route::get('payments/export', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'export'])->name('payments.export');
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
     
@@ -549,6 +550,7 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
     // Payment Processing (view-only + carry-forward)
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
     Route::post('payments/process/{student}/carry-forward', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'carryForwardBalance'])->name('payments.carry-forward');
+    Route::post('payments/process/{student}/add-balance', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'addBalance'])->name('payments.add-balance');
 
     // Refund / Void Requests Management (super-accounting exclusive — only super-accounting can approve/reject)
     Route::get('refunds', [App\Http\Controllers\Accounting\RefundController::class, 'index'])->name('refunds.index');

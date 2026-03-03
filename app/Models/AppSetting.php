@@ -13,6 +13,8 @@ class AppSetting extends Model
         'favicon_path',
         'primary_color',
         'secondary_color',
+        'sidebar_color',
+        'sidebar_font_size',
         'school_year',
         'active_semester',
         'drop_request_deadline',
@@ -72,9 +74,11 @@ class AppSetting extends Model
     public static function current(): self
     {
         return self::firstOrCreate([], [
-            'app_name'      => 'School Management System',
-            'primary_color' => '#1d4ed8',
-            'secondary_color' => '#64748b',
+            'app_name'         => 'School Management System',
+            'primary_color'    => '#1d4ed8',
+            'secondary_color'  => '#64748b',
+            'sidebar_color'    => '#1e293b',
+            'sidebar_font_size'=> '14',
             'school_year'      => '2024-2025',
             'active_semester'  => 1,
             'has_k12'          => true,

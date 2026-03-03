@@ -184,7 +184,11 @@ class StudentController extends Controller
 
             // Automatically create parent/guardian record and user account
             if ($student->guardian_email) {
-                $this->createParentRecordForStudent($student);
+                try {
+                    $this->createParentRecordForStudent($student);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning('Parent record creation failed for student ' . $student->id . ': ' . $e->getMessage());
+                }
             }
 
             // Automatically assign all active requirements to the new student
