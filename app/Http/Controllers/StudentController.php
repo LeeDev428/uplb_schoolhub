@@ -339,6 +339,20 @@ class StudentController extends Controller
     }
 
     /**
+     * Update the internal notes / remarks for a student.
+     */
+    public function updateNotes(Request $request, Student $student)
+    {
+        $request->validate([
+            'remarks' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $student->update(['remarks' => $request->remarks]);
+
+        return back()->with('success', 'Notes saved successfully.');
+    }
+
+    /**
      * Generate unique username for student
      */
     private function generateUniqueUsername(Student $student): string
@@ -629,8 +643,12 @@ class StudentController extends Controller
             $student->update(['enrollment_status' => 'enrolled']);
         } else {
             $clearance->update(['enrollment_status' => 'in_progress']);
-            // If student was previously enrolled, revert to not-enrolled
-            if ($student->enrollment_status === 'enrolled') {
+            // Advance enrollment_status based on what has been cleared so far
+            if ($clearanceType === 'registrar_clearance' && $status) {
+                // Registrar just approved → move to pending-accounting
+                $student->update(['enrollment_status' => 'pending-accounting']);
+            } elseif ($student->enrollment_status === 'enrolled') {
+                // If student was previously enrolled, revert to not-enrolled
                 $student->update(['enrollment_status' => 'not-enrolled']);
             }
         }
