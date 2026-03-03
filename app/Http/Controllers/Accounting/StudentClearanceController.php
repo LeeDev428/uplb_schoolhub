@@ -21,7 +21,9 @@ class StudentClearanceController extends Controller
     public function index(Request $request)
     {
         $query = Student::with(['enrollmentClearance', 'fees'])
-            ->whereHas('enrollmentClearance')
+            ->whereHas('enrollmentClearance', function ($q) {
+                $q->where('registrar_clearance', true);
+            })
             ->orderBy('last_name')
             ->orderBy('first_name');
 
@@ -139,9 +141,9 @@ class StudentClearanceController extends Controller
 
         // Get stats
         $stats = [
-            'total' => EnrollmentClearance::count(),
-            'pending' => EnrollmentClearance::where('accounting_clearance', false)->count(),
-            'cleared' => EnrollmentClearance::where('accounting_clearance', true)->count(),
+            'total' => EnrollmentClearance::where('registrar_clearance', true)->count(),
+            'pending' => EnrollmentClearance::where('registrar_clearance', true)->where('accounting_clearance', false)->count(),
+            'cleared' => EnrollmentClearance::where('registrar_clearance', true)->where('accounting_clearance', true)->count(),
         ];
 
         // Get departments and classifications
