@@ -8,6 +8,7 @@ import {
     Megaphone,
     RotateCcw,
     Settings,
+    Users,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -55,6 +56,11 @@ export function SuperAccountingSidebar() {
             title: 'Refund Requests',
             href: '/super-accounting/refunds',
             icon: RotateCcw,
+        },
+        {
+            title: 'Student Accounts',
+            href: '/super-accounting/student-accounts',
+            icon: Users,
         },
         {
             title: 'Reports',
