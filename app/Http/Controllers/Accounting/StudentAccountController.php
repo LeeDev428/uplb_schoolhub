@@ -459,6 +459,9 @@ class StudentAccountController extends Controller
      */
     public function show(StudentFee $fee): RedirectResponse
     {
-        return redirect()->route('accounting.payments.process', ['student' => $fee->student_id]);
+        $prefix = str_starts_with(request()->route()->getName(), 'super-accounting.')
+            ? 'super-accounting'
+            : 'accounting';
+        return redirect()->route("{$prefix}.payments.process", ['student' => $fee->student_id]);
     }
 }
