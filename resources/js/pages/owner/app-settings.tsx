@@ -98,6 +98,8 @@ interface AppSettingsData {
     school_year: string;
     primary_color: string;
     secondary_color: string;
+    sidebar_color: string;
+    sidebar_font_size: string;
     logo_url: string | null;
     favicon_url: string | null;
     has_k12: boolean;
@@ -148,6 +150,8 @@ export default function AppSettings({ settings, departments }: Props) {
     // local state only for live color preview swatches
     const [primaryColor, setPrimaryColor]     = useState(settings.primary_color || '#2563eb');
     const [secondaryColor, setSecondaryColor] = useState(settings.secondary_color || '#64748b');
+    const [sidebarColor, setSidebarColor]     = useState(settings.sidebar_color || '#1e293b');
+    const [sidebarFontSize, setSidebarFontSize] = useState(settings.sidebar_font_size || '14');
 
     const [hasK12, setHasK12]          = useState<boolean>(settings.has_k12);
     const [hasCollege, setHasCollege]  = useState<boolean>(settings.has_college);
@@ -698,6 +702,54 @@ export default function AppSettings({ settings, departments }: Props) {
                                         <div className="flex gap-3">
                                             <div className="h-10 w-32 rounded flex items-center justify-center text-white text-xs font-medium" style={{ backgroundColor: primaryColor }}>Primary</div>
                                             <div className="h-10 w-32 rounded flex items-center justify-center text-white text-xs font-medium" style={{ backgroundColor: secondaryColor }}>Secondary</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Hidden inputs for sidebar settings */}
+                                    <input type="hidden" name="sidebar_color" value={sidebarColor} />
+                                    <input type="hidden" name="sidebar_font_size" value={sidebarFontSize} />
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2"><Palette className="h-5 w-5" /> Sidebar Appearance</CardTitle>
+                                    <CardDescription>Customise the sidebar background color and text size for all portals</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid gap-2">
+                                            <Label>Sidebar Background Color</Label>
+                                            <div className="flex items-center gap-3">
+                                                <input type="color" value={sidebarColor} onChange={e => setSidebarColor(e.target.value)} className="h-10 w-16 cursor-pointer rounded border p-1" />
+                                                <Input value={sidebarColor} onChange={e => setSidebarColor(e.target.value)} placeholder="#1e293b" className="font-mono uppercase" maxLength={7} />
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Sidebar Font Size (px)</Label>
+                                            <div className="flex items-center gap-3">
+                                                <Input
+                                                    type="number"
+                                                    value={sidebarFontSize}
+                                                    onChange={e => setSidebarFontSize(e.target.value)}
+                                                    min="10"
+                                                    max="20"
+                                                    className="w-24"
+                                                />
+                                                <span className="text-sm text-muted-foreground">Default: 14px</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg border p-4 space-y-2">
+                                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Preview</p>
+                                        <div
+                                            className="w-48 rounded-lg p-3 space-y-1"
+                                            style={{ backgroundColor: sidebarColor, fontSize: `${sidebarFontSize}px` }}
+                                        >
+                                            <div className="text-white font-semibold truncate">School Portal</div>
+                                            <div className="text-white/70">Dashboard</div>
+                                            <div className="text-white/70">Students</div>
+                                            <div className="text-white/70">Reports</div>
                                         </div>
                                     </div>
                                 </CardContent>
