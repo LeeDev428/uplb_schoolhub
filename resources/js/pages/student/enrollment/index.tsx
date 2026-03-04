@@ -79,11 +79,12 @@ interface Props {
 }
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-    'not-enrolled':      { label: 'Not Enrolled',      color: 'bg-gray-100 text-gray-800' },
-    'pending-registrar': { label: 'Pending Registrar', color: 'bg-yellow-100 text-yellow-800' },
-    'pending-accounting':{ label: 'Pending Accounting',color: 'bg-purple-100 text-purple-800' },
-    'enrolled':          { label: 'Enrolled',          color: 'bg-green-100 text-green-800' },
-    'dropped':           { label: 'Dropped',           color: 'bg-red-100 text-red-800' },
+    'not-enrolled':      { label: 'Not Enrolled',       color: 'bg-gray-100 text-gray-800' },
+    'pending-registrar': { label: 'Pending Registrar',  color: 'bg-yellow-100 text-yellow-800' },
+    'pending-accounting':{ label: 'Pending Accounting', color: 'bg-purple-100 text-purple-800' },
+    'pending-enrollment':{ label: 'Enrollment Pending', color: 'bg-orange-100 text-orange-800' },
+    'enrolled':          { label: 'Enrolled',           color: 'bg-green-100 text-green-800' },
+    'dropped':           { label: 'Dropped',            color: 'bg-red-100 text-red-800' },
 };
 
 export default function SelfEnrollmentIndex({
