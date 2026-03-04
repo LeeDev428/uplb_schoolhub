@@ -104,6 +104,7 @@ class StudentController extends Controller
             'notEnrolled' => Student::where('enrollment_status', 'not-enrolled')->count(),
             'registrarPending' => Student::where('enrollment_status', 'pending-registrar')->count(),
             'accountingPending' => Student::where('enrollment_status', 'pending-accounting')->count(),
+            'pendingEnrollment' => Student::where('enrollment_status', 'pending-enrollment')->count(),
             'graduated' => Student::where('enrollment_status', 'graduated')->count(),
             'dropped' => Student::where('enrollment_status', 'dropped')->count(),
         ];
@@ -647,12 +648,31 @@ class StudentController extends Controller
             $student->update(['enrollment_status' => 'enrolled']);
         } else {
             $clearance->update(['enrollment_status' => 'in_progress']);
-            // Advance enrollment_status based on what has been cleared so far
+            // Advance/revert enrollment_status based on what has been cleared so far
             if ($clearanceType === 'registrar_clearance' && $status) {
                 // Registrar just approved → move to pending-accounting
                 $student->update(['enrollment_status' => 'pending-accounting']);
+            } elseif ($clearanceType === 'registrar_clearance' && !$status) {
+                // Registrar clearance revoked → back to pending-registrar
+                $student->update(['enrollment_status' => 'pending-registrar']);
+            } elseif ($clearanceType === 'accounting_clearance' && $status) {
+                // Accounting cleared → move to pending-enrollment (awaiting official enrollment)
+                $student->update(['enrollment_status' => 'pending-enrollment']);
+            } elseif ($clearanceType === 'accounting_clearance' && !$status) {
+                // Accounting clearance revoked → back to pending-accounting
+                $student->update(['enrollment_status' => 'pending-accounting']);
+            } elseif ($clearanceType === 'official_enrollment' && !$status) {
+                // Official enrollment revoked → back to pending-enrollment (accounting still cleared)
+                $freshClearance = $clearance->fresh();
+                if ($freshClearance->accounting_clearance) {
+                    $student->update(['enrollment_status' => 'pending-enrollment']);
+                } elseif ($freshClearance->registrar_clearance) {
+                    $student->update(['enrollment_status' => 'pending-accounting']);
+                } else {
+                    $student->update(['enrollment_status' => 'not-enrolled']);
+                }
             } elseif ($student->enrollment_status === 'enrolled') {
-                // If student was previously enrolled, revert to not-enrolled
+                // Generic fallback: if student was previously enrolled, revert to not-enrolled
                 $student->update(['enrollment_status' => 'not-enrolled']);
             }
         }
