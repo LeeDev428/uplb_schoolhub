@@ -45,7 +45,6 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AccountingLayout from '@/layouts/accounting-layout';
-import { cn } from '@/lib/utils';
 
 interface EnrollmentClearance {
     id: number;
@@ -397,17 +396,13 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                     </TableHead>
                                     <TableHead>Student</TableHead>
                                     <TableHead>Program / Year</TableHead>
-                                    <TableHead className="text-right">Total Fees</TableHead>
-                                    <TableHead className="text-right">Total Paid</TableHead>
-                                    <TableHead className="text-right">Balance</TableHead>
-                                    <TableHead className="text-center">Payment Status</TableHead>
                                     <TableHead className="text-center">Clearance Status</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {students.data.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                                        <TableCell colSpan={4} className="text-center py-8 text-gray-500">
                                             No students found.
                                         </TableCell>
                                     </TableRow>
@@ -441,31 +436,6 @@ export default function ClearanceIndex({ students, programs, yearLevels, departm
                                                 <div className="text-sm text-muted-foreground">
                                                     {student.year_level}{student.section ? ` - ${student.section}` : ''}
                                                 </div>
-                                            </TableCell>
-                                            <TableCell className="text-right font-medium">
-                                                {formatMoney(student.total_fees)}
-                                            </TableCell>
-                                            <TableCell className="text-right text-green-600">
-                                                {formatMoney(student.total_paid)}
-                                            </TableCell>
-                                            <TableCell className={cn(
-                                                "text-right font-medium",
-                                                student.balance > 0 ? "text-red-600" : "text-green-600"
-                                            )}>
-                                                {formatMoney(student.balance)}
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                {student.is_fully_paid ? (
-                                                    <Badge className="bg-green-100 text-green-700 border border-green-200">
-                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                        Fully Paid
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge className="bg-red-100 text-red-700 border border-red-200">
-                                                        <AlertCircle className="mr-1 h-3 w-3" />
-                                                        Has Balance
-                                                    </Badge>
-                                                )}
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 {student.enrollment_clearance?.accounting_clearance ? (

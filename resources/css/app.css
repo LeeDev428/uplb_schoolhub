@@ -61,6 +61,11 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+[data-sidebar="sidebar"] {
+    --text-sm: var(--sidebar-font-size, 0.875rem);
+    font-size: var(--sidebar-font-size, 0.875rem);
+}
+
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
