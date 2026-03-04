@@ -61,7 +61,7 @@ interface Student {
     program: string;
     year_level: string;
     section: string | null;
-    enrollment_status: 'not-enrolled' | 'pending-registrar' | 'pending-accounting' | 'enrolled' | 'graduated' | 'dropped';
+    enrollment_status: 'not-enrolled' | 'pending-registrar' | 'pending-accounting' | 'pending-enrollment' | 'enrolled' | 'graduated' | 'dropped';
     requirements_status: 'incomplete' | 'pending' | 'complete';
     requirements_percentage: number;
     student_photo_url: string | null;
@@ -294,6 +294,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
             'not-enrolled': 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
             'pending-registrar': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
             'pending-accounting': 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+            'pending-enrollment': 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
             'enrolled': 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
             'graduated': 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
             'dropped': 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
