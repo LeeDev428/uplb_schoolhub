@@ -504,11 +504,11 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                     else { setViewMode('accounts'); handleTabChange(v); }
                 }}>
                     <TabsList>
+                        <TabsTrigger value="classlist"><Users className="mr-1 h-4 w-4 inline" />Class List</TabsTrigger>
                         <TabsTrigger value="overdue">Overdue</TabsTrigger>
                         <TabsTrigger value="partial">Partial</TabsTrigger>
                         <TabsTrigger value="paid">Paid</TabsTrigger>
                         <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
-                        <TabsTrigger value="classlist"><Users className="mr-1 h-4 w-4 inline" />Class List</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="classlist" className="mt-6">
