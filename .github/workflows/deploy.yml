@@ -1,13 +1,16 @@
 name: Deploy to Production
 
-# ── Local workflow ────────────────────────────────────────────────────────
-# 1. Make code changes
-# 2. npm run build
-# 3. git add -A && git commit -m "..." && git push
-# 4. This Action fires → rsync to server → php artisan optimize ✅
+# ─────────────────────────────────────────────────────────────────────────
+# LOCAL WORKFLOW (every time you make changes):
+#   1. npm run build
+#   2. git add -A && git commit -m "your message" && git push
+#   → This Action fires automatically and deploys to production.
 #
-# Required secrets (already set in your repo):
-#   SSH_HOST, SSH_PORT, SSH_USER, SSH_PRIVATE_KEY
+# REQUIRED GITHUB SECRETS (Settings → Secrets → Actions):
+#   SSH_HOST        → 72.61.121.165
+#   SSH_PORT        → 65002
+#   SSH_USER        → u866511543
+#   SSH_PRIVATE_KEY → contents of your ~/.ssh/hostinger_deploy private key
 # ─────────────────────────────────────────────────────────────────────────
 
 on:
@@ -24,10 +27,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install PHP dependencies (in CI so vendor is rsynced)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
       - name: Sync files to server
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avz --delete --exclude='.env' --exclude='storage/app/' --exclude='.git'
+          # --delete removes old files, but we exclude .env, storage, and the
+          # storage symlink so they are never wiped on the server.
+          switches: >-
+            -avz --delete
+            --exclude='.env'
+            --exclude='.git'
+            --exclude='node_modules'
+            --exclude='storage/app/'
+            --exclude='storage/framework/cache/'
+            --exclude='storage/framework/sessions/'
+            --exclude='storage/logs/'
+            --exclude='public/storage'
           path: ./
           remote_path: /home/u866511543/westerncollege
           remote_host: ${{ secrets.SSH_HOST }}
@@ -35,7 +52,7 @@ jobs:
           remote_user: ${{ secrets.SSH_USER }}
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Refresh Laravel caches
+      - name: Run post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -43,9 +60,24 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd /home/u866511543/westerncollege
+
+            # Ensure storage symlink exists (safe to re-run, ln -sfn is idempotent)
+            ln -sfn /home/u866511543/westerncollege/storage/app/public \
+                    /home/u866511543/westerncollege/public/storage
+
+            # Ensure correct permissions on storage & bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
+
+            # Clear old caches then rebuild
             php artisan config:clear
             php artisan route:clear
             php artisan view:clear
+            php artisan cache:clear
             php artisan optimize
-            echo "Deployed ${{ github.sha }}"
+
+            # Run any pending migrations safely
+            php artisan migrate --force
+
+            echo "✅ Deployed commit ${{ github.sha }}"
