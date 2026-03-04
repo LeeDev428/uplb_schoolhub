@@ -26,11 +26,10 @@ class StudentPaymentController extends Controller
     {
         $selectedStudentId = $request->input('student_id');
 
-        // Get students from student-accounts (those with registrar clearance or complete enrollment)
+        // Get students from student-accounts (those who have passed registrar clearance)
         $query = Student::with(['department', 'enrollmentClearance'])
             ->whereHas('enrollmentClearance', function ($q) {
-                $q->where('registrar_clearance', true)
-                  ->orWhere('requirements_complete', true);
+                $q->where('registrar_clearance', true);
             });
 
         // Search
