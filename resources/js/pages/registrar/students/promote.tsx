@@ -137,6 +137,7 @@ function enrollmentBadge(status: string) {
         enrolled: 'bg-green-100 text-green-700',
         'pending-registrar': 'bg-yellow-100 text-yellow-700',
         'pending-accounting': 'bg-purple-100 text-purple-700',
+        'pending-enrollment': 'bg-orange-100 text-orange-700',
         'not-enrolled': 'bg-gray-100 text-gray-600',
         graduated: 'bg-blue-100 text-blue-700',
         dropped: 'bg-red-100 text-red-700',
