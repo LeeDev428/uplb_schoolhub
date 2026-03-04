@@ -47,7 +47,7 @@ class StoreStudentRequest extends FormRequest
             'year_level_id' => ['nullable', 'exists:year_levels,id'],
             'section' => ['nullable', 'string', 'max:100'],
             'section_id' => ['nullable', 'exists:sections,id'],
-            'enrollment_status' => ['nullable', 'in:not-enrolled,pending-registrar,pending-accounting,enrolled,graduated,dropped'],
+            'enrollment_status' => ['nullable', 'in:not-enrolled,pending-registrar,pending-accounting,pending-enrollment,enrolled,graduated,dropped'],
             'requirements_status' => ['nullable', 'in:incomplete,pending,complete'],
             'requirements_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
             'guardian_name' => ['required', 'string', 'max:255'],
