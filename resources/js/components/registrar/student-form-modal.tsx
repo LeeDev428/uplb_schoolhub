@@ -629,6 +629,7 @@ export function StudentFormModal({
                                         <SelectItem value="not-enrolled">Not Enrolled</SelectItem>
                                         <SelectItem value="pending-registrar">Pending - Registrar</SelectItem>
                                         <SelectItem value="pending-accounting">Pending - Accounting</SelectItem>
+                                        <SelectItem value="pending-enrollment">Enrollment Pending</SelectItem>
                                         <SelectItem value="enrolled">Officially Enrolled</SelectItem>
                                     </SelectContent>
                                 </Select>
