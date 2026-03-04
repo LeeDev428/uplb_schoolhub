@@ -174,9 +174,36 @@ class StudentClearanceController extends Controller
     {
         $student->load(['enrollmentClearance', 'fees.payments', 'requirements.requirement']);
 
-        $totalFees = $student->fees->sum('total_amount');
-        $totalPaid = $student->fees->sum('total_paid');
-        $balance = $totalFees - $totalPaid;
+        $schoolYear = $student->school_year ?? date('Y') . '-' . (date('Y') + 1);
+
+        // Dynamic fee calculation (same as index, excluding Drop fees)
+        $totalFees = FeeItem::where('school_year', $schoolYear)
+            ->where('is_active', true)
+            ->whereDoesntHave('category', function ($q) {
+                $q->where('name', 'like', '%Drop%');
+            })
+            ->where(function ($query) use ($student) {
+                $query->where('assignment_scope', 'all')
+                    ->orWhere(function ($q) use ($student) {
+                        $q->where('assignment_scope', 'specific');
+                        $this->applyStudentFilters($q, $student);
+                    })
+                    ->orWhereHas('assignments', function ($q) use ($student) {
+                        $this->applyAssignmentFilters($q, $student);
+                    });
+            })
+            ->sum('selling_price');
+
+        $grantDiscount = \App\Models\GrantRecipient::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->where('status', 'active')
+            ->sum('discount_amount');
+
+        $studentFee = StudentFee::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->first();
+        $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
+        $balance = max(0, $totalFees - $grantDiscount - $totalPaid);
 
         return Inertia::render($this->viewPrefix() . '/clearance/show', [
             'student' => $student,
@@ -210,16 +237,19 @@ class StudentClearanceController extends Controller
             'accounting_notes' => $validated['notes'] ?? null,
         ]);
 
-        // Update enrollment status if all clearances are complete
-        if ($clearance->fresh()->isFullyCleared()) {
+        // Update enrollment status based on clearance result
+        $freshClearance = $clearance->fresh();
+        if ($freshClearance->isFullyCleared()) {
             $clearance->update(['enrollment_status' => 'completed']);
             $student->update(['enrollment_status' => 'enrolled']);
-        } else {
+        } elseif ($status) {
+            // Accounting cleared but not fully enrolled → pending-enrollment
             $clearance->update(['enrollment_status' => 'in_progress']);
-            // If student was previously enrolled, revert to not-enrolled
-            if ($student->enrollment_status === 'enrolled') {
-                $student->update(['enrollment_status' => 'not-enrolled']);
-            }
+            $student->update(['enrollment_status' => 'pending-enrollment']);
+        } else {
+            // Accounting clearance revoked → back to pending-accounting
+            $clearance->update(['enrollment_status' => 'in_progress']);
+            $student->update(['enrollment_status' => 'pending-accounting']);
         }
 
         return back()->with('success', $status 
@@ -249,14 +279,16 @@ class StudentClearanceController extends Controller
                     'accounting_cleared_by' => $validated['status'] ? Auth::id() : null,
                 ]);
 
-                if ($clearance->fresh()->isFullyCleared()) {
+                $freshClearance = $clearance->fresh();
+                if ($freshClearance->isFullyCleared()) {
                     $clearance->update(['enrollment_status' => 'completed']);
                     $student->update(['enrollment_status' => 'enrolled']);
+                } elseif ($validated['status']) {
+                    $clearance->update(['enrollment_status' => 'in_progress']);
+                    $student->update(['enrollment_status' => 'pending-enrollment']);
                 } else {
                     $clearance->update(['enrollment_status' => 'in_progress']);
-                    if ($student->enrollment_status === 'enrolled') {
-                        $student->update(['enrollment_status' => 'not-enrolled']);
-                    }
+                    $student->update(['enrollment_status' => 'pending-accounting']);
                 }
                 
                 $count++;
