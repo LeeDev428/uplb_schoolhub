@@ -268,7 +268,7 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     
     // Student Accounts Management
     Route::get('student-accounts', [App\Http\Controllers\Accounting\StudentAccountController::class, 'index'])->name('student-accounts.index');
-    Route::get('student-accounts/{fee}', [App\Http\Controllers\Accounting\StudentAccountController::class, 'show'])->name('student-accounts.show');
+    Route::get('student-accounts/{student}', [App\Http\Controllers\Accounting\StudentAccountController::class, 'show'])->name('student-accounts.show');
     Route::post('student-accounts/{fee}/mark-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'markOverdue'])->name('student-accounts.mark-overdue');
     Route::post('student-accounts/{fee}/clear-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'clearOverdue'])->name('student-accounts.clear-overdue');
     Route::post('student-accounts/bulk-mark-overdue', [App\Http\Controllers\Accounting\StudentAccountController::class, 'bulkMarkOverdue'])->name('student-accounts.bulk-mark-overdue');
@@ -545,7 +545,7 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
 
     // Student Accounts (read + detail view)
     Route::get('student-accounts', [App\Http\Controllers\Accounting\StudentAccountController::class, 'index'])->name('student-accounts.index');
-    Route::get('student-accounts/{fee}', [App\Http\Controllers\Accounting\StudentAccountController::class, 'show'])->name('student-accounts.show');
+    Route::get('student-accounts/{student}', [App\Http\Controllers\Accounting\StudentAccountController::class, 'show'])->name('student-accounts.show');
 
     // Payment Processing (view-only + carry-forward)
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');

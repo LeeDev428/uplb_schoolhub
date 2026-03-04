@@ -11,8 +11,10 @@ import {
     RotateCcw,
     User,
     FileText,
+    Plus,
+    Loader2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +39,13 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import SuperAccountingLayout from '@/layouts/super-accounting/super-accounting-layout';
 
 interface Student {
@@ -45,6 +54,23 @@ interface Student {
     lrn: string;
     program: string;
     year_level: string;
+}
+
+interface StudentFee {
+    id: number;
+    school_year: string;
+    total_amount: number;
+    total_paid: number;
+    balance: number;
+}
+
+interface StudentWithFees {
+    id: number;
+    full_name: string;
+    lrn: string;
+    program: string;
+    year_level: string;
+    fees: StudentFee[];
 }
 
 interface RefundRequest {
@@ -110,12 +136,29 @@ export default function RefundRequests({ refunds, stats, tab, filters }: Props) 
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [search, setSearch] = useState(filters.search || '');
 
+    // Create refund request state
+    const [showCreateDialog, setShowCreateDialog] = useState(false);
+    const [studentSearch, setStudentSearch] = useState('');
+    const [studentResults, setStudentResults] = useState<StudentWithFees[]>([]);
+    const [selectedStudent, setSelectedStudent] = useState<StudentWithFees | null>(null);
+    const [selectedFee, setSelectedFee] = useState<StudentFee | null>(null);
+    const [searching, setSearching] = useState(false);
+    const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const approveForm = useForm({
         notes: '',
     });
 
     const rejectForm = useForm({
         notes: '',
+    });
+
+    const createForm = useForm({
+        student_id: 0,
+        student_fee_id: 0,
+        type: 'refund' as 'refund' | 'void',
+        amount: '',
+        reason: '',
     });
 
     const handleTabChange = (newTab: string) => {
@@ -162,6 +205,61 @@ export default function RefundRequests({ refunds, stats, tab, filters }: Props) 
                 setSelectedRequest(null);
                 rejectForm.reset();
             },
+        });
+    };
+
+    const handleStudentSearch = (value: string) => {
+        setStudentSearch(value);
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        if (value.length < 2) {
+            setStudentResults([]);
+            return;
+        }
+        debounceTimer.current = setTimeout(async () => {
+            setSearching(true);
+            try {
+                const response = await fetch(`/super-accounting/refunds/search-students?search=${encodeURIComponent(value)}`);
+                const data = await response.json();
+                setStudentResults(data);
+            } catch {
+                setStudentResults([]);
+            } finally {
+                setSearching(false);
+            }
+        }, 300);
+    };
+
+    const selectStudent = (student: StudentWithFees) => {
+        setSelectedStudent(student);
+        setSelectedFee(null);
+        createForm.setData('student_id', student.id);
+        createForm.setData('student_fee_id', 0);
+        setStudentResults([]);
+        setStudentSearch('');
+    };
+
+    const selectFee = (fee: StudentFee) => {
+        setSelectedFee(fee);
+        createForm.setData('student_fee_id', fee.id);
+        // Default amount to total_paid for refund
+        if (createForm.data.type === 'refund') {
+            createForm.setData('amount', fee.total_paid.toString());
+        }
+    };
+
+    const resetCreateForm = () => {
+        setShowCreateDialog(false);
+        setSelectedStudent(null);
+        setSelectedFee(null);
+        setStudentSearch('');
+        setStudentResults([]);
+        createForm.reset();
+    };
+
+    const submitCreateForm = (e: React.FormEvent) => {
+        e.preventDefault();
+        createForm.post('/super-accounting/refunds', {
+            onSuccess: () => resetCreateForm(),
         });
     };
 
@@ -302,10 +400,16 @@ export default function RefundRequests({ refunds, stats, tab, filters }: Props) 
             <Head title="Refund Requests" />
 
             <div className="space-y-6 p-6">
-                <PageHeader
-                    title="Refund Requests"
-                    description="Review and process student refund requests"
-                />
+                <div className="flex items-center justify-between">
+                    <PageHeader
+                        title="Refund Requests"
+                        description="Review and process student refund requests"
+                    />
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Request
+                    </Button>
+                </div>
 
                 {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-3">
@@ -584,6 +688,169 @@ export default function RefundRequests({ refunds, stats, tab, filters }: Props) 
                             {rejectForm.processing ? 'Rejecting...' : 'Reject Request'}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Create Refund Request Dialog */}
+            <Dialog open={showCreateDialog} onOpenChange={open => !open && resetCreateForm()}>
+                <DialogContent className="max-w-lg">
+                    <form onSubmit={submitCreateForm}>
+                        <DialogHeader>
+                            <DialogTitle>Create Refund / Void Request</DialogTitle>
+                            <DialogDescription>
+                                Create a refund or void request for a student.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-4">
+                            {/* Student Search */}
+                            {!selectedStudent ? (
+                                <div className="space-y-2">
+                                    <Label>Search Student</Label>
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            className="pl-9"
+                                            placeholder="Search by name or LRN..."
+                                            value={studentSearch}
+                                            onChange={e => handleStudentSearch(e.target.value)}
+                                        />
+                                        {searching && (
+                                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                                        )}
+                                    </div>
+                                    {studentResults.length > 0 && (
+                                        <div className="border rounded-md max-h-48 overflow-y-auto">
+                                            {studentResults.map(student => (
+                                                <button
+                                                    key={student.id}
+                                                    type="button"
+                                                    className="w-full text-left px-3 py-2 hover:bg-muted flex justify-between items-center border-b last:border-b-0"
+                                                    onClick={() => selectStudent(student)}
+                                                >
+                                                    <div>
+                                                        <p className="font-medium text-sm">{student.full_name}</p>
+                                                        <p className="text-xs text-muted-foreground">{student.lrn}</p>
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">{student.program} - {student.year_level}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between bg-muted/50 p-3 rounded-md">
+                                        <div>
+                                            <p className="font-medium">{selectedStudent.full_name}</p>
+                                            <p className="text-sm text-muted-foreground">{selectedStudent.lrn} • {selectedStudent.program} - {selectedStudent.year_level}</p>
+                                        </div>
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => { setSelectedStudent(null); setSelectedFee(null); }}>
+                                            Change
+                                        </Button>
+                                    </div>
+
+                                    {/* Fee Selection */}
+                                    <div className="space-y-2">
+                                        <Label>Select Fee Record</Label>
+                                        {selectedStudent.fees.length === 0 ? (
+                                            <p className="text-sm text-muted-foreground">No fee records found for this student.</p>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {selectedStudent.fees.map(fee => (
+                                                    <button
+                                                        key={fee.id}
+                                                        type="button"
+                                                        className={`w-full text-left p-3 rounded-md border transition-colors ${
+                                                            selectedFee?.id === fee.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'
+                                                        }`}
+                                                        onClick={() => selectFee(fee)}
+                                                    >
+                                                        <div className="flex justify-between">
+                                                            <span className="font-medium text-sm">{fee.school_year}</span>
+                                                            <span className="text-sm">Paid: {formatCurrency(fee.total_paid)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                                            <span>Total: {formatCurrency(fee.total_amount)}</span>
+                                                            <span>Balance: {formatCurrency(fee.balance)}</span>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {selectedFee && (
+                                        <>
+                                            {/* Type */}
+                                            <div className="space-y-2">
+                                                <Label>Request Type</Label>
+                                                <Select
+                                                    value={createForm.data.type}
+                                                    onValueChange={v => createForm.setData('type', v as 'refund' | 'void')}
+                                                >
+                                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="refund">Refund</SelectItem>
+                                                        <SelectItem value="void">Void</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            {/* Amount */}
+                                            <div className="space-y-2">
+                                                <Label>Amount</Label>
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0.01"
+                                                    max={selectedFee.total_paid}
+                                                    value={createForm.data.amount}
+                                                    onChange={e => createForm.setData('amount', e.target.value)}
+                                                    placeholder="Enter amount"
+                                                />
+                                                {createForm.data.type === 'refund' && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Maximum refundable: {formatCurrency(selectedFee.total_paid)}
+                                                    </p>
+                                                )}
+                                                {createForm.errors.amount && (
+                                                    <p className="text-sm text-destructive">{createForm.errors.amount}</p>
+                                                )}
+                                            </div>
+
+                                            {/* Reason */}
+                                            <div className="space-y-2">
+                                                <Label>Reason</Label>
+                                                <Textarea
+                                                    value={createForm.data.reason}
+                                                    onChange={e => createForm.setData('reason', e.target.value)}
+                                                    placeholder="Explain the reason for this request..."
+                                                    rows={3}
+                                                    required
+                                                />
+                                                {createForm.errors.reason && (
+                                                    <p className="text-sm text-destructive">{createForm.errors.reason}</p>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={resetCreateForm}>
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={createForm.processing || !selectedFee || !createForm.data.amount || !createForm.data.reason}
+                            >
+                                {createForm.processing ? 'Creating...' : 'Create Request'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
         </SuperAccountingLayout>
