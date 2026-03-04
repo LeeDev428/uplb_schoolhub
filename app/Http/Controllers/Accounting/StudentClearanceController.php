@@ -85,9 +85,12 @@ class StudentClearanceController extends Controller
         $students->getCollection()->transform(function ($student) {
             $schoolYear = $student->school_year ?? date('Y') . '-' . (date('Y') + 1);
 
-            // Dynamic total from applicable fee items
+            // Dynamic total from applicable fee items (exclude Drop category)
             $totalFees = FeeItem::where('school_year', $schoolYear)
                 ->where('is_active', true)
+                ->whereDoesntHave('category', function ($q) {
+                    $q->where('name', 'like', '%Drop%');
+                })
                 ->where(function ($query) use ($student) {
                     $query->where('assignment_scope', 'all')
                         ->orWhere(function ($q) use ($student) {
