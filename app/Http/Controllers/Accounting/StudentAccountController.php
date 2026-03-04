@@ -43,8 +43,7 @@ class StudentAccountController extends Controller
         // Get students with enrollment clearance
         $studentsQuery = Student::with(['department'])
             ->whereHas('enrollmentClearance', function ($q) {
-                $q->where('registrar_clearance', true)
-                  ->orWhere('requirements_complete', true);
+                $q->where('registrar_clearance', true);
             });
 
         // Search
@@ -122,8 +121,7 @@ class StudentAccountController extends Controller
 
         // Calculate stats dynamically
         $allStudentIds = Student::whereHas('enrollmentClearance', function ($q) {
-            $q->where('registrar_clearance', true)
-              ->orWhere('requirements_complete', true);
+            $q->where('registrar_clearance', true);
         })->pluck('id');
 
         $stats = $this->calculateStats($allStudentIds, $selectedSchoolYear);
