@@ -171,23 +171,20 @@ export function EnrollmentClearanceProgress({ studentId, clearance, student }: P
     const reqPct = clearance?.requirements_complete_percentage || 0;
     const reqDone = clearance?.requirements_complete || false;
 
-    const registrarBlocked = !reqDone;
     const officialBlocked = !(clearance?.registrar_clearance && clearance?.accounting_clearance);
 
     const clearanceSteps = [
         {
             id: 1,
             title: 'Registrar Clearance',
-            description: clearance?.registrar_clearance
-                ? 'Completed'
-                : reqDone ? 'Pending' : 'Requirements not yet complete',
+            description: clearance?.registrar_clearance ? 'Completed' : 'Pending',
             completed: clearance?.registrar_clearance || false,
             percentage: clearance?.registrar_clearance ? 100 : 0,
             color: 'bg-blue-500',
             key: 'registrar_clearance',
             canToggle: true,
-            blocked: !clearance?.registrar_clearance && registrarBlocked,
-            blockedReason: 'All requirements must be approved first.',
+            blocked: false,
+            blockedReason: '',
         },
         {
             id: 2,
