@@ -218,7 +218,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
         program_id: null as number | null,
         year_level_id: null as number | null,
         section_id: null as number | null,
-        assignment_scope: 'all' as 'all' | 'specific',
+        assignment_scope: 'specific' as 'all' | 'specific',
         is_active: true,
         is_per_unit: false,
         unit_price: '',
@@ -295,7 +295,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 program_id: item.program_id || null,
                 year_level_id: item.year_level_id || null,
                 section_id: item.section_id || null,
-                assignment_scope: item.assignment_scope || 'all',
+                assignment_scope: item.assignment_scope || 'specific',
                 is_per_unit: item.is_per_unit ?? false,
                 unit_price: item.unit_price ?? '',
             });
@@ -315,7 +315,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                 program_id: null,
                 year_level_id: null,
                 section_id: null,
-                assignment_scope: 'all',
+                assignment_scope: 'specific',
                 is_per_unit: false,
                 unit_price: '',
             });
