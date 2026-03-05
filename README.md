@@ -67,6 +67,8 @@ The system includes the following modules and user accounts:
 - [x] Archived students page — View/filter dropped/withdrawn/graduated students by classification (K-12/College), school year, semester, department; restore or permanently delete
 - [x] **Drop Request Management** — Review student drop requests with dual-approval workflow (registrar → accounting); attach fee items for accounting to collect
 - [x] **Active Semester Selector** — Quick-toggle semester (1st/2nd/Summer) directly from the Students management page alongside the Active School Year banner; persists to `app_settings`
+- [x] **Dropped Tab Navigation** — Each student row in the Dropped tab is clickable and navigates to the student's full detail page; Re-Enroll button still works independently
+- [x] **Drop Clearance Progress** — Student detail page shows a red-themed "Drop Clearance Progress" (instead of enrollment clearance) when the student status is `dropped`; 3-step flow: Registrar Clearance → Accounting Clearance → Officially Dropped
 - [ ] Integration with e-LMS for student academic tracking
 
 #### **1.3 Accounting Account** ✅ `85% COMPLETE`
@@ -98,6 +100,8 @@ The system includes the following modules and user accounts:
 - [x] Cross-department financial oversight
 - [x] Same dashboard and management pages as Accounting role
 - [x] **Add Balance** — Add balance to a student's fee record with mandatory reason; every adjustment is permanently logged in the `balance_adjustments` table and visible to the Owner in the Audit Logs page
+- [x] **Add School Year** — Manually create a new school year fee record for a student (school year, total amount, reason) from the process page; useful for manual fee record creation outside the normal assignment flow
+- [x] **Drop Clearance** — When a student's status is `dropped`, the Clearance button shows **Drop** (red) instead of **Clear**; contextual dialog explains the drop process and sets `accounting_clearance` so the Registrar can mark the student officially dropped
 
 #### **1.4 Teacher Portal** 🔄 `55% COMPLETE`
 
@@ -508,15 +512,15 @@ school-mgmt_lms_pos/
 
 ## 📊 Implementation Progress
 
-### **Overall Progress: ~60%**
+### **Overall Progress: ~65%**
 
 | Module | Status | Completion | Priority |
 |--------|--------|------------|----------|
 | 🏫 Owner/Admin Portal | ✅ Done | 98% | - |
-| 📝 Registrar Account | ✅ Done | 80% | - |
-| 💰 Accounting Account | ✅ Enhanced | 75% | High |
+| 📝 Registrar Account | ✅ Done | 90% | - |
+| 💰 Accounting Account | ✅ Enhanced | 85% | High |
 | 👨‍🏫 Teacher Portal | 🔄 In Progress | 50% | **Critical** |
-| 👨‍🎓 Student Portal | 🔄 In Progress | 55% | **Critical** |
+| 👨‍🎓 Student Portal | 🔄 In Progress | 70% | **Critical** |
 | 👨‍👩‍👦 Parent Portal | 🔄 In Progress | 35% | **Critical** |
 | 🧑‍⚕️ Guidance Counselor | 🔄 In Progress | 35% | Medium |
 | 📚 Librarian Account | 🔄 In Progress | 25% | Medium |
@@ -699,8 +703,32 @@ php artisan test --coverage
 - Fix: Restructured layout to full-width — iframe preview at top (85 vh), all editor forms (Hero, Features, Faculty, Message, Footer) stacked below in a single column
 
 ✅ **Student Dashboard Missing Pending Status UI** *(Fixed: Mar 2026)*
-- Issue: Students in `pending-registrar` or `pending-accounting` status saw only the red "NOT enrolled" banner with no contextual guidance; the "Apply for Re-Enrollment" button was the only CTA and only showed for `not-enrolled`/`dropped`
-- Fix: Added two conditional notice blocks — a yellow clock notice for `pending-registrar` and a blue clock notice for `pending-accounting`; the description text also becomes status-aware
+- Issue: Students in `pending-registrar` or `pending-accounting` status saw only the red "NOT enrolled" banner with no contextual guidance
+- Fix: Added yellow clock notice for `pending-registrar` and blue clock notice for `pending-accounting`
+
+✅ **FeeManagement Sidebar Logo Showing Default Name** *(Fixed: Mar 2026)*
+- Issue: Accounting fee management page sidebar showed "SchoolHub" instead of the configured app name; `FeeManagementController` was overriding global `appSettings` with a stripped version missing `logo_url`/`app_name`
+- Fix: Removed the local override entirely; global middleware provides the full settings
+
+✅ **Re-Enroll Dialog Crash — SelectItem Empty Value** *(Fixed: Mar 2026)*
+- Issue: `A <Select.Item /> must have a value prop that is not an empty string` crash on the Re-Enroll dialog
+- Fix: Replaced `value=""` with sentinel `value="__none__"`; updated state init and submit handler
+
+✅ **Student Document Request — No Status Legend** *(Fixed: Mar 2026)*
+- Issue: Students couldn't understand status codes (Pending / Processing / Ready / Released / Rejected) on the document requests page
+- Fix: Added a color-coded Status Guide card above the requests table
+
+✅ **Process Page — Cannot Add School Year Manually** *(Fixed: Mar 2026)*
+- Issue: No way to manually create a new school year fee record for a student on the process page
+- Fix: Added `addSchoolYear` controller method + route + dialog with school_year/total_amount/reason fields
+
+✅ **Drop Clearance — Wrong UI and Button Label for Dropped Students** *(Fixed: Mar 2026)*
+- Issue: Dropped students showed the blue Enrollment Clearance progress and accounting had a "Clear" button instead of something drop-specific
+- Fix: `EnrollmentClearanceProgress` component now has a `mode='drop'` variant with red theme and 3-step drop flow; accounting process page shows a red "Drop" button with contextual dialog when `enrollment_status === 'dropped'`
+
+✅ **Dropped Tab — Student Rows Not Clickable** *(Fixed: Mar 2026)*
+- Issue: Students in the Registrar's Dropped tab could only be opened via the small "Edit" button; the row itself was not navigable
+- Fix: `TableRow` in the Dropped tab is now `cursor-pointer` with an `onClick` that navigates to the student detail page; Re-Enroll button uses `e.stopPropagation()` to remain independent
 
 ---
 
@@ -772,4 +800,4 @@ For issues, questions, or feature requests:
 
 **Built with ❤️ using Laravel 12, React 19, TypeScript 5, and TailwindCSS 4**
 
-*Project Progress: 60% Complete | Last Updated: March 2026*
+*Project Progress: 65% Complete | Last Updated: March 5, 2026*
