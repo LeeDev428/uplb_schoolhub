@@ -283,8 +283,8 @@ class FeeManagementController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Default assignment_scope to 'all' if not provided
-        $validated['assignment_scope'] = $validated['assignment_scope'] ?? 'all';
+        // Default assignment_scope to 'specific' if not provided
+        $validated['assignment_scope'] = $validated['assignment_scope'] ?? 'specific';
 
         FeeItem::create($validated);
 
@@ -317,8 +317,8 @@ class FeeManagementController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Default assignment_scope to 'all' if not provided
-        $validated['assignment_scope'] = $validated['assignment_scope'] ?? 'all';
+        // Default assignment_scope to 'specific' if not provided
+        $validated['assignment_scope'] = $validated['assignment_scope'] ?? 'specific';
 
         $item->update($validated);
 
