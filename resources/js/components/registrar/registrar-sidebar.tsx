@@ -106,6 +106,11 @@ export function RegistrarSidebar() {
             icon: UserMinus,
         },
         {
+            title: 'Dropped Students',
+            href: '/registrar/dropped-students',
+            icon: UserX,
+        },
+        {
             title: 'Archived Students',
             href: '/registrar/archived',
             icon: Archive,
