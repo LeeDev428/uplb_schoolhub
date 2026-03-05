@@ -455,7 +455,7 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                 </div>
 
                 {/* Student Profile Header */}
-                <Card>
+                <Card className={student.enrollment_status === 'dropped' ? 'border-red-300 bg-red-50' : ''}>
                     <CardContent className="pt-6">
                         <div className="flex items-start space-x-6">
                             <Avatar className="h-24 w-24">
@@ -563,11 +563,12 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
 
                     {/* Requirements Tab */}
                     <TabsContent value="requirements" className="space-y-6">
-                        {/* Enrollment Clearance Progress Component */}
+                        {/* Enrollment / Drop Clearance Progress Component */}
                         <EnrollmentClearanceProgress 
                             studentId={student.id}
                             clearance={enrollmentClearance}
                             student={student}
+                            mode={student.enrollment_status === 'dropped' ? 'drop' : 'enroll'}
                         />
                         
                         <Card>
