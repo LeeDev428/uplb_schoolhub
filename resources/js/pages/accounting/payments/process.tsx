@@ -79,6 +79,7 @@ interface Student {
     year_level: string | null;
     section: string | null;
     student_photo_url: string | null;
+    enrollment_status: string;
 }
 
 interface FeeItemDetail {
@@ -319,7 +320,9 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
             onSuccess: () => {
                 setClearanceDialog(false);
                 setClearanceLoading(false);
-                toast.success(newStatus ? 'Student cleared for accounting.' : 'Clearance removed.');
+                toast.success(newStatus
+                    ? (student.enrollment_status === 'dropped' ? 'Drop clearance set for accounting.' : 'Student cleared for accounting.')
+                    : 'Clearance removed.');
             },
             onError: () => {
                 setClearanceLoading(false);
@@ -638,11 +641,11 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                             </Badge>
                                             <Button
                                                 size="sm"
-                                                className="text-xs h-6 px-2 mt-0.5"
+                                                className={`text-xs h-6 px-2 mt-0.5 ${student.enrollment_status === 'dropped' ? 'bg-red-600 hover:bg-red-700' : ''}`}
                                                 onClick={() => setClearanceDialog(true)}
                                             >
                                                 <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                Clear
+                                                {student.enrollment_status === 'dropped' ? 'Drop' : 'Clear'}
                                             </Button>
                                         </>
                                     )}
@@ -1383,12 +1386,16 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {enrollmentClearance?.accounting_clearance ? 'Remove Clearance?' : 'Clear Student?'}
+                            {enrollmentClearance?.accounting_clearance ? 'Remove Clearance?' : (student.enrollment_status === 'dropped' ? 'Drop Student?' : 'Clear Student?')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {enrollmentClearance?.accounting_clearance ? (
                                 <>
                                     Are you sure you want to remove accounting clearance for <strong>{student.full_name}</strong>?
+                                </>
+                            ) : student.enrollment_status === 'dropped' ? (
+                                <>
+                                    This will set accounting clearance for the drop process of <strong>{student.full_name}</strong>. This allows the registrar to mark the student as officially dropped.
                                 </>
                             ) : (
                                 <>
@@ -1406,7 +1413,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={clearanceLoading}>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleClearanceToggle} disabled={clearanceLoading}>
-                            {clearanceLoading ? 'Processing...' : (enrollmentClearance?.accounting_clearance ? 'Remove Clearance' : 'Clear Student')}
+                            {clearanceLoading ? 'Processing...' : (enrollmentClearance?.accounting_clearance ? 'Remove Clearance' : (student.enrollment_status === 'dropped' ? 'Drop Student' : 'Clear Student'))}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
