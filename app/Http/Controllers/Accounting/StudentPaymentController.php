@@ -479,6 +479,7 @@ class StudentPaymentController extends Controller
                 'year_level' => $student->year_level,
                 'section' => $student->section,
                 'student_photo_url' => $student->student_photo_url,
+                'enrollment_status' => $student->enrollment_status,
             ],
             'fees' => $fees->values(),
             'payments' => $payments,
