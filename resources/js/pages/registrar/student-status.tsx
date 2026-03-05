@@ -184,9 +184,9 @@ export default function StudentStatusPage({
     ];
 
     const tabDescriptions: Record<string, string> = {
-        dropped:     'Students with enrollment_status = "dropped". Reactivate to allow them to re-enroll.',
-        archived:    'Soft-deleted student records. Restore to reinstate or permanently delete.',
-        deactivated: 'Students with is_active = false. Activate to restore login access.',
+        dropped:     'Reactivate to allow them to re-enroll.',
+        archived:    'Restore to reinstate or permanently delete.',
+        deactivated: 'Activate to restore login access.',
     };
 
     return (
