@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Announcement;
 use App\Models\AppSetting;
 use App\Models\DocumentRequest;
+use App\Models\DropRequest;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -82,6 +83,7 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'announcementCount' => $this->getAnnouncementCount($user),
             'pendingDocumentCount' => $this->getPendingDocumentCount($user),
+            'pendingDropRequestCount' => $this->getPendingDropRequestCount($user),
             'appSettings' => $this->getAppSettings(),
         ];
     }
@@ -153,6 +155,23 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * Get the count of pending drop requests awaiting accounting approval.
+     */
+    protected function getPendingDropRequestCount($user): int
+    {
+        if (!$user || !in_array($user->role, ['accounting', 'super-accounting'])) {
+            return 0;
+        }
+        try {
+            return DropRequest::where('registrar_status', 'approved')
+                ->where('accounting_status', 'pending')
+                ->count();
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
      * Get the count of pending document requests for relevant roles.
      */
     protected function getPendingDocumentCount($user): int
@@ -161,7 +180,18 @@ class HandleInertiaRequests extends Middleware
             return 0;
         }
         try {
-            return DocumentRequest::where('status', 'pending')->count();
+            if ($user->role === 'registrar') {
+                // Registrar sees their own pending queue
+                return DocumentRequest::where('registrar_status', 'pending')->count();
+            } elseif (in_array($user->role, ['accounting', 'super-accounting'])) {
+                // Accounting sees requests that registrar approved but accounting hasn't processed yet
+                return DocumentRequest::where('registrar_status', 'approved')
+                    ->where('accounting_status', 'pending')
+                    ->count();
+            } else {
+                // Owner/others: total pending overall
+                return DocumentRequest::where('status', 'pending')->count();
+            }
         } catch (\Exception $e) {
             return 0;
         }
