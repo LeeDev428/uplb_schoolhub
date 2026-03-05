@@ -118,13 +118,31 @@ class OnlineTransactionController extends Controller
             return redirect()->back()->with('error', 'Transaction is not pending.');
         }
 
-        // Create payment record
+        // Create payment record - find or create StudentFee for the student's current school year
+        $currentSchoolYear = \App\Models\AppSetting::current()->school_year
+            ?? now()->year . '-' . (now()->year + 1);
+
         $studentFee = StudentFee::where('student_id', $transaction->student_id)
-            ->latest()
+            ->where('school_year', $currentSchoolYear)
             ->first();
 
         if (!$studentFee) {
-            return redirect()->back()->with('error', 'No fee record found for student.');
+            // Try falling back to latest fee record regardless of school year
+            $studentFee = StudentFee::where('student_id', $transaction->student_id)
+                ->latest()
+                ->first();
+        }
+
+        if (!$studentFee) {
+            // Create a placeholder StudentFee so the payment can be recorded
+            $studentFee = StudentFee::create([
+                'student_id'   => $transaction->student_id,
+                'school_year'  => $currentSchoolYear,
+                'total_amount' => $transaction->amount,
+                'total_paid'   => 0,
+                'grant_discount' => 0,
+                'balance'      => $transaction->amount,
+            ]);
         }
 
         $payment = StudentPayment::create([
