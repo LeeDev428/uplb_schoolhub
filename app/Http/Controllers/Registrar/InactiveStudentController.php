@@ -82,17 +82,11 @@ class InactiveStudentController extends Controller
                 'classification' => $d->classification,
             ]);
 
-        $appSettings = AppSetting::current();
-
         return Inertia::render('registrar/inactive-students', [
             'students'    => $students,
             'filters'     => $filters,
             'schoolYears' => $schoolYears,
             'departments' => $departments,
-            'appSettings' => [
-                'has_k12'     => $appSettings->has_k12,
-                'has_college' => $appSettings->has_college,
-            ],
         ]);
     }
 }
