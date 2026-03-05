@@ -1,15 +1,28 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, UserX, MailCheck, MailWarning, RotateCcw, Archive, Trash2, CalendarDays, BookOpen, ArrowUpCircle } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, Users, List, GraduationCap, UserCheck, UserX, MailCheck, MailWarning, RotateCcw, Archive, Trash2, CalendarDays, BookOpen, ArrowUpCircle, UserCog, RefreshCcw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { RegistrarMessages, showSuccess, showError } from '@/components/registrar/registrar-messages';
 import { StudentFilters } from '@/components/registrar/student-filters';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { StudentStatCard } from '@/components/registrar/student-stat-card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Table,
@@ -88,6 +101,8 @@ interface Stats {
     accountingPending: number;
     graduated: number;
     dropped: number;
+    archived: number;
+    deactivated: number;
 }
 
 interface Department {
@@ -123,6 +138,7 @@ interface Section {
 
 interface Props {
     students: PaginatedStudents;
+    tab?: string;
     stats: Stats;
     programs: string[];
     yearLevels: string[];
@@ -136,6 +152,7 @@ interface Props {
         requirements_status?: string;
         needs_sectioning?: string;
         school_year?: string;
+        tab?: string;
     };    departments: Department[];
     allPrograms: Program[];
     allYearLevels: YearLevelData[];
@@ -157,13 +174,22 @@ interface Props {
     }>;
 }
 
-export default function StudentsIndex({ students, stats, programs, yearLevels, schoolYears, filters, departments, allPrograms, allYearLevels, sections, flash, classListMale, classListFemale }: Props) {
+export default function StudentsIndex({ students, tab: tabProp = 'active', stats, programs, yearLevels, schoolYears, filters, departments, allPrograms, allYearLevels, sections, flash, classListMale, classListFemale }: Props) {
+    const activeTab = tabProp || 'active';
     const [modalOpen, setModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState<Student | undefined>();
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [viewMode, setViewMode] = useState<'list' | 'classlist'>('list');
     const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
     const [isArchiving, setIsArchiving] = useState(false);
+
+    // ── Re-Enroll dialog state ──────────────────────────────────────────────────
+    const [reEnrollOpen, setReEnrollOpen] = useState(false);
+    const [reEnrollStudentId, setReEnrollStudentId] = useState<number | null>(null);
+    const [reEnrollStudentName, setReEnrollStudentName] = useState('');
+    const [reEnrollYearLevel, setReEnrollYearLevel] = useState('');
+    const [reEnrollProgram, setReEnrollProgram] = useState('');
+    const [reEnrollAutoClear, setReEnrollAutoClear] = useState(false);
 
     // ── Global Active School Year ───────────────────────────────────────────────────
     const defaultSyStart = new Date().getMonth() < 5 ? new Date().getFullYear() - 1 : new Date().getFullYear();
@@ -261,6 +287,53 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
         setEditingStudent(student);
         setModalMode('edit');
         setModalOpen(true);
+    };
+
+    // ── Special Tab Handlers ────────────────────────────────────────────────────
+    const handleRestore = (studentId: number, name: string) => {
+        if (!confirm(`Restore archived student "${name}"? Their account will be unarchived and re-accessible.`)) return;
+        router.post(`/registrar/archived/${studentId}/restore`, {}, {
+            preserveScroll: true,
+            onSuccess: () => showSuccess(`${name} has been restored successfully.`),
+            onError: () => showError('Failed to restore student.'),
+        });
+    };
+
+    const handleActivate = (studentId: number, name: string) => {
+        if (!confirm(`Activate "${name}"? They will be able to log in and re-register for enrollment.`)) return;
+        router.post(`/registrar/students/${studentId}/activate`, {}, {
+            preserveScroll: true,
+            onSuccess: () => showSuccess(`${name} has been activated.`),
+            onError: () => showError('Failed to activate student.'),
+        });
+    };
+
+    const openReEnrollDialog = (studentId: number, name: string) => {
+        setReEnrollStudentId(studentId);
+        setReEnrollStudentName(name);
+        setReEnrollYearLevel('');
+        setReEnrollProgram('');
+        setReEnrollAutoClear(false);
+        setReEnrollOpen(true);
+    };
+
+    const handleReEnrollSubmit = () => {
+        if (!reEnrollStudentId || !reEnrollYearLevel) {
+            showError('Please select a Year Level before submitting.');
+            return;
+        }
+        router.post(`/registrar/students/${reEnrollStudentId}/re-enroll`, {
+            year_level: reEnrollYearLevel,
+            program: reEnrollProgram || null,
+            auto_clear: reEnrollAutoClear,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showSuccess(`${reEnrollStudentName} has been re-enrolled.`);
+                setReEnrollOpen(false);
+            },
+            onError: () => showError('Failed to re-enroll student.'),
+        });
     };
 
     const handleDeleteStudent = (studentId: number) => {
@@ -471,8 +544,39 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
                     />
                 </div>
 
+                {/* ── Status Tabs ─────────────────────────────────────────────────────── */}
+                <div className="border-b">
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={(val) => router.get('/registrar/students', { tab: val === 'active' ? undefined : val }, { replace: true })}
+                    >
+                        <TabsList className="h-auto bg-transparent p-0 gap-0 border-0">
+                            <TabsTrigger value="active" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-sm font-medium">
+                                <Users className="mr-2 h-4 w-4" />
+                                Active Students
+                                <Badge variant="secondary" className="ml-2 text-xs">{stats.allStudents}</Badge>
+                            </TabsTrigger>
+                            <TabsTrigger value="dropped" className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent px-4 py-2 text-sm font-medium">
+                                <UserX className="mr-2 h-4 w-4" />
+                                Dropped
+                                {stats.dropped > 0 && <Badge variant="destructive" className="ml-2 text-xs">{stats.dropped}</Badge>}
+                            </TabsTrigger>
+                            <TabsTrigger value="archived" className="rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:bg-transparent px-4 py-2 text-sm font-medium">
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archived
+                                {stats.archived > 0 && <Badge className="ml-2 text-xs bg-orange-100 text-orange-700">{stats.archived}</Badge>}
+                            </TabsTrigger>
+                            <TabsTrigger value="deactivated" className="rounded-none border-b-2 border-transparent data-[state=active]:border-yellow-500 data-[state=active]:bg-transparent px-4 py-2 text-sm font-medium">
+                                <UserCog className="mr-2 h-4 w-4" />
+                                Deactivated
+                                {stats.deactivated > 0 && <Badge className="ml-2 text-xs bg-yellow-100 text-yellow-700">{stats.deactivated}</Badge>}
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+
                 {/* Follow Up Sectioning Banner */}
-                {filters.needs_sectioning === '1' && (
+                {activeTab === 'active' && filters.needs_sectioning === '1' && (
                     <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
                         <div className="flex items-center gap-2">
                             <UserCheck className="h-4 w-4 text-primary" />
@@ -484,11 +588,11 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
                     </div>
                 )}
 
-                {/* Filters */}
-                <StudentFilters programs={programs} yearLevels={yearLevels} schoolYears={schoolYears} filters={filters} />
+                {/* Filters (active tab only) */}
+                {activeTab === 'active' && <StudentFilters programs={programs} yearLevels={yearLevels} schoolYears={schoolYears} filters={filters} />}
 
-                {/* School Year Tabs */}
-                {schoolYears.length > 0 && (
+                {/* School Year Tabs (active tab only) + search for special tabs */}
+                {activeTab === 'active' && schoolYears.length > 0 && (
                     <div className="flex items-center gap-3">
                         <CalendarDays className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         <Tabs
@@ -503,6 +607,22 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
                                 ))}
                             </TabsList>
                         </Tabs>
+                    </div>
+                )}
+
+                {/* Search bar for special tabs */}
+                {activeTab !== 'active' && (
+                    <div className="flex gap-2">
+                        <Input
+                            placeholder="Search by name, LRN or email..."
+                            defaultValue={filters.search || ''}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    router.get('/registrar/students', { tab: activeTab, search: (e.target as HTMLInputElement).value }, { replace: true });
+                                }
+                            }}
+                            className="max-w-sm"
+                        />
                     </div>
                 )}
 
@@ -579,6 +699,172 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
                                 </TableBody>
                             </Table>
                         </div>
+                    </div>
+                ) : activeTab !== 'active' ? (
+                    /* ── Special Tab Tables: Dropped / Archived / Deactivated ── */
+                    <div className="rounded-lg border bg-card">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Student</TableHead>
+                                    <TableHead>Student No.</TableHead>
+                                    <TableHead>Program</TableHead>
+                                    <TableHead>Year Level / Section</TableHead>
+                                    <TableHead>School Year</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {students.data.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                            No {activeTab} students found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : students.data.map((student) => {
+                                    const s = student as any;
+                                    const fullName = `${s.first_name}${s.middle_name ? ' ' + s.middle_name : ''} ${s.last_name}${s.suffix ? ' ' + s.suffix : ''}`;
+                                    return (
+                                        <TableRow key={s.id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar>
+                                                        <AvatarImage src={s.student_photo_url || undefined} />
+                                                        <AvatarFallback>{getInitials(s.first_name, s.last_name)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <div className="font-medium">{fullName}</div>
+                                                        <div className="text-xs text-muted-foreground">{s.email}</div>
+                                                        {s.department && <div className="text-xs text-muted-foreground">{s.department}</div>}
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="font-mono text-sm">{s.lrn}</TableCell>
+                                            <TableCell className="text-sm">{s.program || '—'}</TableCell>
+                                            <TableCell className="text-sm">{[s.year_level, s.section].filter(Boolean).join(' · ') || '—'}</TableCell>
+                                            <TableCell className="text-sm">{s.school_year || '—'}</TableCell>
+                                            <TableCell>
+                                                {activeTab === 'archived' ? (
+                                                    <Badge className="bg-orange-100 text-orange-700">Archived</Badge>
+                                                ) : activeTab === 'deactivated' ? (
+                                                    <Badge className="bg-yellow-100 text-yellow-700">Deactivated</Badge>
+                                                ) : (
+                                                    <Badge className={getEnrollmentStatusColor(s.enrollment_status)}>{formatStatus(s.enrollment_status)}</Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {activeTab === 'dropped' && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="border-green-400 text-green-700 hover:bg-green-50"
+                                                                onClick={() => openReEnrollDialog(s.id, fullName)}
+                                                            >
+                                                                <RefreshCcw className="mr-1 h-3 w-3" />
+                                                                Re-Enroll
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => router.visit(`/registrar/students/${s.id}`)}
+                                                            >
+                                                                Edit
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {activeTab === 'archived' && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="border-blue-400 text-blue-700 hover:bg-blue-50"
+                                                                onClick={() => handleRestore(s.id, fullName)}
+                                                            >
+                                                                <RotateCcw className="mr-1 h-3 w-3" />
+                                                                Restore
+                                                            </Button>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10">
+                                                                        <Trash2 className="h-3 w-3" />
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Permanently Delete Student?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            This will permanently delete <strong>{fullName}</strong> and all their records. This action cannot be undone.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction
+                                                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                            onClick={() => {
+                                                                                router.delete(`/registrar/archived/${s.id}`, {
+                                                                                    preserveScroll: true,
+                                                                                    onSuccess: () => showSuccess(`${fullName} permanently deleted.`),
+                                                                                    onError: () => showError('Failed to delete.'),
+                                                                                });
+                                                                            }}
+                                                                        >
+                                                                            Delete Permanently
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </>
+                                                    )}
+                                                    {activeTab === 'deactivated' && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="border-green-400 text-green-700 hover:bg-green-50"
+                                                                onClick={() => handleActivate(s.id, fullName)}
+                                                            >
+                                                                <UserCheck className="mr-1 h-3 w-3" />
+                                                                Activate
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => router.visit(`/registrar/students/${s.id}`)}
+                                                            >
+                                                                Edit
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                        {/* Pagination */}
+                        {students.last_page > 1 && (
+                            <div className="flex items-center justify-between border-t px-6 py-4">
+                                <div className="text-sm text-muted-foreground">
+                                    Showing {students.data.length} of {students.total} students
+                                </div>
+                                <div className="flex space-x-2">
+                                    {students.links.map((link: any, index: number) => (
+                                        <Button
+                                            key={index}
+                                            variant={link.active ? 'default' : 'outline'}
+                                            size="sm"
+                                            disabled={!link.url}
+                                            onClick={() => link.url && router.visit(link.url)}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="rounded-lg border bg-card">
@@ -767,6 +1053,66 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
                 sections={sections}
                 schoolYear={activeSchoolYear}
             />
+
+            {/* ── Re-Enroll Dialog ──────────────────────────────────────────────── */}
+            {reEnrollOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-background rounded-lg border shadow-lg w-full max-w-md p-6 space-y-4">
+                        <div>
+                            <h2 className="text-lg font-semibold">Re-Enroll Student</h2>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Re-enrolling <strong>{reEnrollStudentName}</strong> for the current school year.
+                            </p>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <Label htmlFor="re-enroll-year-level">Year Level <span className="text-destructive">*</span></Label>
+                                <Select value={reEnrollYearLevel} onValueChange={setReEnrollYearLevel}>
+                                    <SelectTrigger id="re-enroll-year-level" className="mt-1">
+                                        <SelectValue placeholder="Select year level..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {allYearLevels.map((yl) => (
+                                            <SelectItem key={yl.id} value={yl.name}>{yl.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="re-enroll-program">Program (optional)</Label>
+                                <Select value={reEnrollProgram} onValueChange={setReEnrollProgram}>
+                                    <SelectTrigger id="re-enroll-program" className="mt-1">
+                                        <SelectValue placeholder="Select program..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">— No program —</SelectItem>
+                                        {allPrograms.map((p) => (
+                                            <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center gap-2 pt-1">
+                                <Checkbox
+                                    id="re-enroll-auto-clear"
+                                    checked={reEnrollAutoClear}
+                                    onCheckedChange={(v) => setReEnrollAutoClear(!!v)}
+                                />
+                                <Label htmlFor="re-enroll-auto-clear" className="cursor-pointer text-sm">
+                                    Auto-grant Registrar clearance (skip to pending-accounting)
+                                </Label>
+                            </div>
+                        </div>
+                        <div className="flex gap-2 justify-end pt-2">
+                            <Button variant="outline" onClick={() => setReEnrollOpen(false)}>Cancel</Button>
+                            <Button onClick={handleReEnrollSubmit} disabled={!reEnrollYearLevel}>
+                                <RefreshCcw className="mr-2 h-4 w-4" />
+                                Re-Enroll Student
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </RegistrarLayout>
     );
 }
