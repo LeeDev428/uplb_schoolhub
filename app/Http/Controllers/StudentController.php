@@ -621,10 +621,14 @@ class StudentController extends Controller
         
         // Add timestamp and user fields for specific clearance types (not requirements_complete)
         if ($clearanceType !== 'requirements_complete') {
-            $timestampField = str_replace('_clearance', '_cleared_at', $clearanceType);
-            $timestampField = str_replace('_enrollment', '_enrolled_at', $timestampField);
-            $userField = str_replace('_clearance', '_cleared_by', $clearanceType);
-            $userField = str_replace('_enrollment', '_enrolled_by', $userField);
+            // Handle official_enrollment as special case because model uses 'officially_enrolled_at/by'
+            if ($clearanceType === 'official_enrollment') {
+                $timestampField = 'officially_enrolled_at';
+                $userField = 'officially_enrolled_by';
+            } else {
+                $timestampField = str_replace('_clearance', '_cleared_at', $clearanceType);
+                $userField = str_replace('_clearance', '_cleared_by', $clearanceType);
+            }
             
             $updateData[$timestampField] = $status ? now() : null;
             $updateData[$userField] = $status ? auth()->id() : null;
