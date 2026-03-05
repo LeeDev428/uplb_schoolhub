@@ -188,7 +188,7 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
     const [reEnrollStudentId, setReEnrollStudentId] = useState<number | null>(null);
     const [reEnrollStudentName, setReEnrollStudentName] = useState('');
     const [reEnrollYearLevel, setReEnrollYearLevel] = useState('');
-    const [reEnrollProgram, setReEnrollProgram] = useState('');
+    const [reEnrollProgram, setReEnrollProgram] = useState('__none__');
     const [reEnrollAutoClear, setReEnrollAutoClear] = useState(false);
 
     // ── Global Active School Year ───────────────────────────────────────────────────
@@ -312,7 +312,7 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
         setReEnrollStudentId(studentId);
         setReEnrollStudentName(name);
         setReEnrollYearLevel('');
-        setReEnrollProgram('');
+        setReEnrollProgram('__none__');
         setReEnrollAutoClear(false);
         setReEnrollOpen(true);
     };
@@ -324,7 +324,7 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
         }
         router.post(`/registrar/students/${reEnrollStudentId}/re-enroll`, {
             year_level: reEnrollYearLevel,
-            program: reEnrollProgram || null,
+            program: (reEnrollProgram && reEnrollProgram !== '__none__') ? reEnrollProgram : null,
             auto_clear: reEnrollAutoClear,
         }, {
             preserveScroll: true,
@@ -1086,7 +1086,7 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
                                         <SelectValue placeholder="Select program..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">— No program —</SelectItem>
+                                        <SelectItem value="__none__">— No program —</SelectItem>
                                         {allPrograms.map((p) => (
                                             <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
                                         ))}
