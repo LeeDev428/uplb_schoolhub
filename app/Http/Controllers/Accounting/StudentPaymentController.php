@@ -749,12 +749,11 @@ class StudentPaymentController extends Controller
                 $q->where('name', 'like', '%Drop%');
             })
             ->where(function ($query) use ($student) {
-                $query->where('assignment_scope', 'all')
-                    ->orWhere(function ($q) use ($student) {
+                $query->where(function ($q) use ($student) {
                         $q->where('assignment_scope', 'specific');
                         $this->applyStudentFilters($q, $student);
                     })
-                    // Or items assigned via the Assignments tab
+                    // Or items explicitly assigned via the Assignments tab
                     ->orWhereHas('assignments', function ($q) use ($student) {
                         $this->applyAssignmentFilters($q, $student);
                     });
