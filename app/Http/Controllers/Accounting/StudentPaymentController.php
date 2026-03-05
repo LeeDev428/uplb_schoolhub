@@ -708,86 +708,54 @@ class StudentPaymentController extends Controller
 
     /**
      * Apply student-specific filters to fee_item_assignments query.
-     * Resolves department_id and year_level_id via the Student model's resolver
-     * methods when the direct FK columns are null (e.g. old-flow enrolments that
-     * only stored plain-text program / year_level strings).
      */
     private function applyAssignmentFilters($query, Student $student): void
     {
         $query->where('is_active', true);
 
-        // Resolve department_id — use FK directly, or look up via program name
-        $departmentId = $student->department_id ?? $student->resolveDepartmentId();
-
-        // If still no resolvable department, no assignment can match
-        if (!$departmentId) {
+        // Students must always have department_id set at creation time
+        if (!$student->department_id) {
             $query->whereRaw('1 = 0');
             return;
         }
 
-        // Resolve classification
-        $classification = $student->department?->classification
-            ?? $student->resolveDepartmentClassification();
-
-        if ($classification) {
-            $query->where('classification', $classification);
+        if ($student->department) {
+            $query->where('classification', $student->department->classification);
         }
 
-        $query->where('department_id', $departmentId);
+        $query->where('department_id', $student->department_id);
 
-        // Resolve year_level_id — use FK directly, or look up via year_level string
-        $yearLevelId = $student->year_level_id;
-        if (!$yearLevelId && $student->year_level) {
-            $yearLevelId = \App\Models\YearLevel::where('department_id', $departmentId)
-                ->where('name', $student->year_level)
-                ->value('id');
-        }
-
-        if ($yearLevelId) {
-            $query->where('year_level_id', $yearLevelId);
+        if ($student->year_level_id) {
+            $query->where('year_level_id', $student->year_level_id);
         }
     }
 
     /**
      * Apply student-specific filters to fee item query.
-     * Resolves department_id and year_level_id via resolver methods when FK is null.
      */
     private function applyStudentFilters($query, Student $student): void
     {
-        // Resolve department_id and classification
-        $departmentId   = $student->department_id ?? $student->resolveDepartmentId();
-        $classification = $student->department?->classification
-            ?? $student->resolveDepartmentClassification();
-
-        // Match classification if resolvable
-        if ($classification) {
-            $query->where(function ($sq) use ($classification) {
+        // Match classification if set
+        if ($student->department) {
+            $query->where(function ($sq) use ($student) {
                 $sq->whereNull('classification')
-                    ->orWhere('classification', $classification);
+                    ->orWhere('classification', $student->department->classification);
             });
         }
 
-        // Match department if resolvable
-        $query->where(function ($sq) use ($departmentId) {
+        // Match department if set
+        $query->where(function ($sq) use ($student) {
             $sq->whereNull('department_id')
-                ->orWhere('department_id', $departmentId);
+                ->orWhere('department_id', $student->department_id);
         });
 
         // Note: program_id not filtered — Student model has no program_id FK;
         // department_id provides sufficient program-level scoping for College.
 
-        // Resolve year_level_id
-        $yearLevelId = $student->year_level_id;
-        if (!$yearLevelId && $student->year_level && $departmentId) {
-            $yearLevelId = \App\Models\YearLevel::where('department_id', $departmentId)
-                ->where('name', $student->year_level)
-                ->value('id');
-        }
-
-        // Match year level if resolvable
-        $query->where(function ($sq) use ($yearLevelId) {
+        // Match year level if set
+        $query->where(function ($sq) use ($student) {
             $sq->whereNull('year_level_id')
-                ->orWhere('year_level_id', $yearLevelId);
+                ->orWhere('year_level_id', $student->year_level_id);
         });
 
         // Match section if set

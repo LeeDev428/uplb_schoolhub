@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Program;
 use App\Models\Student;
 use App\Models\User;
 use App\Models\Teacher;
+use App\Models\YearLevel;
 use Illuminate\Database\Seeder;
 
 class RoleBasedUserSeeder extends Seeder
@@ -101,6 +103,14 @@ class RoleBasedUserSeeder extends Seeder
 
         foreach ($students as $data) {
             // Create (or update) the Student record in the students table
+            // Resolve department_id from program name, year_level_id from year_level string
+            $departmentId  = Program::where('name', $data['program'])->value('department_id');
+            $yearLevelId   = $departmentId
+                ? YearLevel::where('department_id', $departmentId)
+                            ->where('name', $data['year_level'])
+                            ->value('id')
+                : null;
+
             $student = Student::updateOrCreate(
                 ['email' => $data['email']],
                 [
@@ -119,6 +129,8 @@ class RoleBasedUserSeeder extends Seeder
                     'school_year'           => '2024-2025',
                     'program'               => $data['program'],
                     'year_level'            => $data['year_level'],
+                    'department_id'         => $departmentId,
+                    'year_level_id'         => $yearLevelId,
                     'section'               => 'A',
                     'classification'        => $data['classification'],
                     'enrollment_status'     => 'enrolled',
