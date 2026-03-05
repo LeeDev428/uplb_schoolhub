@@ -22,6 +22,8 @@ import {
     CheckCircle2,
     ShieldCheck,
     ShieldX,
+    Pencil,
+    Trash2,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -283,6 +285,58 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
         reason: '',
         notes: '',
     });
+
+    const [isEditFeeDialogOpen, setIsEditFeeDialogOpen] = useState(false);
+    const [editingFee, setEditingFee] = useState<Fee | null>(null);
+    const [isDeleteFeeConfirmOpen, setIsDeleteFeeConfirmOpen] = useState(false);
+    const [deletingFee, setDeletingFee] = useState<Fee | null>(null);
+
+    const editFeeForm = useForm({
+        grant_discount: '',
+        due_date: '',
+        reason: '',
+    });
+
+    const openEditFeeDialog = (fee: Fee) => {
+        setEditingFee(fee);
+        editFeeForm.setData({
+            grant_discount: fee.grant_discount.toString(),
+            due_date: fee.due_date ?? '',
+            reason: '',
+        });
+        setIsEditFeeDialogOpen(true);
+    };
+
+    const handleEditFeeSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingFee) return;
+        editFeeForm.patch(`/super-accounting/payments/process/${student.id}/fees/${editingFee.id}`, {
+            onSuccess: () => {
+                setIsEditFeeDialogOpen(false);
+                setEditingFee(null);
+                editFeeForm.reset();
+                toast.success('Fee record updated.');
+            },
+            onError: () => toast.error('Failed to update fee record.'),
+        });
+    };
+
+    const openDeleteFeeConfirm = (fee: Fee) => {
+        setDeletingFee(fee);
+        setIsDeleteFeeConfirmOpen(true);
+    };
+
+    const handleDeleteFee = () => {
+        if (!deletingFee) return;
+        router.delete(`/super-accounting/payments/process/${student.id}/fees/${deletingFee.id}`, {
+            onSuccess: () => {
+                setIsDeleteFeeConfirmOpen(false);
+                setDeletingFee(null);
+                toast.success('Fee record deleted.');
+            },
+            onError: () => toast.error('Failed to delete fee record.'),
+        });
+    };
 
     const handleAddBalanceSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -1306,6 +1360,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                 <TableHead className="text-right">Balance</TableHead>
                                                 <TableHead>Status</TableHead>
                                                 <TableHead>Due Date</TableHead>
+                                                <TableHead>Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -1328,6 +1383,30 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                     <TableCell className="text-right font-medium text-red-600">{formatCurrency(fee.balance)}</TableCell>
                                                     <TableCell>{getStatusBadge(fee.status)}</TableCell>
                                                     <TableCell>{fee.due_date ? formatDate(fee.due_date) : '-'}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-1">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                className="h-7 w-7 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                                                onClick={() => openEditFeeDialog(fee)}
+                                                                title="Edit discount / due date"
+                                                            >
+                                                                <Pencil className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                            {fee.total_paid === 0 && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                                    onClick={() => openDeleteFeeConfirm(fee)}
+                                                                    title="Delete fee record"
+                                                                >
+                                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -1344,7 +1423,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                     </TableCell>
                                                     <TableCell className="text-right text-blue-600">{formatCurrency(filteredFees.reduce((s, f) => s + f.total_paid, 0))}</TableCell>
                                                     <TableCell className="text-right text-red-600">{formatCurrency(filteredFees.reduce((s, f) => s + f.balance, 0))}</TableCell>
-                                                    <TableCell colSpan={2} />
+                                                    <TableCell colSpan={3} />
                                                 </TableRow>
                                             </tfoot>
                                         )}
@@ -1858,6 +1937,99 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                         <AlertDialogCancel disabled={clearanceLoading}>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleClearanceToggle} disabled={clearanceLoading}>
                             {clearanceLoading ? 'Processing...' : (enrollmentClearance?.accounting_clearance ? 'Remove Clearance' : 'Clear Student')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Edit Fee Dialog */}
+            <Dialog open={isEditFeeDialogOpen} onOpenChange={setIsEditFeeDialogOpen}>
+                <DialogContent className="sm:max-w-[460px]">
+                    <form onSubmit={handleEditFeeSubmit}>
+                        <DialogHeader>
+                            <DialogTitle>Edit Fee Record — {editingFee?.school_year}</DialogTitle>
+                            <DialogDescription>
+                                Update the discount override or due date for this fee record. Changes are permanently logged.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label>Discount Override (₱)</Label>
+                                <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={editFeeForm.data.grant_discount}
+                                    onChange={(e) => editFeeForm.setData('grant_discount', e.target.value)}
+                                    placeholder="0.00"
+                                />
+                                {editFeeForm.errors.grant_discount && (
+                                    <p className="text-sm text-red-500">{editFeeForm.errors.grant_discount}</p>
+                                )}
+                                <p className="text-xs text-muted-foreground">Leave blank to keep current value. This overrides the grant/scholarship discount.</p>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Due Date</Label>
+                                <Input
+                                    type="date"
+                                    value={editFeeForm.data.due_date}
+                                    onChange={(e) => editFeeForm.setData('due_date', e.target.value)}
+                                />
+                                {editFeeForm.errors.due_date && (
+                                    <p className="text-sm text-red-500">{editFeeForm.errors.due_date}</p>
+                                )}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Reason *</Label>
+                                <Textarea
+                                    value={editFeeForm.data.reason}
+                                    onChange={(e) => editFeeForm.setData('reason', e.target.value)}
+                                    placeholder="e.g. Additional scholarship granted, Corrected due date..."
+                                    rows={2}
+                                    required
+                                />
+                                {editFeeForm.errors.reason && (
+                                    <p className="text-sm text-red-500">{editFeeForm.errors.reason}</p>
+                                )}
+                            </div>
+                            <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
+                                <div className="flex items-center gap-2 text-amber-700">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <span className="text-sm font-medium">This action is permanently logged and visible in the audit trail.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsEditFeeDialogOpen(false)}>Cancel</Button>
+                            <Button type="submit" disabled={editFeeForm.processing || !editFeeForm.data.reason}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Save Changes
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Fee Confirmation */}
+            <AlertDialog open={isDeleteFeeConfirmOpen} onOpenChange={setIsDeleteFeeConfirmOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-red-600">Delete Fee Record?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete the fee record for <strong>{deletingFee?.school_year}</strong>.
+                            The record will be recreated automatically the next time this page is viewed if matching fee items still exist.
+                            <br /><br />
+                            <strong>This action cannot be undone.</strong>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteFee}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
