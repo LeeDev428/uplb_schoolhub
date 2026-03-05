@@ -302,24 +302,39 @@ class DropRequestController extends Controller
 
     /**
      * Apply student-specific filters to fee_item_assignments query.
+     * Resolves department_id and year_level_id via resolver methods when FK is null.
      */
     private function applyAssignmentFilters($query, Student $student): void
     {
         $query->where('is_active', true);
 
-        if (!$student->department_id) {
+        // Resolve department_id — use FK directly, or look up via program name
+        $departmentId = $student->department_id ?? $student->resolveDepartmentId();
+
+        if (!$departmentId) {
             $query->whereRaw('1 = 0');
             return;
         }
 
-        if ($student->department) {
-            $query->where('classification', $student->department->classification);
+        $classification = $student->department?->classification
+            ?? $student->resolveDepartmentClassification();
+
+        if ($classification) {
+            $query->where('classification', $classification);
         }
 
-        $query->where('department_id', $student->department_id);
+        $query->where('department_id', $departmentId);
 
-        if ($student->year_level_id) {
-            $query->where('year_level_id', $student->year_level_id);
+        // Resolve year_level_id — use FK directly, or look up via year_level string
+        $yearLevelId = $student->year_level_id;
+        if (!$yearLevelId && $student->year_level) {
+            $yearLevelId = \App\Models\YearLevel::where('department_id', $departmentId)
+                ->where('name', $student->year_level)
+                ->value('id');
+        }
+
+        if ($yearLevelId) {
+            $query->where('year_level_id', $yearLevelId);
         }
     }
 }
