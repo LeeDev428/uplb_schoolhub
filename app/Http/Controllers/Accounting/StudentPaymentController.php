@@ -508,16 +508,9 @@ class StudentPaymentController extends Controller
     {
         return \App\Models\FeeItem::where('is_active', true)
             ->whereNotNull('school_year')
-            ->where(function ($query) use ($student) {
-                // Items with 'specific' scope that match this student's C/D/YL
-                $query->where(function ($q) use ($student) {
-                        $q->where('assignment_scope', 'specific');
-                        $this->applyStudentFilters($q, $student);
-                    })
-                    // Or items explicitly assigned via the Assignments tab
-                    ->orWhereHas('assignments', function ($q) use ($student) {
-                        $this->applyAssignmentFilters($q, $student);
-                    });
+            // Only items explicitly assigned via the Assignments tab
+            ->whereHas('assignments', function ($q) use ($student) {
+                $this->applyAssignmentFilters($q, $student);
             })
             ->distinct()
             ->pluck('school_year')
@@ -538,15 +531,9 @@ class StudentPaymentController extends Controller
             ->whereDoesntHave('category', function ($q) {
                 $q->where('name', 'like', '%Drop%');
             })
-            ->where(function ($query) use ($student) {
-                $query->where(function ($q) use ($student) {
-                        $q->where('assignment_scope', 'specific');
-                        $this->applyStudentFilters($q, $student);
-                    })
-                    // Or items explicitly assigned via the Assignments tab
-                    ->orWhereHas('assignments', function ($q) use ($student) {
-                        $this->applyAssignmentFilters($q, $student);
-                    });
+            // Only items explicitly assigned via the Assignments tab
+            ->whereHas('assignments', function ($q) use ($student) {
+                $this->applyAssignmentFilters($q, $student);
             })
             ->get();
 
@@ -700,44 +687,6 @@ class StudentPaymentController extends Controller
     }
 
     /**
-     * Apply student-specific filters to fee item query.
-     */
-    private function applyStudentFilters($query, Student $student): void
-    {
-        // Match classification if set
-        if ($student->department) {
-            $query->where(function ($sq) use ($student) {
-                $sq->whereNull('classification')
-                    ->orWhere('classification', $student->department->classification);
-            });
-        }
-
-        // Match department if set
-        $query->where(function ($sq) use ($student) {
-            $sq->whereNull('department_id')
-                ->orWhere('department_id', $student->department_id);
-        });
-
-        // Match program if set
-        $query->where(function ($sq) use ($student) {
-            $sq->whereNull('program_id')
-                ->orWhere('program_id', $student->program_id);
-        });
-
-        // Match year level if set
-        $query->where(function ($sq) use ($student) {
-            $sq->whereNull('year_level_id')
-                ->orWhere('year_level_id', $student->year_level_id);
-        });
-
-        // Match section if set
-        $query->where(function ($sq) use ($student) {
-            $sq->whereNull('section_id')
-                ->orWhere('section_id', $student->section_id);
-        });
-    }
-
-    /**
      * Calculate student balance dynamically for a specific school year.
      */
     private function calculateStudentBalance(Student $student, string $schoolYear): float
@@ -748,15 +697,9 @@ class StudentPaymentController extends Controller
             ->whereDoesntHave('category', function ($q) {
                 $q->where('name', 'like', '%Drop%');
             })
-            ->where(function ($query) use ($student) {
-                $query->where(function ($q) use ($student) {
-                        $q->where('assignment_scope', 'specific');
-                        $this->applyStudentFilters($q, $student);
-                    })
-                    // Or items explicitly assigned via the Assignments tab
-                    ->orWhereHas('assignments', function ($q) use ($student) {
-                        $this->applyAssignmentFilters($q, $student);
-                    });
+            // Only items explicitly assigned via the Assignments tab
+            ->whereHas('assignments', function ($q) use ($student) {
+                $this->applyAssignmentFilters($q, $student);
             })
             ->sum('selling_price');
 
