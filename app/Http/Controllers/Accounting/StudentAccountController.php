@@ -199,7 +199,10 @@ class StudentAccountController extends Controller
                 $q->where('name', 'like', '%Drop%');
             })
             ->where(function ($query) use ($student) {
-                $query->where('assignment_scope', 'all')
+                $query->where(function ($inner) {
+                        $inner->where('assignment_scope', 'all')
+                              ->whereDoesntHave('assignments');
+                    })
                     ->orWhere(function ($q) use ($student) {
                         $q->where('assignment_scope', 'specific')
                           ->where(function ($inner) {
@@ -211,7 +214,6 @@ class StudentAccountController extends Controller
                           });
                         $this->applyStudentFilters($q, $student);
                     })
-                    // Or items explicitly assigned via the Assignments tab
                     ->orWhereHas('assignments', function ($q) use ($student) {
                         $this->applyAssignmentFilters($q, $student);
                     });
@@ -231,6 +233,19 @@ class StudentAccountController extends Controller
 
         $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
         $dueDate = $studentFee?->due_date;
+
+        // Sync stored record with freshly calculated amounts (for reports accuracy)
+        if ($studentFee) {
+            $freshTotal    = (float) $totalAmount;
+            $freshDiscount = (float) $grantDiscount;
+            if ((float) $studentFee->total_amount !== $freshTotal
+                || (float) $studentFee->grant_discount !== $freshDiscount) {
+                $studentFee->total_amount   = $freshTotal;
+                $studentFee->grant_discount = $freshDiscount;
+                $studentFee->balance        = max(0, $freshTotal - $freshDiscount - $totalPaid);
+                $studentFee->save();
+            }
+        }
 
         // Get payments count
         $paymentsCount = StudentPayment::where('student_id', $student->id)
@@ -374,22 +389,20 @@ class StudentAccountController extends Controller
     {
         $query->where('is_active', true);
 
-        if ($student->department) {
-            $query->where(function ($sq) use ($student) {
-                $sq->whereNull('classification')
-                    ->orWhere('classification', $student->department->classification);
-            });
+        if (!$student->department_id) {
+            $query->whereRaw('1 = 0');
+            return;
         }
 
-        $query->where(function ($sq) use ($student) {
-            $sq->whereNull('department_id')
-                ->orWhere('department_id', $student->department_id);
-        });
+        if ($student->department) {
+            $query->where('classification', $student->department->classification);
+        }
 
-        $query->where(function ($sq) use ($student) {
-            $sq->whereNull('year_level_id')
-                ->orWhere('year_level_id', $student->year_level_id);
-        });
+        $query->where('department_id', $student->department_id);
+
+        if ($student->year_level_id) {
+            $query->where('year_level_id', $student->year_level_id);
+        }
     }
 
     /**
