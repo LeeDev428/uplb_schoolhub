@@ -28,10 +28,25 @@ class DocumentApprovalController extends Controller
         if ($tab === 'pending') {
             $query->where('registrar_status', 'pending');
         } elseif ($tab === 'approved') {
-            $query->where('registrar_status', 'approved');
+            $query->where('registrar_status', 'approved')
+                  ->where('accounting_status', 'pending');
         } elseif ($tab === 'rejected') {
-            $query->where('registrar_status', 'rejected');
+            $query->where(function ($q) {
+                $q->where('registrar_status', 'rejected')
+                  ->orWhere('accounting_status', 'rejected');
+            });
+        } elseif ($tab === 'releasing') {
+            // Approved by both + currently being processed
+            $query->where('registrar_status', 'approved')
+                  ->where('accounting_status', 'approved')
+                  ->where('status', 'processing');
+        } elseif ($tab === 'ready') {
+            // Ready for student pickup
+            $query->where('status', 'ready');
+        } elseif ($tab === 'released') {
+            $query->where('status', 'released');
         }
+        // 'all' = no filter
 
         // Search filter
         if ($search = $request->input('search')) {
@@ -87,8 +102,17 @@ class DocumentApprovalController extends Controller
         // Stats
         $stats = [
             'pending' => DocumentRequest::where('registrar_status', 'pending')->count(),
-            'approved' => DocumentRequest::where('registrar_status', 'approved')->count(),
-            'rejected' => DocumentRequest::where('registrar_status', 'rejected')->count(),
+            'approved' => DocumentRequest::where('registrar_status', 'approved')
+                            ->where('accounting_status', 'pending')->count(),
+            'rejected' => DocumentRequest::where(function ($q) {
+                $q->where('registrar_status', 'rejected')
+                  ->orWhere('accounting_status', 'rejected');
+            })->count(),
+            'releasing' => DocumentRequest::where('registrar_status', 'approved')
+                            ->where('accounting_status', 'approved')
+                            ->where('status', 'processing')->count(),
+            'ready' => DocumentRequest::where('status', 'ready')->count(),
+            'released' => DocumentRequest::where('status', 'released')->count(),
         ];
 
         // Get document types for filter
@@ -129,6 +153,34 @@ class DocumentApprovalController extends Controller
         $documentRequest->rejectByRegistrar(auth()->id(), $validated['remarks']);
 
         return redirect()->back()->with('success', 'Document request rejected.');
+    }
+
+    /**
+     * Mark a document request as ready for pickup (registrar side).
+     */
+    public function markReady(DocumentRequest $documentRequest): RedirectResponse
+    {
+        if ($documentRequest->status !== 'processing') {
+            return redirect()->back()->with('error', 'Document request is not in processing state.');
+        }
+
+        $documentRequest->markReady();
+
+        return redirect()->back()->with('success', 'Document request marked as ready for pickup.');
+    }
+
+    /**
+     * Release a document request (mark as picked up).
+     */
+    public function release(DocumentRequest $documentRequest): RedirectResponse
+    {
+        if ($documentRequest->status !== 'ready') {
+            return redirect()->back()->with('error', 'Document request is not ready for release.');
+        }
+
+        $documentRequest->release(auth()->id());
+
+        return redirect()->back()->with('success', 'Document request released to student.');
     }
 
     /**
