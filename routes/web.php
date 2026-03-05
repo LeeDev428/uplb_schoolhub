@@ -173,6 +173,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::post('students/{student}/resend-verification', [App\Http\Controllers\StudentController::class, 'resendVerification'])->name('students.resend-verification');
     Route::patch('students/{student}/email', [App\Http\Controllers\StudentController::class, 'updateEmail'])->name('students.update-email');
     Route::patch('students/{student}/notes', [App\Http\Controllers\StudentController::class, 'updateNotes'])->name('students.update-notes');
+    Route::post('students/{student}/add-note', [App\Http\Controllers\StudentController::class, 'addNote'])->name('students.add-note');
 
     // Requirements Tracking (view student requirements status)
     Route::get('requirements', [App\Http\Controllers\RequirementTrackingController::class, 'index'])->name('requirements.index');

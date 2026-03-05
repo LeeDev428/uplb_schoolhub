@@ -73,6 +73,16 @@ interface FeeItem {
     total_income?: number;
     is_per_unit?: boolean;
     unit_price?: string;
+    assignments?: {
+        id: number;
+        classification: string | null;
+        department_id: number | null;
+        department_name: string | null;
+        year_level_id: number | null;
+        year_level_name: string | null;
+        school_year: string | null;
+        is_active: boolean;
+    }[];
 }
 
 interface FeeCategory {
@@ -909,12 +919,23 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                     {category.items.map((item) => (
                                                         <TableRow key={item.id}>
                                                             <TableCell className="font-medium">
-                                                                {item.name}
-                                                                {item.is_per_unit && (
-                                                                    <Badge variant="outline" className="ml-2 text-xs border-amber-400 text-amber-700 bg-amber-50">
-                                                                        ₱{item.unit_price}/unit
-                                                                    </Badge>
-                                                                )}
+                                                                <div>
+                                                                    {item.name}
+                                                                    {item.is_per_unit && (
+                                                                        <Badge variant="outline" className="ml-2 text-xs border-amber-400 text-amber-700 bg-amber-50">
+                                                                            ₱{item.unit_price}/unit
+                                                                        </Badge>
+                                                                    )}
+                                                                    {item.assignments && item.assignments.length > 0 && (
+                                                                        <div className="flex flex-wrap gap-1 mt-1">
+                                                                            {item.assignments.filter(a => a.is_active).map(a => (
+                                                                                <Badge key={a.id} variant="secondary" className="text-xs font-normal">
+                                                                                    {[a.classification, a.department_name, a.year_level_name].filter(Boolean).join(' › ')}
+                                                                                </Badge>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </TableCell>
                                                             <TableCell className="text-muted-foreground max-w-[200px] truncate">
                                                                 {item.description || '-'}
