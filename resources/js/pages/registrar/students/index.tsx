@@ -757,6 +757,7 @@ export default function StudentsIndex({ students, stats, programs, yearLevels, s
 
             {/* Student Form Modal */}
             <StudentFormModal
+                key={editingStudent?.id ?? 'new'}
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 student={editingStudent}

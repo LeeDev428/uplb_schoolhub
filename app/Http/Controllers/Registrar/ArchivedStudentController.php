@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
-use App\Models\AppSetting;
 use App\Models\Department;
 use App\Models\Student;
 use App\Models\StudentActionLog;

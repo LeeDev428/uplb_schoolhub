@@ -335,10 +335,8 @@ class StudentClearanceController extends Controller
                 ->orWhere('department_id', $student->department_id);
         });
 
-        $query->where(function ($sq) use ($student) {
-            $sq->whereNull('program_id')
-                ->orWhere('program_id', $student->program_id);
-        });
+        // Note: program_id not filtered — Student model has no program_id FK;
+        // department_id provides sufficient program-level scoping for College.
 
         $query->where(function ($sq) use ($student) {
             $sq->whereNull('year_level_id')

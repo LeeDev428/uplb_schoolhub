@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
-use App\Models\AppSetting;
 use App\Models\Department;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -83,8 +82,6 @@ class StudentStatusController extends Controller
             'classification' => $d->classification,
         ]);
 
-        $appSettings = AppSetting::current();
-
         // Tab counts
         $counts = [
             'dropped'    => Student::whereNull('deleted_at')->where('enrollment_status', 'dropped')->count(),
@@ -98,10 +95,6 @@ class StudentStatusController extends Controller
             'filters'     => $filters,
             'departments' => $departments,
             'counts'      => $counts,
-            'appSettings' => [
-                'has_k12'     => $appSettings->has_k12,
-                'has_college' => $appSettings->has_college,
-            ],
         ]);
     }
 }
