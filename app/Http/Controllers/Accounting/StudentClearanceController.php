@@ -92,8 +92,16 @@ class StudentClearanceController extends Controller
                     $q->where('name', 'like', '%Drop%');
                 })
                 ->where(function ($query) use ($student) {
-                    $query->where(function ($q) use ($student) {
-                            $q->where('assignment_scope', 'specific');
+                    $query->where('assignment_scope', 'all')
+                        ->orWhere(function ($q) use ($student) {
+                            $q->where('assignment_scope', 'specific')
+                              ->where(function ($inner) {
+                                  $inner->whereNotNull('classification')
+                                        ->orWhereNotNull('department_id')
+                                        ->orWhereNotNull('program_id')
+                                        ->orWhereNotNull('year_level_id')
+                                        ->orWhereNotNull('section_id');
+                              });
                             $this->applyStudentFilters($q, $student);
                         })
                         ->orWhereHas('assignments', function ($q) use ($student) {
@@ -182,8 +190,16 @@ class StudentClearanceController extends Controller
                 $q->where('name', 'like', '%Drop%');
             })
             ->where(function ($query) use ($student) {
-                $query->where(function ($q) use ($student) {
-                        $q->where('assignment_scope', 'specific');
+                $query->where('assignment_scope', 'all')
+                    ->orWhere(function ($q) use ($student) {
+                        $q->where('assignment_scope', 'specific')
+                          ->where(function ($inner) {
+                              $inner->whereNotNull('classification')
+                                    ->orWhereNotNull('department_id')
+                                    ->orWhereNotNull('program_id')
+                                    ->orWhereNotNull('year_level_id')
+                                    ->orWhereNotNull('section_id');
+                          });
                         $this->applyStudentFilters($q, $student);
                     })
                     ->orWhereHas('assignments', function ($q) use ($student) {
