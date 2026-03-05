@@ -67,11 +67,11 @@ class OnlineTransaction extends Model
     }
 
     /**
-     * Check if transaction is completed.
+     * Check if transaction is verified/completed.
      */
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === 'verified';
     }
 
     /**
@@ -80,7 +80,7 @@ class OnlineTransaction extends Model
     public function verify(int $userId): void
     {
         $this->update([
-            'status' => 'completed',
+            'status' => 'verified',
             'verified_at' => now(),
             'verified_by' => $userId,
         ]);
@@ -137,11 +137,11 @@ class OnlineTransaction extends Model
     }
 
     /**
-     * Scope for completed transactions.
+     * Scope for verified/completed transactions.
      */
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('status', 'verified');
     }
 
     /**

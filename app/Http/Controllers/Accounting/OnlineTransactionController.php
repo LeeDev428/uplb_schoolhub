@@ -161,7 +161,7 @@ class OnlineTransactionController extends Controller
         // Update transaction
         $transaction->update([
             'student_payment_id' => $payment->id,
-            'status' => 'completed',
+            'status' => 'verified',
             'verified_at' => now(),
             'verified_by' => auth()->id(),
         ]);

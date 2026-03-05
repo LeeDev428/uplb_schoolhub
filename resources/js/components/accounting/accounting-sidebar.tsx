@@ -15,6 +15,7 @@ import {
     Receipt,
     RotateCcw,
     Settings,
+    UserX,
     Users,
 } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
@@ -40,7 +41,7 @@ interface AppSettings {
 }
 
 export function AccountingSidebar() {
-    const { announcementCount, pendingDocumentCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; appSettings?: AppSettings }>().props;
+    const { announcementCount, pendingDocumentCount, pendingDropRequestCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; pendingDropRequestCount?: number; appSettings?: AppSettings }>().props;
     const appName = appSettings?.app_name || 'SchoolHub';
     const logoUrl = appSettings?.logo_url;
     const sidebarColor = appSettings?.sidebar_color || undefined;
@@ -78,6 +79,12 @@ export function AccountingSidebar() {
             href: '/accounting/document-approvals',
             icon: FileCheck,
             badge: pendingDocumentCount || undefined,
+        },
+        {
+            title: 'Drop Requests',
+            href: '/accounting/drop-requests',
+            icon: UserX,
+            badge: pendingDropRequestCount || undefined,
         },
         {
             title: 'Payment Processing',

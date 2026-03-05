@@ -1140,6 +1140,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                                                     >
                                                                         <Checkbox
                                                                             checked={selectedFeeItemIds.includes(item.id)}
+                                                                            onClick={(e) => e.stopPropagation()}
                                                                             onCheckedChange={() => toggleFeeItemSelection(item.id)}
                                                                         />
                                                                         <div className="flex-1 min-w-0">

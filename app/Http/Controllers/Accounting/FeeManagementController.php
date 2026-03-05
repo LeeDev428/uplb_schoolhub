@@ -8,9 +8,11 @@ use App\Models\DocumentFeeItem;
 use App\Models\FeeCategory;
 use App\Models\FeeItem;
 use App\Models\FeeItemAssignment;
+use App\Models\GrantRecipient;
 use App\Models\Program;
 use App\Models\Section;
 use App\Models\Student;
+use App\Models\StudentFee;
 use App\Models\YearLevel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -459,7 +461,65 @@ class FeeManagementController extends Controller
             FeeItem::where('id', $feeItemId)->update(['students_availed' => $count]);
         }
 
-        return redirect()->back()->with('success', 'Fee assignments saved successfully.');
+        // ── Auto-update StudentFee records for all enrolled matching students ─────
+        // Find all enrolled students in this department + year_level
+        $matchingStudents = Student::with('department')
+            ->where('department_id', $validated['department_id'])
+            ->where('year_level_id', $validated['year_level_id'])
+            ->where('enrollment_status', 'enrolled')
+            ->whereNull('deleted_at')
+            ->get();
+
+        $schoolYear = $validated['school_year'];
+
+        foreach ($matchingStudents as $student) {
+            $classification = $student->department?->classification;
+
+            // Calculate total fees from ALL active assignments applicable to this student
+            $totalAmount = (float) FeeItem::where('school_year', $schoolYear)
+                ->where('is_active', true)
+                ->whereHas('assignments', function ($q) use ($student, $classification) {
+                    $q->where('is_active', true)
+                      ->where(function ($sq) use ($classification) {
+                          $sq->whereNull('classification')
+                             ->orWhere('classification', $classification);
+                      })
+                      ->where(function ($sq) use ($student) {
+                          $sq->whereNull('department_id')
+                             ->orWhere('department_id', $student->department_id);
+                      })
+                      ->where(function ($sq) use ($student) {
+                          $sq->whereNull('year_level_id')
+                             ->orWhere('year_level_id', $student->year_level_id);
+                      });
+                })
+                ->sum('selling_price');
+
+            // Get active grant discount for this student + school year
+            $grantDiscount = (float) GrantRecipient::where('student_id', $student->id)
+                ->where('school_year', $schoolYear)
+                ->where('status', 'active')
+                ->sum('discount_amount');
+
+            // Create or update the StudentFee record
+            $studentFee = StudentFee::firstOrCreate(
+                ['student_id' => $student->id, 'school_year' => $schoolYear],
+                ['total_paid' => 0, 'grant_discount' => 0, 'balance' => 0]
+            );
+
+            $studentFee->total_amount  = $totalAmount;
+            $studentFee->grant_discount = $grantDiscount;
+            $studentFee->balance = max(0, $totalAmount - $grantDiscount - (float) $studentFee->total_paid);
+            $studentFee->save();
+        }
+
+        $updatedCount = $matchingStudents->count();
+        $msg = 'Fee assignments saved successfully.';
+        if ($updatedCount > 0) {
+            $msg .= " Updated fee balances for {$updatedCount} enrolled student(s).";
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 
 }

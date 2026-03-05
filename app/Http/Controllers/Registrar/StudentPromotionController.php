@@ -220,6 +220,7 @@ class StudentPromotionController extends Controller
             ? "TBA ({$updateData['year_level']})"
             : $updateData['section'];
 
-        return back()->with('success', "{$count} student(s) successfully promoted to {$destination} for school year {$activeSchoolYear}.");
+        return redirect()->route('registrar.promote-students.index')
+            ->with('success', "{$count} student(s) successfully promoted to {$destination} for school year {$activeSchoolYear}.");
     }
 }

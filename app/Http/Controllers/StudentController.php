@@ -31,6 +31,107 @@ class StudentController extends Controller
      */
     public function index(Request $request)
     {
+        $tab = $request->input('tab', 'active');
+
+        // Shared academic structure data (always needed for forms / dropdowns)
+        $departments  = Department::where('is_active', true)->get(['id', 'name', 'classification']);
+        $allPrograms  = Program::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id']);
+        $allYearLevels = YearLevel::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id', 'level_number']);
+        $sections     = Section::where('is_active', true)
+            ->with(['yearLevel:id,name', 'department:id,name', 'strand:id,name,code'])
+            ->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'code', 'capacity', 'room_number']);
+
+        // ── Stats (always computed) ───────────────────────────────────────────────
+        $stats = [
+            'allStudents'        => Student::count(),
+            'officiallyEnrolled' => Student::where('enrollment_status', 'enrolled')->count(),
+            'notEnrolled'        => Student::where('enrollment_status', 'not-enrolled')->count(),
+            'registrarPending'   => Student::where('enrollment_status', 'pending-registrar')->count(),
+            'accountingPending'  => Student::where('enrollment_status', 'pending-accounting')->count(),
+            'pendingEnrollment'  => Student::where('enrollment_status', 'pending-enrollment')->count(),
+            'graduated'          => Student::where('enrollment_status', 'graduated')->count(),
+            'dropped'            => Student::where('enrollment_status', 'dropped')->count(),
+            'archived'           => Student::onlyTrashed()->count(),
+            'deactivated'        => Student::whereNull('deleted_at')->where('is_active', false)->count(),
+        ];
+
+        $programs    = Student::select('program')->distinct()->pluck('program');
+        $yearLevels  = Student::select('year_level')->distinct()->pluck('year_level');
+        $schoolYears = Student::whereNotNull('school_year')->distinct()->pluck('school_year')->sort()->values();
+
+        // ── Special tabs: Dropped / Archived / Deactivated ───────────────────────
+        if (in_array($tab, ['dropped', 'archived', 'deactivated'])) {
+            if ($tab === 'archived') {
+                $specialQuery = Student::onlyTrashed()->with(['department:id,name,classification']);
+            } elseif ($tab === 'deactivated') {
+                $specialQuery = Student::whereNull('deleted_at')
+                    ->where('is_active', false)
+                    ->with(['department:id,name,classification']);
+            } else { // dropped
+                $specialQuery = Student::whereNull('deleted_at')
+                    ->where('enrollment_status', 'dropped')
+                    ->with(['department:id,name,classification']);
+            }
+
+            // Search filter
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $specialQuery->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('lrn', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+
+            // School year filter
+            if ($request->filled('school_year') && $request->school_year !== 'all') {
+                $specialQuery->where('school_year', $request->school_year);
+            }
+
+            $specialStudents = $specialQuery
+                ->orderBy('last_name')->orderBy('first_name')
+                ->paginate(20)->withQueryString();
+
+            $specialStudents->through(fn ($s) => [
+                'id'                => $s->id,
+                'first_name'        => $s->first_name,
+                'last_name'         => $s->last_name,
+                'middle_name'       => $s->middle_name,
+                'suffix'            => $s->suffix,
+                'lrn'               => $s->lrn,
+                'email'             => $s->email,
+                'student_photo_url' => $s->student_photo_url,
+                'department'        => $s->department?->name,
+                'classification'    => $s->department?->classification,
+                'program'           => $s->program,
+                'year_level'        => $s->year_level,
+                'section'           => $s->section,
+                'school_year'       => $s->school_year,
+                'enrollment_status' => $s->enrollment_status,
+                'is_active'         => (bool) $s->is_active,
+                'deleted_at'        => $tab === 'archived' ? $s->deleted_at?->toDateTimeString() : null,
+                'student_type'      => $s->student_type,
+            ]);
+
+            return Inertia::render('registrar/students/index', [
+                'students'      => $specialStudents,
+                'tab'           => $tab,
+                'stats'         => $stats,
+                'programs'      => $programs,
+                'yearLevels'    => $yearLevels,
+                'schoolYears'   => $schoolYears,
+                'filters'       => $request->only(['search', 'school_year', 'tab']),
+                'departments'   => $departments,
+                'allPrograms'   => $allPrograms,
+                'allYearLevels' => $allYearLevels,
+                'sections'      => $sections,
+                'classListMale'   => [],
+                'classListFemale' => [],
+            ]);
+        }
+
+        // ── Active tab (default) — original logic ─────────────────────────────────
         $query = Student::query();
 
         // Search filter
@@ -86,54 +187,30 @@ class StudentController extends Controller
 
         // Compute dynamic requirements status for each student
         $students->getCollection()->transform(function ($student) {
-            $total = $student->requirements->count();
+            $total    = $student->requirements->count();
             $approved = $student->requirements->where('status', 'approved')->count();
             $percentage = $total > 0 ? round(($approved / $total) * 100) : 0;
-            
+
             $student->requirements_percentage = $percentage;
             $student->requirements_status = $percentage === 100 ? 'complete' : ($percentage > 0 ? 'pending' : 'incomplete');
             $student->email_verified = $student->user && $student->user->email_verified_at !== null;
-            
+
             return $student;
         });
 
-        // Get statistics
-        $stats = [
-            'allStudents' => Student::count(),
-            'officiallyEnrolled' => Student::where('enrollment_status', 'enrolled')->count(),
-            'notEnrolled' => Student::where('enrollment_status', 'not-enrolled')->count(),
-            'registrarPending' => Student::where('enrollment_status', 'pending-registrar')->count(),
-            'accountingPending' => Student::where('enrollment_status', 'pending-accounting')->count(),
-            'pendingEnrollment' => Student::where('enrollment_status', 'pending-enrollment')->count(),
-            'graduated' => Student::where('enrollment_status', 'graduated')->count(),
-            'dropped' => Student::where('enrollment_status', 'dropped')->count(),
-        ];
-
-        // Get unique values for filters
-        $programs = Student::select('program')->distinct()->pluck('program');
-        $yearLevels = Student::select('year_level')->distinct()->pluck('year_level');
-        $schoolYears = Student::whereNotNull('school_year')->distinct()->pluck('school_year')->sort()->values();
-
-        // Get academic structure data for the form
-        $departments = Department::where('is_active', true)->get(['id', 'name', 'classification']);
-        $allPrograms = Program::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id']);
-        $allYearLevels = YearLevel::where('is_active', true)->with('department:id,name')->get(['id', 'name', 'department_id', 'level_number']);
-        $sections = Section::where('is_active', true)
-            ->with(['yearLevel:id,name', 'department:id,name', 'strand:id,name,code'])
-            ->get(['id', 'name', 'year_level_id', 'department_id', 'strand_id', 'code', 'capacity', 'room_number']);
-
         return Inertia::render('registrar/students/index', [
-            'students' => $students,
-            'stats' => $stats,
-            'programs' => $programs,
-            'yearLevels' => $yearLevels,
+            'students'    => $students,
+            'tab'         => 'active',
+            'stats'       => $stats,
+            'programs'    => $programs,
+            'yearLevels'  => $yearLevels,
             'schoolYears' => $schoolYears,
-            'filters' => $request->only(['search', 'type', 'program', 'year_level', 'enrollment_status', 'requirements_status', 'needs_sectioning', 'school_year']),
+            'filters'     => $request->only(['search', 'type', 'program', 'year_level', 'enrollment_status', 'requirements_status', 'needs_sectioning', 'school_year', 'tab']),
             // Academic structure data for Add/Edit form
-            'departments' => $departments,
-            'allPrograms' => $allPrograms,
+            'departments'   => $departments,
+            'allPrograms'   => $allPrograms,
             'allYearLevels' => $allYearLevels,
-            'sections' => $sections,
+            'sections'      => $sections,
             // Class list: all students split by gender sorted A-Z
             'classListMale' => Student::whereNull('deleted_at')
                 ->select('id','first_name','last_name','middle_name','suffix','lrn','gender','program','year_level','section','enrollment_status','student_photo_url')
@@ -621,10 +698,14 @@ class StudentController extends Controller
         
         // Add timestamp and user fields for specific clearance types (not requirements_complete)
         if ($clearanceType !== 'requirements_complete') {
-            $timestampField = str_replace('_clearance', '_cleared_at', $clearanceType);
-            $timestampField = str_replace('_enrollment', '_enrolled_at', $timestampField);
-            $userField = str_replace('_clearance', '_cleared_by', $clearanceType);
-            $userField = str_replace('_enrollment', '_enrolled_by', $userField);
+            // Handle official_enrollment as special case because model uses 'officially_enrolled_at/by'
+            if ($clearanceType === 'official_enrollment') {
+                $timestampField = 'officially_enrolled_at';
+                $userField = 'officially_enrolled_by';
+            } else {
+                $timestampField = str_replace('_clearance', '_cleared_at', $clearanceType);
+                $userField = str_replace('_clearance', '_cleared_by', $clearanceType);
+            }
             
             $updateData[$timestampField] = $status ? now() : null;
             $updateData[$userField] = $status ? auth()->id() : null;

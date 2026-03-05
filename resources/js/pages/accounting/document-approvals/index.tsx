@@ -12,6 +12,9 @@ import {
     Receipt,
     Ban,
     DollarSign,
+    Package,
+    PackageCheck,
+    Send,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -105,6 +108,9 @@ interface Props {
         pending: number;
         approved: number;
         rejected: number;
+        releasing: number;
+        ready: number;
+        released: number;
     };
     documentTypes: Record<string, string>;
     tab: string;
@@ -131,6 +137,29 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
     const rejectForm = useForm({
         remarks: '',
     });
+
+    const [markReadyProcessing, setMarkReadyProcessing] = useState(false);
+    const [releaseProcessing, setReleaseProcessing] = useState(false);
+
+    const handleMarkReady = (request: DocumentRequest) => {
+        if (!confirm(`Mark document for ${request.student.full_name} as ready for pickup?`)) return;
+        setMarkReadyProcessing(true);
+        router.post(`/accounting/document-approvals/${request.id}/mark-ready`, {}, {
+            preserveScroll: true,
+            onSuccess: () => { toast.success('Document marked as ready for pickup.'); },
+            onFinish: () => setMarkReadyProcessing(false),
+        });
+    };
+
+    const handleRelease = (request: DocumentRequest) => {
+        if (!confirm(`Release document to ${request.student.full_name}?`)) return;
+        setReleaseProcessing(true);
+        router.post(`/accounting/document-approvals/${request.id}/release`, {}, {
+            preserveScroll: true,
+            onSuccess: () => { toast.success('Document released to student.'); },
+            onFinish: () => setReleaseProcessing(false),
+        });
+    };
 
     const handleTabChange = (newTab: string) => {
         setActiveTab(newTab);
@@ -201,10 +230,10 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                 />
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pending Verification</CardTitle>
+                            <CardTitle className="text-sm font-medium">Pending</CardTitle>
                             <Clock className="h-4 w-4 text-yellow-500" />
                         </CardHeader>
                         <CardContent>
@@ -230,6 +259,36 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                         <CardContent>
                             <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
                             <p className="text-xs text-muted-foreground">Payment issues</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Releasing</CardTitle>
+                            <Package className="h-4 w-4 text-blue-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-blue-600">{stats.releasing}</div>
+                            <p className="text-xs text-muted-foreground">Being processed</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Ready</CardTitle>
+                            <PackageCheck className="h-4 w-4 text-purple-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-purple-600">{stats.ready}</div>
+                            <p className="text-xs text-muted-foreground">Ready for pickup</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Released</CardTitle>
+                            <Send className="h-4 w-4 text-gray-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-gray-600">{stats.released}</div>
+                            <p className="text-xs text-muted-foreground">Picked up by student</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -294,6 +353,24 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                                 <TabsTrigger value="rejected" className="flex gap-2">
                                     <XCircle className="h-4 w-4" />
                                     Rejected
+                                </TabsTrigger>
+                                <TabsTrigger value="releasing" className="flex gap-2">
+                                    <Package className="h-4 w-4" />
+                                    Releasing
+                                    {stats.releasing > 0 && (
+                                        <Badge variant="secondary">{stats.releasing}</Badge>
+                                    )}
+                                </TabsTrigger>
+                                <TabsTrigger value="ready" className="flex gap-2">
+                                    <PackageCheck className="h-4 w-4" />
+                                    Ready
+                                    {stats.ready > 0 && (
+                                        <Badge variant="secondary">{stats.ready}</Badge>
+                                    )}
+                                </TabsTrigger>
+                                <TabsTrigger value="released" className="flex gap-2">
+                                    <Send className="h-4 w-4" />
+                                    Released
                                 </TabsTrigger>
                             </TabsList>
 
@@ -379,16 +456,27 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                                                             </div>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge className={config?.color || 'bg-gray-100'}>
-                                                                <Icon className="h-3 w-3 mr-1" />
-                                                                {request.accounting_status}
-                                                            </Badge>
-                                                            {request.is_paid && (
-                                                                <Badge className="ml-1 bg-blue-100 text-blue-800">
-                                                                    <DollarSign className="h-3 w-3" />
-                                                                    Paid
+                                                            <div className="flex flex-col gap-1">
+                                                                <Badge className={config?.color || 'bg-gray-100'}>
+                                                                    <Icon className="h-3 w-3 mr-1" />
+                                                                    {request.accounting_status}
                                                                 </Badge>
-                                                            )}
+                                                                {request.is_paid && (
+                                                                    <Badge className="bg-blue-100 text-blue-800">
+                                                                        <DollarSign className="h-3 w-3" />
+                                                                        Paid
+                                                                    </Badge>
+                                                                )}
+                                                                {(request.status === 'processing' || request.status === 'ready' || request.status === 'released') && (
+                                                                    <Badge className={
+                                                                        request.status === 'released' ? 'bg-gray-100 text-gray-800' :
+                                                                        request.status === 'ready' ? 'bg-purple-100 text-purple-800' :
+                                                                        'bg-blue-100 text-blue-800'
+                                                                    }>
+                                                                        {request.status}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             {request.accounting_status === 'pending' ? (
@@ -417,9 +505,31 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                                                                         <ThumbsDown className="h-4 w-4" />
                                                                     </Button>
                                                                 </div>
+                                                            ) : request.status === 'processing' ? (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-purple-600 hover:text-purple-700"
+                                                                    onClick={() => handleMarkReady(request)}
+                                                                    disabled={markReadyProcessing}
+                                                                >
+                                                                    <PackageCheck className="h-4 w-4 mr-1" />
+                                                                    Mark Ready
+                                                                </Button>
+                                                            ) : request.status === 'ready' ? (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-blue-600 hover:text-blue-700"
+                                                                    onClick={() => handleRelease(request)}
+                                                                    disabled={releaseProcessing}
+                                                                >
+                                                                    <Send className="h-4 w-4 mr-1" />
+                                                                    Release
+                                                                </Button>
                                                             ) : (
                                                                 <div className="text-sm text-muted-foreground">
-                                                                    {request.accounting_approved_at}
+                                                                    {request.accounting_approved_at || request.status}
                                                                     {request.expected_completion_date && (
                                                                         <p className="text-xs">Due: {request.expected_completion_date}</p>
                                                                     )}

@@ -32,10 +32,19 @@ class DocumentApprovalController extends Controller
         if ($tab === 'pending') {
             $query->where('accounting_status', 'pending');
         } elseif ($tab === 'approved') {
-            $query->where('accounting_status', 'approved');
+            $query->where('accounting_status', 'approved')
+                  ->where('status', 'processing');
         } elseif ($tab === 'rejected') {
             $query->where('accounting_status', 'rejected');
+        } elseif ($tab === 'releasing') {
+            $query->where('accounting_status', 'approved')
+                  ->where('status', 'processing');
+        } elseif ($tab === 'ready') {
+            $query->where('status', 'ready');
+        } elseif ($tab === 'released') {
+            $query->where('status', 'released');
         }
+        // 'all' = no filter (but still limited to registrar-approved above)
 
         // Search filter
         if ($search = $request->input('search')) {
@@ -103,9 +112,15 @@ class DocumentApprovalController extends Controller
             'pending' => DocumentRequest::where('registrar_status', 'approved')
                 ->where('accounting_status', 'pending')->count(),
             'approved' => DocumentRequest::where('registrar_status', 'approved')
-                ->where('accounting_status', 'approved')->count(),
+                ->where('accounting_status', 'approved')
+                ->where('status', 'processing')->count(),
             'rejected' => DocumentRequest::where('registrar_status', 'approved')
                 ->where('accounting_status', 'rejected')->count(),
+            'releasing' => DocumentRequest::where('registrar_status', 'approved')
+                ->where('accounting_status', 'approved')
+                ->where('status', 'processing')->count(),
+            'ready' => DocumentRequest::where('status', 'ready')->count(),
+            'released' => DocumentRequest::where('status', 'released')->count(),
         ];
 
         // Get document types for filter
@@ -166,6 +181,34 @@ class DocumentApprovalController extends Controller
         $documentRequest->rejectByAccounting(auth()->id(), $validated['remarks']);
 
         return redirect()->back()->with('success', 'Document request rejected.');
+    }
+
+    /**
+     * Mark a document request as ready for pickup.
+     */
+    public function markReady(DocumentRequest $documentRequest): RedirectResponse
+    {
+        if ($documentRequest->status !== 'processing') {
+            return redirect()->back()->with('error', 'Document request is not in processing state.');
+        }
+
+        $documentRequest->markReady();
+
+        return redirect()->back()->with('success', 'Document request marked as ready for pickup.');
+    }
+
+    /**
+     * Release a document request (mark as picked up by student).
+     */
+    public function release(DocumentRequest $documentRequest): RedirectResponse
+    {
+        if ($documentRequest->status !== 'ready') {
+            return redirect()->back()->with('error', 'Document request is not in ready state.');
+        }
+
+        $documentRequest->release(auth()->id());
+
+        return redirect()->back()->with('success', 'Document released to student.');
     }
 
     /**

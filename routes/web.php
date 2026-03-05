@@ -202,6 +202,8 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::get('document-approvals', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'index'])->name('document-approvals.index');
     Route::post('document-approvals/{documentRequest}/approve', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'approve'])->name('document-approvals.approve');
     Route::post('document-approvals/{documentRequest}/reject', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'reject'])->name('document-approvals.reject');
+    Route::post('document-approvals/{documentRequest}/mark-ready', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'markReady'])->name('document-approvals.mark-ready');
+    Route::post('document-approvals/{documentRequest}/release', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'release'])->name('document-approvals.release');
     Route::get('document-approvals/{documentRequest}/receipt', [App\Http\Controllers\Registrar\DocumentApprovalController::class, 'viewReceipt'])->name('document-approvals.receipt');
 
     // Academic Deadlines
@@ -253,6 +255,9 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::post('drop-requests/{dropRequest}/approve', [App\Http\Controllers\Registrar\DropRequestController::class, 'approve'])->name('drop-requests.approve');
     Route::post('drop-requests/{dropRequest}/reject', [App\Http\Controllers\Registrar\DropRequestController::class, 'reject'])->name('drop-requests.reject');
     Route::post('students/{student}/reactivate', [App\Http\Controllers\Registrar\DropRequestController::class, 'reactivate'])->name('students.reactivate');
+
+    // Dropped Students (view all officially dropped students)
+    Route::get('dropped-students', [App\Http\Controllers\Registrar\DroppedStudentController::class, 'index'])->name('dropped-students.index');
 
     // Archive Students (bulk)
     Route::post('students/archive', [App\Http\Controllers\StudentController::class, 'bulkArchive'])->name('students.bulk-archive');
@@ -311,9 +316,16 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::get('document-approvals', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'index'])->name('document-approvals.index');
     Route::post('document-approvals/{documentRequest}/approve', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'approve'])->name('document-approvals.approve');
     Route::post('document-approvals/{documentRequest}/reject', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'reject'])->name('document-approvals.reject');
+    Route::post('document-approvals/{documentRequest}/mark-ready', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'markReady'])->name('document-approvals.mark-ready');
+    Route::post('document-approvals/{documentRequest}/release', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'release'])->name('document-approvals.release');
     Route::get('document-approvals/{documentRequest}/receipt', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'viewReceipt'])->name('document-approvals.receipt');
 
-    // Drop Request Approvals (accounting stage)
+    // Accounting Drop Request Approvals (final stage after registrar)
+    Route::get('drop-requests', [App\Http\Controllers\Accounting\DropRequestController::class, 'index'])->name('drop-requests.index');
+    Route::post('drop-requests/{dropRequest}/approve', [App\Http\Controllers\Accounting\DropRequestController::class, 'approve'])->name('drop-requests.approve');
+    Route::post('drop-requests/{dropRequest}/reject', [App\Http\Controllers\Accounting\DropRequestController::class, 'reject'])->name('drop-requests.reject');
+
+    // Drop Approvals (accounting stage – extended workflow)
     Route::get('drop-approvals', [App\Http\Controllers\Accounting\DropApprovalController::class, 'index'])->name('drop-approvals.index');
     Route::post('drop-approvals/{dropRequest}/approve', [App\Http\Controllers\Accounting\DropApprovalController::class, 'approve'])->name('drop-approvals.approve');
     Route::post('drop-approvals/{dropRequest}/reject', [App\Http\Controllers\Accounting\DropApprovalController::class, 'reject'])->name('drop-approvals.reject');
@@ -563,8 +575,18 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
     Route::post('payments/process/{student}/carry-forward', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'carryForwardBalance'])->name('payments.carry-forward');
     Route::post('payments/process/{student}/add-balance', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'addBalance'])->name('payments.add-balance');
+    // Payment CRUD (super-accounting: record, edit, delete payments)
+    Route::post('payments', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'store'])->name('payments.store');
+    Route::put('payments/{payment}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'update'])->name('payments.update');
+    Route::delete('payments/{payment}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'destroy'])->name('payments.destroy');
     Route::patch('payments/process/{student}/fees/{fee}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'editFee'])->name('payments.fee.edit');
     Route::delete('payments/process/{student}/fees/{fee}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'deleteFee'])->name('payments.fee.delete');
+
+    // Promissory Notes
+    Route::get('promissory-notes', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'index'])->name('promissory-notes.index');
+    Route::post('promissory-notes', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'store'])->name('promissory-notes.store');
+    Route::post('promissory-notes/{note}/approve', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'approve'])->name('promissory-notes.approve');
+    Route::post('promissory-notes/{note}/decline', [App\Http\Controllers\Accounting\PromissoryNoteController::class, 'decline'])->name('promissory-notes.decline');
 
     // Refund / Void Requests Management (super-accounting exclusive — only super-accounting can approve/reject)
     Route::get('refunds', [App\Http\Controllers\Accounting\RefundController::class, 'index'])->name('refunds.index');
