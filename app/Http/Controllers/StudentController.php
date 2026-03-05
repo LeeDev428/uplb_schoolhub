@@ -239,6 +239,9 @@ class StudentController extends Controller
                 $data['student_photo_url'] = '/storage/' . $path;
             }
             unset($data['student_photo']);
+
+            // Ensure department_id and year_level_id are always resolved from strings if not set
+            $this->resolveStudentFkIds($data);
             
             $student = Student::create($data);
 
@@ -283,6 +286,32 @@ class StudentController extends Controller
             return redirect()->route('registrar.students.index')
                 ->with('success', "Student added successfully! Username: {$username}, Password: password");
         });
+    }
+
+    /**
+     * Resolve department_id and year_level_id from program/year_level strings
+     * when the form didn't supply the IDs directly. Modifies $data in-place.
+     */
+    private function resolveStudentFkIds(array &$data): void
+    {
+        // Resolve department_id from program name if missing
+        if (empty($data['department_id']) && !empty($data['program'])) {
+            $data['department_id'] = Program::where('name', $data['program'])->value('department_id');
+        }
+
+        // Resolve year_level_id from year_level string + department_id if missing
+        if (empty($data['year_level_id']) && !empty($data['year_level'])) {
+            $deptId = $data['department_id'] ?? null;
+            if ($deptId) {
+                $data['year_level_id'] = YearLevel::where('department_id', $deptId)
+                    ->where('name', $data['year_level'])
+                    ->value('id');
+            }
+        }
+
+        // Ensure nulls instead of empty strings for FK columns
+        if (empty($data['department_id'])) $data['department_id'] = null;
+        if (empty($data['year_level_id'])) $data['year_level_id'] = null;
     }
 
     /**
@@ -641,6 +670,9 @@ class StudentController extends Controller
             $data['student_photo_url'] = '/storage/' . $path;
         }
         unset($data['student_photo']);
+
+        // Ensure department_id and year_level_id are always resolved from strings if not set
+        $this->resolveStudentFkIds($data);
         
         $student->update($data);
 

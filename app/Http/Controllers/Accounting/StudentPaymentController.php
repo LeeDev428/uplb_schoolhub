@@ -713,7 +713,7 @@ class StudentPaymentController extends Controller
     {
         $query->where('is_active', true);
 
-        // If student has no department or year level, no assignment can match
+        // Students must always have department_id set at creation time
         if (!$student->department_id) {
             $query->whereRaw('1 = 0');
             return;
