@@ -282,6 +282,8 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
     Route::post('payments/process/{student}/carry-forward', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'carryForwardBalance'])->name('payments.carry-forward');
     Route::post('payments/process/{student}/add-balance', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'addBalance'])->name('payments.add-balance');
+    Route::patch('payments/process/{student}/fees/{fee}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'editFee'])->name('payments.fee.edit');
+    Route::delete('payments/process/{student}/fees/{fee}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'deleteFee'])->name('payments.fee.delete');
     Route::get('payments/export', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'export'])->name('payments.export');
     Route::resource('payments', App\Http\Controllers\Accounting\StudentPaymentController::class)->except(['create']);
     
@@ -307,6 +309,12 @@ Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'verified'
     Route::post('document-approvals/{documentRequest}/approve', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'approve'])->name('document-approvals.approve');
     Route::post('document-approvals/{documentRequest}/reject', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'reject'])->name('document-approvals.reject');
     Route::get('document-approvals/{documentRequest}/receipt', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'viewReceipt'])->name('document-approvals.receipt');
+
+    // Drop Request Approvals (accounting stage)
+    Route::get('drop-approvals', [App\Http\Controllers\Accounting\DropApprovalController::class, 'index'])->name('drop-approvals.index');
+    Route::post('drop-approvals/{dropRequest}/approve', [App\Http\Controllers\Accounting\DropApprovalController::class, 'approve'])->name('drop-approvals.approve');
+    Route::post('drop-approvals/{dropRequest}/reject', [App\Http\Controllers\Accounting\DropApprovalController::class, 'reject'])->name('drop-approvals.reject');
+    Route::post('drop-approvals/{dropRequest}/set-fees', [App\Http\Controllers\Accounting\DropApprovalController::class, 'setFees'])->name('drop-approvals.set-fees');
 
     
     // Student Grants Management
@@ -552,6 +560,8 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
     Route::get('payments/process/{student}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'process'])->name('payments.process');
     Route::post('payments/process/{student}/carry-forward', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'carryForwardBalance'])->name('payments.carry-forward');
     Route::post('payments/process/{student}/add-balance', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'addBalance'])->name('payments.add-balance');
+    Route::patch('payments/process/{student}/fees/{fee}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'editFee'])->name('payments.fee.edit');
+    Route::delete('payments/process/{student}/fees/{fee}', [App\Http\Controllers\Accounting\StudentPaymentController::class, 'deleteFee'])->name('payments.fee.delete');
 
     // Refund / Void Requests Management (super-accounting exclusive — only super-accounting can approve/reject)
     Route::get('refunds', [App\Http\Controllers\Accounting\RefundController::class, 'index'])->name('refunds.index');
@@ -559,6 +569,12 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
     Route::post('refunds', [App\Http\Controllers\Accounting\RefundController::class, 'store'])->name('refunds.store');
     Route::post('refunds/{refund}/approve', [App\Http\Controllers\Accounting\RefundController::class, 'approve'])->name('refunds.approve');
     Route::post('refunds/{refund}/reject', [App\Http\Controllers\Accounting\RefundController::class, 'reject'])->name('refunds.reject');
+
+    // Drop Request Approvals (accounting stage)
+    Route::get('drop-approvals', [App\Http\Controllers\Accounting\DropApprovalController::class, 'index'])->name('drop-approvals.index');
+    Route::post('drop-approvals/{dropRequest}/approve', [App\Http\Controllers\Accounting\DropApprovalController::class, 'approve'])->name('drop-approvals.approve');
+    Route::post('drop-approvals/{dropRequest}/reject', [App\Http\Controllers\Accounting\DropApprovalController::class, 'reject'])->name('drop-approvals.reject');
+    Route::post('drop-approvals/{dropRequest}/set-fees', [App\Http\Controllers\Accounting\DropApprovalController::class, 'setFees'])->name('drop-approvals.set-fees');
 
     // Dashboard exports
     Route::get('dashboard/export', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'export'])->name('dashboard.export');
