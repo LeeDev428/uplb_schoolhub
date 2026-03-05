@@ -373,6 +373,42 @@ export default function DocumentRequestsIndex({ requests, documentFees, feesByCa
                     }
                 />
 
+                {/* Status Legend */}
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Status Guide</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-3">
+                            <div className="flex items-center gap-1.5">
+                                <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                                <span className="text-xs font-medium text-yellow-800">Pending</span>
+                                <span className="text-xs text-muted-foreground">— Request submitted, awaiting review</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-400" />
+                                <span className="text-xs font-medium text-blue-800">Processing</span>
+                                <span className="text-xs text-muted-foreground">— Approved &amp; being prepared</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400" />
+                                <span className="text-xs font-medium text-green-800">Ready</span>
+                                <span className="text-xs text-muted-foreground">— Ready for pickup at the registrar</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="inline-block w-2.5 h-2.5 rounded-full bg-gray-400" />
+                                <span className="text-xs font-medium text-gray-700">Released</span>
+                                <span className="text-xs text-muted-foreground">— Document has been claimed</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400" />
+                                <span className="text-xs font-medium text-red-800">Rejected</span>
+                                <span className="text-xs text-muted-foreground">— Request was denied (see remarks)</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Active Requests */}
                 <Card>
                     <CardHeader>
