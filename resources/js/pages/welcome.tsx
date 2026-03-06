@@ -464,7 +464,7 @@ export default function Welcome({ canRegister, faculty = {} }: Props) {
                     PRINCIPAL'S MESSAGE
                 ════════════════════════════════════════ */}
                 {hasMessage && (
-                    <section id="message" className="py-24 bg-neutral-950 relative overflow-hidden">
+                    <section id="message" className="relative z-10 py-24 bg-neutral-950 overflow-hidden">
                         {/* Decorative blobs */}
                         <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full opacity-20 blur-3xl pointer-events-none"
                             style={{ backgroundColor: primary }} />
@@ -586,7 +586,7 @@ export default function Welcome({ canRegister, faculty = {} }: Props) {
                 {/* ════════════════════════════════════════
                     CTA
                 ════════════════════════════════════════ */}
-                <section className="py-28 relative overflow-hidden" style={{ backgroundColor: primary }}>
+                <section className="relative z-10 py-28 overflow-hidden" style={{ backgroundColor: primary }}>
                     {/* Pattern overlay */}
                     <div className="absolute inset-0 opacity-[0.06]"
                         style={{
@@ -628,7 +628,7 @@ export default function Welcome({ canRegister, faculty = {} }: Props) {
                 {/* ════════════════════════════════════════
                     FOOTER
                 ════════════════════════════════════════ */}
-                <footer id="contact" className="bg-neutral-950 text-neutral-400">
+                <footer id="contact" className="relative z-10 bg-neutral-950 text-neutral-400">
                     <div className="mx-auto max-w-7xl px-5 pt-16 pb-8 sm:px-8 lg:px-10">
                         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 pb-12 border-b border-white/5">
 
