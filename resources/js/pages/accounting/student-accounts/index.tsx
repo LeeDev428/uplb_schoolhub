@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
-import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard, List } from 'lucide-react';
+import { AlertTriangle, Eye, MoreHorizontal, Users, TrendingUp, Clock, Plus, Upload, CreditCard, List } from 'lucide-react';
+import { PhilippinePeso } from '@/components/icons/philippine-peso';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { FilterBar } from '@/components/filters/filter-bar';
@@ -172,9 +173,10 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
         overdue_date: new Date().toISOString().split('T')[0],
     });
 
-    const handleFilter = () => {
+    const handleFilter = (overrideSearch?: string) => {
+        const searchValue = overrideSearch !== undefined ? overrideSearch : search;
         router.get('/accounting/student-accounts', {
-            search: search || undefined,
+            search: searchValue || undefined,
             status: activeTab,
             school_year: schoolYear !== 'all' ? schoolYear : undefined,
             department_id: departmentId !== 'all' ? departmentId : undefined,
@@ -423,7 +425,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Receivables</CardTitle>
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <PhilippinePeso className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{formatCurrency(stats.total_receivables)}</div>
@@ -464,7 +466,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         value={search}
                         onChange={(value) => {
                             setSearch(value);
-                            if (value === '') handleFilter();
+                            handleFilter(value);
                         }}
                         placeholder="Search by name or LRN..."
                     />
@@ -675,7 +677,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem asChild>
                                                         <Link href={`/accounting/payments/process/${account.student.id}`}>
-                                                            <DollarSign className="h-4 w-4 mr-2" />
+                                                            <PhilippinePeso className="h-4 w-4 mr-2" />
                                                             Process Payment
                                                         </Link>
                                                     </DropdownMenuItem>
