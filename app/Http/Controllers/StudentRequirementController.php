@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EnrollmentClearance;
 use App\Models\StudentRequirement;
 use App\Models\StudentActionLog;
 use Illuminate\Http\Request;
@@ -39,7 +40,8 @@ class StudentRequirementController extends Controller
 
             // firstOrCreate ensures we always have a clearance row to update,
             // even if the student hasn't visited their show page yet.
-            $clearance = $student->enrollmentClearance()->firstOrCreate([]);
+            if (!$student->user) return;
+            $clearance = EnrollmentClearance::firstOrCreate(['user_id' => $student->user->id]);
             $clearanceUpdate = [
                 'requirements_complete_percentage' => $percentage,
                 'requirements_complete'            => $percentage >= 100,
