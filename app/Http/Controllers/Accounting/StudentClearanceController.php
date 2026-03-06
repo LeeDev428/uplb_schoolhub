@@ -295,7 +295,7 @@ class StudentClearanceController extends Controller
         foreach ($validated['student_ids'] as $studentId) {
             $student = Student::find($studentId);
             if ($student) {
-                $clearance = $student->enrollmentClearance()->firstOrCreate([]);
+                $clearance = EnrollmentClearance::firstOrCreate(['user_id' => $student->user->id]);
                 $clearance->update([
                     'accounting_clearance' => $validated['status'],
                     'accounting_cleared_at' => $validated['status'] ? now() : null,
