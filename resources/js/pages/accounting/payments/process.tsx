@@ -675,7 +675,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                             Promissory
                         </TabsTrigger>
                         <TabsTrigger value="transactions" className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4" />
+                            <PhilippinePeso className="h-4 w-4" />
                             Transactions
                         </TabsTrigger>
                     </TabsList>
@@ -744,7 +744,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                 <div className="grid gap-2">
                                                     <Label>Payment Method</Label>
                                                     <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
-                                                        <DollarSign className="h-4 w-4 text-green-600" />
+                                                        <PhilippinePeso className="h-4 w-4 text-green-600" />
                                                         <span className="font-medium">Cash</span>
                                                     </div>
                                                 </div>
