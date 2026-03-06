@@ -463,7 +463,7 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                                                                 </Badge>
                                                                 {request.is_paid && (
                                                                     <Badge className="bg-blue-100 text-blue-800">
-                                                                        <DollarSign className="h-3 w-3" />
+                                                                        
                                                                         Paid
                                                                     </Badge>
                                                                 )}
