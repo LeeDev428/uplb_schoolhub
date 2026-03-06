@@ -21,10 +21,13 @@ type Props = {
         address: string | null;
         enrollment_status: string;
         lrn: string | null;
+        classification: string | null;
         department: string | null;
         program: string | null;
         year_level: string | null;
         section: string | null;
+        school_year: string | null;
+        student_type: string | null;
         guardian_name: string | null;
         guardian_relationship: string | null;
         guardian_contact: string | null;
@@ -187,6 +190,13 @@ export default function Profile({ student, user }: Props) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid gap-4">
+                                {student.classification && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Classification</p>
+                                        <p className="text-base">{student.classification}</p>
+                                    </div>
+                                )}
+
                                 {student.department && (
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Department</p>
