@@ -520,6 +520,7 @@ export default function DocumentRequestIndex({
                                                             setSelectedRequest(request);
                                                             setIsPaymentModalOpen(true);
                                                         }}>
+                                                            <DollarSign className="h-4 w-4 mr-2" />
                                                             Mark as Paid
                                                         </DropdownMenuItem>
                                                     )}
