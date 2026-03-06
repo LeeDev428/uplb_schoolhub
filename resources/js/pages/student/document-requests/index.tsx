@@ -415,133 +415,366 @@ export default function DocumentRequestsIndex({ requests, documentFees, feesByCa
                     </CardContent>
                 </Card>
 
-                {/* Active Requests */}
+                {/* All Requests - Tabbed View */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <FileText className="h-5 w-5" />
-                            Active Requests
+                            My Document Requests
                         </CardTitle>
                         <CardDescription>
-                            Track the status of your pending document requests
+                            Track all your document requests and their current status
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {!hasActiveRequests ? (
-                            <div className="text-center py-8 text-muted-foreground">
-                                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                <p>No active document requests.</p>
-                                <p className="text-sm">Click "New Request" to request a document.</p>
-                            </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Document</TableHead>
-                                        <TableHead>Copies</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Approval Progress</TableHead>
-                                        <TableHead>Total Fee</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {pendingRequests.map((request) => (
-                                        <TableRow key={request.id}>
-                                            <TableCell className="font-medium">
-                                                {request.document_type_label}
-                                            </TableCell>
-                                            <TableCell>{request.copies}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={request.processing_type === 'rush' ? 'destructive' : 'secondary'}>
-                                                    {request.processing_type === 'rush' ? 'Rush' : 'Normal'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge className={statusConfig[request.status]?.color || 'bg-gray-100'}>
-                                                    {statusConfig[request.status]?.label || request.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-2 text-sm">
-                                                        {request.registrar_status === 'approved' ? (
-                                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                                        ) : request.registrar_status === 'rejected' ? (
-                                                            <XCircle className="h-4 w-4 text-red-500" />
-                                                        ) : (
-                                                            <Clock className="h-4 w-4 text-yellow-500" />
+                        <Tabs defaultValue="all" className="w-full">
+                            <TabsList className="mb-4">
+                                <TabsTrigger value="all" className="flex gap-2">
+                                    <FileText className="h-4 w-4" />
+                                    All
+                                    {requests.length > 0 && <Badge variant="secondary">{requests.length}</Badge>}
+                                </TabsTrigger>
+                                <TabsTrigger value="active" className="flex gap-2">
+                                    <Clock className="h-4 w-4" />
+                                    Active
+                                    {pendingRequests.length > 0 && <Badge variant="secondary">{pendingRequests.length}</Badge>}
+                                </TabsTrigger>
+                                <TabsTrigger value="ready" className="flex gap-2">
+                                    <PackageCheck className="h-4 w-4" />
+                                    Ready
+                                    {readyRequests.length > 0 && <Badge variant="secondary">{readyRequests.length}</Badge>}
+                                </TabsTrigger>
+                                <TabsTrigger value="completed" className="flex gap-2">
+                                    <Send className="h-4 w-4" />
+                                    Completed
+                                    {completedRequests.length > 0 && <Badge variant="secondary">{completedRequests.length}</Badge>}
+                                </TabsTrigger>
+                            </TabsList>
+
+                            {/* All Requests Tab */}
+                            <TabsContent value="all">
+                                {requests.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>No document requests yet.</p>
+                                        <p className="text-sm">Click "New Request" to request a document.</p>
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Document</TableHead>
+                                                <TableHead>Copies</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Approval Progress</TableHead>
+                                                <TableHead>Total Fee</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {requests.map((request) => (
+                                                <TableRow key={request.id}>
+                                                    <TableCell className="font-medium">
+                                                        <div>
+                                                            <p>{request.document_type_label}</p>
+                                                            <p className="text-xs text-muted-foreground">{request.created_at}</p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>{request.copies}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={request.processing_type === 'rush' ? 'destructive' : 'secondary'}>
+                                                            {request.processing_type === 'rush' ? 'Rush' : 'Normal'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge className={statusConfig[request.status]?.color || 'bg-gray-100'}>
+                                                            {statusConfig[request.status]?.label || request.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2 text-sm">
+                                                                {request.registrar_status === 'approved' ? (
+                                                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                                                ) : request.registrar_status === 'rejected' ? (
+                                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                                ) : (
+                                                                    <Clock className="h-4 w-4 text-yellow-500" />
+                                                                )}
+                                                                <span>Registrar</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-sm">
+                                                                {request.accounting_status === 'approved' ? (
+                                                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                                                ) : request.accounting_status === 'rejected' ? (
+                                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                                ) : (
+                                                                    <Clock className="h-4 w-4 text-yellow-500" />
+                                                                )}
+                                                                <span>Accounting</span>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {formatCurrency(request.total_fee)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {request.registrar_status === 'pending' && request.status === 'pending' && (
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="sm" className="text-red-600">
+                                                                        Cancel
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Cancel Request?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            Are you sure you want to cancel this document request?
+                                                                            This action cannot be undone.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                                                                        <AlertDialogAction
+                                                                            onClick={() => handleCancel(request.id)}
+                                                                            className="bg-red-600 hover:bg-red-700"
+                                                                        >
+                                                                            Yes, cancel
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
                                                         )}
-                                                        <span>Registrar</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-sm">
-                                                        {request.accounting_status === 'approved' ? (
-                                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                                        ) : request.accounting_status === 'rejected' ? (
-                                                            <XCircle className="h-4 w-4 text-red-500" />
-                                                        ) : (
-                                                            <Clock className="h-4 w-4 text-yellow-500" />
+                                                        {request.status === 'released' && request.release_date && (
+                                                            <span className="text-xs text-muted-foreground">Released {request.release_date}</span>
                                                         )}
-                                                        <span>Accounting</span>
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="font-medium">
-                                                {formatCurrency(request.total_fee)}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {request.registrar_status === 'pending' && (
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button variant="ghost" size="sm" className="text-red-600">
-                                                                Cancel
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Cancel Request?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Are you sure you want to cancel this document request?
-                                                                    This action cannot be undone.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>No, keep it</AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    onClick={() => handleCancel(request.id)}
-                                                                    className="bg-red-600 hover:bg-red-700"
-                                                                >
-                                                                    Yes, cancel
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </TabsContent>
+
+                            {/* Active Requests Tab */}
+                            <TabsContent value="active">
+                                {pendingRequests.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>No active requests.</p>
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Document</TableHead>
+                                                <TableHead>Copies</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Approval Progress</TableHead>
+                                                <TableHead>Total Fee</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {pendingRequests.map((request) => (
+                                                <TableRow key={request.id}>
+                                                    <TableCell className="font-medium">
+                                                        {request.document_type_label}
+                                                    </TableCell>
+                                                    <TableCell>{request.copies}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={request.processing_type === 'rush' ? 'destructive' : 'secondary'}>
+                                                            {request.processing_type === 'rush' ? 'Rush' : 'Normal'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge className={statusConfig[request.status]?.color || 'bg-gray-100'}>
+                                                            {statusConfig[request.status]?.label || request.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2 text-sm">
+                                                                {request.registrar_status === 'approved' ? (
+                                                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                                                ) : request.registrar_status === 'rejected' ? (
+                                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                                ) : (
+                                                                    <Clock className="h-4 w-4 text-yellow-500" />
+                                                                )}
+                                                                <span>Registrar</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-sm">
+                                                                {request.accounting_status === 'approved' ? (
+                                                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                                                ) : request.accounting_status === 'rejected' ? (
+                                                                    <XCircle className="h-4 w-4 text-red-500" />
+                                                                ) : (
+                                                                    <Clock className="h-4 w-4 text-yellow-500" />
+                                                                )}
+                                                                <span>Accounting</span>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {formatCurrency(request.total_fee)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {request.registrar_status === 'pending' && (
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="sm" className="text-red-600">
+                                                                        Cancel
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Cancel Request?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            Are you sure you want to cancel this document request?
+                                                                            This action cannot be undone.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                                                                        <AlertDialogAction
+                                                                            onClick={() => handleCancel(request.id)}
+                                                                            className="bg-red-600 hover:bg-red-700"
+                                                                        >
+                                                                            Yes, cancel
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </TabsContent>
+
+                            {/* Ready for Pickup Tab */}
+                            <TabsContent value="ready">
+                                {readyRequests.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <PackageCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>No documents ready for pickup.</p>
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Document</TableHead>
+                                                <TableHead>Copies</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Expected Date</TableHead>
+                                                <TableHead>Total Fee</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {readyRequests.map((request) => (
+                                                <TableRow key={request.id} className="bg-green-50">
+                                                    <TableCell className="font-medium">
+                                                        {request.document_type_label}
+                                                    </TableCell>
+                                                    <TableCell>{request.copies}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={request.processing_type === 'rush' ? 'destructive' : 'secondary'}>
+                                                            {request.processing_type === 'rush' ? 'Rush' : 'Normal'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge className="bg-green-100 text-green-800">
+                                                            Ready for Pickup
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{request.expected_completion_date || '—'}</TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {formatCurrency(request.total_fee)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </TabsContent>
+
+                            {/* Completed Tab */}
+                            <TabsContent value="completed">
+                                {completedRequests.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Send className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p>No completed requests yet.</p>
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Document</TableHead>
+                                                <TableHead>Copies</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Release Date</TableHead>
+                                                <TableHead>Total Fee</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {completedRequests.map((request) => (
+                                                <TableRow key={request.id}>
+                                                    <TableCell className="font-medium">
+                                                        {request.document_type_label}
+                                                    </TableCell>
+                                                    <TableCell>{request.copies}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={request.processing_type === 'rush' ? 'destructive' : 'secondary'}>
+                                                            {request.processing_type === 'rush' ? 'Rush' : 'Normal'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge className={statusConfig[request.status]?.color || 'bg-gray-100'}>
+                                                            {statusConfig[request.status]?.label || request.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{request.release_date || '—'}</TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {formatCurrency(request.total_fee)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
 
                 {/* Remarks Display */}
-                {pendingRequests.some((r) => r.registrar_remarks || r.accounting_remarks) && (
+                {requests.some((r) => r.registrar_remarks || r.accounting_remarks) && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                                Remarks
+                                Remarks & Feedback
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {pendingRequests
+                            {requests
                                 .filter((r) => r.registrar_remarks || r.accounting_remarks)
                                 .map((request) => (
                                     <div key={request.id} className="p-4 bg-muted rounded-lg">
-                                        <p className="font-medium mb-2">{request.document_type_label}</p>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <p className="font-medium">{request.document_type_label}</p>
+                                            <Badge className={statusConfig[request.status]?.color || 'bg-gray-100'}>
+                                                {statusConfig[request.status]?.label || request.status}
+                                            </Badge>
+                                        </div>
                                         {request.registrar_remarks && (
                                             <p className="text-sm">
                                                 <span className="font-medium">Registrar:</span> {request.registrar_remarks}
