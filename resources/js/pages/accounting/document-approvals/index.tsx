@@ -11,10 +11,10 @@ import {
     Filter,
     Receipt,
     Ban,
-    DollarSign,
     Package,
     PackageCheck,
     Send,
+    List,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -49,14 +49,18 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { StudentPhoto } from '@/components/ui/student-photo';
 import AccountingLayout from '@/layouts/accounting-layout';
 
 interface Student {
     id: number;
     full_name: string;
+    first_name: string;
+    last_name: string;
     lrn: string;
     program: string;
     year_level: string;
+    student_photo_url: string | null;
 }
 
 interface DocumentFeeItem {
@@ -339,6 +343,10 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                         {/* Tabs */}
                         <Tabs value={activeTab} onValueChange={handleTabChange}>
                             <TabsList>
+                                <TabsTrigger value="all" className="flex gap-2">
+                                    <List className="h-4 w-4" />
+                                    All
+                                </TabsTrigger>
                                 <TabsTrigger value="pending" className="flex gap-2">
                                     <Clock className="h-4 w-4" />
                                     Pending
@@ -402,11 +410,19 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                                                 return (
                                                     <TableRow key={request.id}>
                                                         <TableCell>
-                                                            <div>
-                                                                <p className="font-medium">{request.student.full_name}</p>
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    {request.student.lrn}
-                                                                </p>
+                                                            <div className="flex items-center gap-3">
+                                                                <StudentPhoto
+                                                                    src={request.student.student_photo_url}
+                                                                    firstName={request.student.first_name}
+                                                                    lastName={request.student.last_name}
+                                                                    size="sm"
+                                                                />
+                                                                <div>
+                                                                    <p className="font-medium">{request.student.full_name}</p>
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        {request.student.lrn}
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         </TableCell>
                                                         <TableCell>
