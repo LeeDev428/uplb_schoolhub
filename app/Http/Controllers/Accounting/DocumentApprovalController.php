@@ -20,7 +20,7 @@ class DocumentApprovalController extends Controller
         $tab = $request->input('tab', 'pending');
         
         $query = DocumentRequest::with([
-            'student:id,first_name,last_name,lrn,program,year_level',
+            'student:id,first_name,last_name,lrn,program,year_level,student_photo_url',
             'documentFeeItem:id,name,category,price,processing_days',
             'registrarApprovedBy:id,name',
         ]);
@@ -69,9 +69,12 @@ class DocumentApprovalController extends Controller
                 'student' => $request->student ? [
                     'id' => $request->student->id,
                     'full_name' => $request->student->full_name,
+                    'first_name' => $request->student->first_name,
+                    'last_name' => $request->student->last_name,
                     'lrn' => $request->student->lrn,
                     'program' => $request->student->program,
                     'year_level' => $request->student->year_level,
+                    'student_photo_url' => $request->student->student_photo_url,
                 ] : null,
                 'document_type' => $request->document_type,
                 'document_type_label' => $request->document_type_label,
