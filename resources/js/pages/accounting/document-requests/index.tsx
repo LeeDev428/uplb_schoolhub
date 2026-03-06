@@ -10,8 +10,8 @@ import {
     Plus,
     Trash2,
     X,
-    DollarSign,
 } from 'lucide-react';
+import { PhilippinePeso } from '@/components/icons/philippine-peso';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { FilterBar } from '@/components/filters/filter-bar';
@@ -520,7 +520,7 @@ export default function DocumentRequestIndex({
                                                             setSelectedRequest(request);
                                                             setIsPaymentModalOpen(true);
                                                         }}>
-                                                            <DollarSign className="h-4 w-4 mr-2" />
+                                                            <PhilippinePeso className="h-4 w-4 mr-2" />
                                                             Mark as Paid
                                                         </DropdownMenuItem>
                                                     )}
