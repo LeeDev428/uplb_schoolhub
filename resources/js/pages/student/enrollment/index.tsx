@@ -283,26 +283,38 @@ function EnrollmentDetails({ student, fees, payments, promissoryNotes, requireme
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <Card className="bg-blue-50 border-blue-100">
                         <CardContent className="pt-4 pb-3">
-                            <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">Total Fees</p>
-                            <p className="text-xl font-bold text-blue-900 mt-1">{formatCurrency(summary.total_fees)}</p>
+                            <div className="flex items-center justify-between mb-1">
+                                <p className="text-xs font-medium text-blue-700 uppercase tracking-wide">Total Fees</p>
+                                <PhilippinePeso className="h-4 w-4 text-blue-400" />
+                            </div>
+                            <p className="text-xl font-bold text-blue-900">{formatCurrency(summary.total_fees)}</p>
                         </CardContent>
                     </Card>
                     <Card className="bg-purple-50 border-purple-100">
                         <CardContent className="pt-4 pb-3">
-                            <p className="text-xs font-medium text-purple-700 uppercase tracking-wide">Discount</p>
-                            <p className="text-xl font-bold text-purple-900 mt-1">{formatCurrency(summary.total_discount)}</p>
+                            <div className="flex items-center justify-between mb-1">
+                                <p className="text-xs font-medium text-purple-700 uppercase tracking-wide">Discount</p>
+                                <PhilippinePeso className="h-4 w-4 text-purple-400" />
+                            </div>
+                            <p className="text-xl font-bold text-purple-900">{formatCurrency(summary.total_discount)}</p>
                         </CardContent>
                     </Card>
                     <Card className="bg-green-50 border-green-100">
                         <CardContent className="pt-4 pb-3">
-                            <p className="text-xs font-medium text-green-700 uppercase tracking-wide">Total Paid</p>
-                            <p className="text-xl font-bold text-green-900 mt-1">{formatCurrency(summary.total_paid)}</p>
+                            <div className="flex items-center justify-between mb-1">
+                                <p className="text-xs font-medium text-green-700 uppercase tracking-wide">Total Paid</p>
+                                <PhilippinePeso className="h-4 w-4 text-green-400" />
+                            </div>
+                            <p className="text-xl font-bold text-green-900">{formatCurrency(summary.total_paid)}</p>
                         </CardContent>
                     </Card>
                     <Card className={summary.total_balance > 0 ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}>
                         <CardContent className="pt-4 pb-3">
-                            <p className={`text-xs font-medium uppercase tracking-wide ${summary.total_balance > 0 ? 'text-red-700' : 'text-gray-600'}`}>Balance</p>
-                            <p className={`text-xl font-bold mt-1 ${summary.total_balance > 0 ? 'text-red-900' : 'text-gray-700'}`}>{formatCurrency(summary.total_balance)}</p>
+                            <div className="flex items-center justify-between mb-1">
+                                <p className={`text-xs font-medium uppercase tracking-wide ${summary.total_balance > 0 ? 'text-red-700' : 'text-gray-600'}`}>Balance</p>
+                                <PhilippinePeso className={`h-4 w-4 ${summary.total_balance > 0 ? 'text-red-400' : 'text-gray-400'}`} />
+                            </div>
+                            <p className={`text-xl font-bold ${summary.total_balance > 0 ? 'text-red-900' : 'text-gray-700'}`}>{formatCurrency(summary.total_balance)}</p>
                         </CardContent>
                     </Card>
                 </div>
