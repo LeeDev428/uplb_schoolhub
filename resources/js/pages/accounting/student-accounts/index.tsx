@@ -160,7 +160,7 @@ interface Props {
 export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], classifications = [], yearLevels = [], filters, classListMale = [], classListFemale = [] }: Props) {
     const [viewMode, setViewMode] = useState<'accounts' | 'classlist'>('classlist');
     const [search, setSearch] = useState(filters.search || '');
-    const [activeTab, setActiveTab] = useState(filters.status || 'overdue');
+    const [activeTab, setActiveTab] = useState(filters.status || 'all');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
     const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
     const [classification, setClassification] = useState(filters.classification || 'all');
@@ -174,10 +174,11 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
     });
 
     const handleFilter = (overrideSearch?: string) => {
+        setViewMode('accounts');
         const searchValue = overrideSearch !== undefined ? overrideSearch : search;
         router.get('/accounting/student-accounts', {
             search: searchValue || undefined,
-            status: activeTab,
+            status: activeTab !== 'all' ? activeTab : undefined,
             school_year: schoolYear !== 'all' ? schoolYear : undefined,
             department_id: departmentId !== 'all' ? departmentId : undefined,
             classification: classification !== 'all' ? classification : undefined,
@@ -191,7 +192,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
         setActiveTab(value);
         router.get('/accounting/student-accounts', {
             search: search || undefined,
-            status: value,
+            status: value !== 'all' ? value : undefined,
             school_year: schoolYear !== 'all' ? schoolYear : undefined,
             department_id: departmentId !== 'all' ? departmentId : undefined,
             classification: classification !== 'all' ? classification : undefined,
@@ -203,7 +204,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
 
     const handleReset = () => {
         setSearch('');
-        setActiveTab('overdue');
+        setActiveTab('all');
         setSchoolYear('all');
         setDepartmentId('all');
         setClassification('all');
@@ -476,9 +477,10 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         options={schoolYearOptions}
                         onChange={(value) => {
                             setSchoolYear(value);
+                            setViewMode('accounts');
                             router.get('/accounting/student-accounts', {
                                 search: search || undefined,
-                                status: activeTab,
+                                status: activeTab !== 'all' ? activeTab : undefined,
                                 school_year: value !== 'all' ? value : undefined,
                                 department_id: departmentId !== 'all' ? departmentId : undefined,
                                 classification: classification !== 'all' ? classification : undefined,
@@ -491,9 +493,10 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         options={departmentOptions}
                         onChange={(value) => {
                             setDepartmentId(value);
+                            setViewMode('accounts');
                             router.get('/accounting/student-accounts', {
                                 search: search || undefined,
-                                status: activeTab,
+                                status: activeTab !== 'all' ? activeTab : undefined,
                                 school_year: schoolYear !== 'all' ? schoolYear : undefined,
                                 department_id: value !== 'all' ? value : undefined,
                                 classification: classification !== 'all' ? classification : undefined,
@@ -506,9 +509,10 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         options={classificationOptions}
                         onChange={(value) => {
                             setClassification(value);
+                            setViewMode('accounts');
                             router.get('/accounting/student-accounts', {
                                 search: search || undefined,
-                                status: activeTab,
+                                status: activeTab !== 'all' ? activeTab : undefined,
                                 school_year: schoolYear !== 'all' ? schoolYear : undefined,
                                 department_id: departmentId !== 'all' ? departmentId : undefined,
                                 classification: value !== 'all' ? value : undefined,
@@ -527,6 +531,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                 }}>
                     <TabsList>
                         <TabsTrigger value="classlist"><Users className="mr-1 h-4 w-4 inline" />Class List</TabsTrigger>
+                        <TabsTrigger value="all">All</TabsTrigger>
                         <TabsTrigger value="overdue">Overdue</TabsTrigger>
                         <TabsTrigger value="partial">Partial</TabsTrigger>
                         <TabsTrigger value="paid">Paid</TabsTrigger>
