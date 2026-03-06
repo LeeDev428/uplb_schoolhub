@@ -112,10 +112,11 @@ class StudentAccountController extends Controller
         });
 
         // Filter by payment status (after calculation)
-        if ($status = $request->input('status')) {
+        $status = $request->input('status');
+        if ($status && $status !== 'all') {
             $accounts->setCollection(
                 $accounts->getCollection()->filter(function ($account) use ($status) {
-                    return $account['payment_status'] === $status;
+                    return $account['payment_status'] === $status || ($status === 'overdue' && $account['is_overdue']);
                 })->values()
             );
         }
