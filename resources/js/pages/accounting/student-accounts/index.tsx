@@ -476,7 +476,13 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         options={schoolYearOptions}
                         onChange={(value) => {
                             setSchoolYear(value);
-                            setTimeout(() => handleFilter(), 0);
+                            router.get('/accounting/student-accounts', {
+                                search: search || undefined,
+                                status: activeTab,
+                                school_year: value !== 'all' ? value : undefined,
+                                department_id: departmentId !== 'all' ? departmentId : undefined,
+                                classification: classification !== 'all' ? classification : undefined,
+                            }, { preserveState: true, preserveScroll: true });
                         }}
                     />
                     <FilterDropdown
@@ -485,7 +491,13 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         options={departmentOptions}
                         onChange={(value) => {
                             setDepartmentId(value);
-                            setTimeout(() => handleFilter(), 0);
+                            router.get('/accounting/student-accounts', {
+                                search: search || undefined,
+                                status: activeTab,
+                                school_year: schoolYear !== 'all' ? schoolYear : undefined,
+                                department_id: value !== 'all' ? value : undefined,
+                                classification: classification !== 'all' ? classification : undefined,
+                            }, { preserveState: true, preserveScroll: true });
                         }}
                     />
                     <FilterDropdown
@@ -494,7 +506,13 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         options={classificationOptions}
                         onChange={(value) => {
                             setClassification(value);
-                            setTimeout(() => handleFilter(), 0);
+                            router.get('/accounting/student-accounts', {
+                                search: search || undefined,
+                                status: activeTab,
+                                school_year: schoolYear !== 'all' ? schoolYear : undefined,
+                                department_id: departmentId !== 'all' ? departmentId : undefined,
+                                classification: value !== 'all' ? value : undefined,
+                            }, { preserveState: true, preserveScroll: true });
                         }}
                     />
                     <Button onClick={() => handleFilter()} className="mt-auto">
