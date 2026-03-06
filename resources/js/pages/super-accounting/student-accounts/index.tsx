@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
-import { AlertTriangle, Eye, MoreHorizontal, Users, DollarSign, TrendingUp, Clock, Plus, Upload, CreditCard, List } from 'lucide-react';
+import { AlertTriangle, Eye, MoreHorizontal, Users, TrendingUp, Clock, Plus, Upload, CreditCard, List } from 'lucide-react';
+import { PhilippinePeso } from '@/components/icons/philippine-peso';
 import { useState } from 'react';
 import { FilterBar } from '@/components/filters/filter-bar';
 import { FilterDropdown } from '@/components/filters/filter-dropdown';
@@ -421,7 +422,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Receivables</CardTitle>
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <PhilippinePeso className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{formatCurrency(stats.total_receivables)}</div>
@@ -681,7 +682,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem asChild>
                                                         <Link href={`/super-accounting/payments/process/${account.student.id}`}>
-                                                            <DollarSign className="h-4 w-4 mr-2" />
+                                                            <PhilippinePeso className="h-4 w-4 mr-2" />
                                                             Process Payment
                                                         </Link>
                                                     </DropdownMenuItem>
