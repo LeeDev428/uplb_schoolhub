@@ -247,7 +247,7 @@ class StudentClearanceController extends Controller
         $status = $validated['status'];
         
         // Get or create enrollment clearance
-        $clearance = $student->enrollmentClearance()->firstOrCreate([]);
+        $clearance = EnrollmentClearance::firstOrCreate(['user_id' => $student->user->id]);
 
         // Update clearance
         $clearance->update([
