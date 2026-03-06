@@ -639,7 +639,7 @@ class StudentController extends Controller
         });
 
         $grouped = $annotated
-            ->sortBy(['level_number', 'semester', 'code'])
+            ->sortBy([['level_number', 'asc'], ['semester', 'asc'], ['code', 'asc']])
             ->groupBy('year_level_name')
             ->map(fn ($items) => $items->values());
 
