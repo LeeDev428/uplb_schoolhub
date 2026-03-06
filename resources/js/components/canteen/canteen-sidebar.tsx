@@ -1,13 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     ChefHat,
-    DollarSign,
     LayoutGrid,
     Megaphone,
     Package,
     ShoppingCart,
     UtensilsCrossed,
 } from 'lucide-react';
+import { PhilippinePeso } from '@/components/icons/philippine-peso';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -60,7 +60,7 @@ export function CanteenSidebar() {
         {
             title: 'Sales',
             href: '/canteen/sales',
-            icon: DollarSign,
+            icon: PhilippinePeso,
         },
         {
             title: 'Inventory',
