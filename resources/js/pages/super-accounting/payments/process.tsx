@@ -425,8 +425,8 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
     const handleClearanceToggle = () => {
         const newStatus = !enrollmentClearance?.accounting_clearance;
         setClearanceLoading(true);
-        router.put(`/accounting/clearance/${student.id}`, {
-            accounting_clearance: newStatus,
+        router.put(`/super-accounting/clearance/${student.id}`, {
+            status: newStatus,
         }, {
             onSuccess: () => {
                 setClearanceDialog(false);
