@@ -3,7 +3,6 @@ import { useForm } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import { 
     ArrowLeft, 
-    DollarSign, 
     Calendar, 
     FileText, 
     Receipt, 
@@ -21,6 +20,7 @@ import {
     ShieldCheck,
     ShieldX,
 } from 'lucide-react';
+import { PhilippinePeso } from '@/components/icons/philippine-peso';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/page-header';
