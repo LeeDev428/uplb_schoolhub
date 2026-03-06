@@ -16,6 +16,7 @@ use App\Models\ParentModel;
 use App\Models\Subject;
 use App\Models\StudentSubject;
 use App\Models\AppSetting;
+use App\Models\EnrollmentClearance;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -537,17 +538,20 @@ class StudentController extends Controller
         $requirementsPercentage = $totalRequirements > 0 ? round(($completedRequirements / $totalRequirements) * 100) : 0;
 
         // Create or update enrollment clearance record
-        if (!$student->enrollmentClearance) {
-            $student->enrollmentClearance()->create([
+        // enrollment_clearances.user_id references users.id — use the student's user account id, not the student id.
+        if ($student->user) {
+            $clearance = EnrollmentClearance::firstOrCreate(
+                ['user_id' => $student->user->id],
+                [
+                    'requirements_complete_percentage' => $requirementsPercentage,
+                    'requirements_complete' => $requirementsPercentage === 100,
+                ]
+            );
+            $clearance->update([
                 'requirements_complete_percentage' => $requirementsPercentage,
                 'requirements_complete' => $requirementsPercentage === 100,
             ]);
             $student->load('enrollmentClearance');
-        } else {
-            $student->enrollmentClearance->update([
-                'requirements_complete_percentage' => $requirementsPercentage,
-                'requirements_complete' => $requirementsPercentage === 100,
-            ]);
         }
 
         return Inertia::render('registrar/students/show', [
@@ -705,7 +709,7 @@ class StudentController extends Controller
         $status = $validated['status'];
 
         // Get or create enrollment clearance
-        $clearance = $student->enrollmentClearance()->firstOrCreate([]);
+        $clearance = EnrollmentClearance::firstOrCreate(['user_id' => $student->user->id]);
 
         // Always sync requirements_complete from actual approved requirements so it's
         // never stale when the registrar checks/toggles the other clearance fields.
@@ -938,7 +942,7 @@ class StudentController extends Controller
 
         // If auto-clear, also update the enrollment clearance
         if ($autoClear) {
-            $clearance = $student->enrollmentClearance()->firstOrCreate([]);
+            $clearance = EnrollmentClearance::firstOrCreate(['user_id' => $student->user->id]);
             $clearance->update([
                 'registrar_clearance'   => true,
                 'registrar_cleared_at'  => now(),
@@ -1011,7 +1015,7 @@ class StudentController extends Controller
 
         // Clear any pending enrollment clearance so re-enrollment starts fresh
         if ($student->enrollmentClearance) {
-            $student->enrollmentClearance()->update([
+            $student->enrollmentClearance->update([
                 'registrar_clearance'   => false,
                 'accounting_clearance'  => false,
                 'official_enrollment'   => false,
@@ -1084,7 +1088,7 @@ class StudentController extends Controller
             ]);
 
             if ($student->enrollmentClearance) {
-                $student->enrollmentClearance()->update([
+                $student->enrollmentClearance->update([
                     'registrar_clearance'   => false,
                     'accounting_clearance'  => false,
                     'official_enrollment'   => false,
