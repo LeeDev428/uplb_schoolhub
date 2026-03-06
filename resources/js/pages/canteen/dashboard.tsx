@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
-import { Utensils, ShoppingCart, DollarSign, Package } from 'lucide-react';
+import { Utensils, ShoppingCart, Package } from 'lucide-react';
+import { PhilippinePeso } from '@/components/icons/philippine-peso';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CanteenLayout from '@/layouts/canteen/canteen-layout';
 
@@ -37,7 +38,7 @@ export default function CanteenDashboard() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Sales</CardTitle>
-                            <DollarSign className="h-5 w-5 text-green-600" />
+                            <PhilippinePeso className="h-5 w-5 text-green-600" />
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm text-muted-foreground">View daily sales reports.</p>
