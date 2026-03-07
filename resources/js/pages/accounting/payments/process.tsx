@@ -1342,7 +1342,14 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                         <TableBody>
                                             {payments.map((payment) => (
                                                 <TableRow key={payment.id}>
-                                                    <TableCell>{formatDate(payment.payment_date)}</TableCell>
+                                                    <TableCell>
+                                                        {formatDate(payment.payment_date)}
+                                                        {payment.created_at && (
+                                                            <span className="block text-xs text-muted-foreground">
+                                                                {payment.created_at.split(' ')[1]}
+                                                            </span>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell className="font-mono">
                                                         {payment.or_number || '-'}
                                                     </TableCell>
