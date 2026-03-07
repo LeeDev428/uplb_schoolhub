@@ -393,9 +393,9 @@ class AccountingDashboardController extends Controller
         ];
 
         $paymentSummary = [
-            'cash'  => (float) $payments->where('payment_method', 'CASH')->sum('amount'),
-            'gcash' => (float) $payments->where('payment_method', 'GCASH')->sum('amount'),
-            'bank'  => (float) $payments->where('payment_method', 'BANK')->sum('amount'),
+            'cash'  => (float) $payments->filter(fn($p) => strtoupper($p->payment_mode ?? $p->payment_method ?? '') === 'CASH')->sum('amount'),
+            'gcash' => (float) $payments->filter(fn($p) => strtoupper($p->payment_mode ?? $p->payment_method ?? '') === 'GCASH')->sum('amount'),
+            'bank'  => (float) $payments->filter(fn($p) => strtoupper($p->payment_mode ?? $p->payment_method ?? '') === 'BANK')->sum('amount'),
         ];
 
         // Daily collections across the period
@@ -430,7 +430,7 @@ class AccountingDashboardController extends Controller
                 'time'      => Carbon::parse($p->created_at)->format('h:i A'),
                 'type'      => 'Fee',
                 'or_number' => $p->or_number ?? 'N/A',
-                'mode'      => $p->payment_method ?? 'CASH',
+                'mode'      => strtoupper($p->payment_mode ?? $p->payment_method ?? 'CASH'),
                 'reference' => $p->reference_number,
                 'amount'    => (float) $p->amount,
             ];
