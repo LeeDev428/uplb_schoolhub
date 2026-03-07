@@ -203,6 +203,24 @@ function EnrollmentDetails({ student, fees, payments, promissoryNotes, requireme
         <StudentLayout>
             <Head title="My Enrollment" />
 
+            {/* Enrollment Tabs */}
+            <div className="border-b px-6 pt-2">
+                <nav className="flex">
+                    <Link
+                        href="/student/enrollment"
+                        className="px-5 py-2.5 text-sm font-medium border-b-2 border-primary text-primary transition-colors"
+                    >
+                        Enrollment Details
+                    </Link>
+                    <Link
+                        href="/student/enrollment/subjects"
+                        className="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300 transition-colors"
+                    >
+                        Subject Enrollment
+                    </Link>
+                </nav>
+            </div>
+
             <div className="space-y-6 p-6 max-w-4xl mx-auto">
                 {/* Header */}
                 <div>
@@ -612,6 +630,24 @@ function EnrollmentForm({ student, currentSchoolYear, hasPendingRequest, enrollm
     return (
         <StudentLayout>
             <Head title="Re-Enrollment" />
+
+            {/* Enrollment Tabs */}
+            <div className="border-b px-6 pt-2">
+                <nav className="flex">
+                    <Link
+                        href="/student/enrollment"
+                        className="px-5 py-2.5 text-sm font-medium border-b-2 border-primary text-primary transition-colors"
+                    >
+                        Enrollment Details
+                    </Link>
+                    <Link
+                        href="/student/enrollment/subjects"
+                        className="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300 transition-colors"
+                    >
+                        Subject Enrollment
+                    </Link>
+                </nav>
+            </div>
 
             <div className="space-y-6 p-6 max-w-2xl mx-auto">
                 <div>

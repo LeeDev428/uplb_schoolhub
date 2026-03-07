@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     CheckCircle2,
@@ -269,6 +269,24 @@ export default function SubjectEnrollment({
     return (
         <StudentLayout>
             <Head title="Subject Enrollment" />
+
+            {/* Enrollment Tabs */}
+            <div className="border-b px-6 pt-2">
+                <nav className="flex">
+                    <Link
+                        href="/student/enrollment"
+                        className="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300 transition-colors"
+                    >
+                        Enrollment Details
+                    </Link>
+                    <Link
+                        href="/student/enrollment/subjects"
+                        className="px-5 py-2.5 text-sm font-medium border-b-2 border-primary text-primary transition-colors"
+                    >
+                        Subject Enrollment
+                    </Link>
+                </nav>
+            </div>
 
             <div className="space-y-6 p-6">
                 {/* Header */}
