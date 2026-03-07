@@ -7,6 +7,7 @@ use App\Models\FeeItem;
 use App\Models\FeeItemAssignment;
 use App\Models\OnlineTransaction;
 use App\Models\Student;
+use App\Models\StudentFee;
 use App\Models\StudentPayment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -165,34 +166,17 @@ class OnlinePaymentController extends Controller
     }
 
     /**
-     * Get fee summary for the student.
+     * Get fee summary for the student from StudentFee records (authoritative source).
      */
     private function getFeeSummary(Student $student): array
     {
-        $feeItems = $this->getStudentFeeItems($student);
-        $totalFees = array_sum(array_column($feeItems, 'amount'));
-
-        // Get discount from grants
-        $totalDiscount = \App\Models\GrantRecipient::where('student_id', $student->id)
-            ->where('status', 'active')
-            ->sum('discount_amount');
-
-        // Get total paid (verified online transactions + regular payments)
-        $totalOnlinePaid = OnlineTransaction::where('student_id', $student->id)
-            ->where('status', 'verified')
-            ->sum('amount');
-
-        $totalRegularPaid = StudentPayment::whereHas('studentFee', function ($query) use ($student) {
-            $query->where('student_id', $student->id);
-        })->sum('amount');
-
-        $totalPaid = $totalOnlinePaid + $totalRegularPaid;
+        $fees = StudentFee::where('student_id', $student->id)->get();
 
         return [
-            'total_fees' => $totalFees,
-            'total_discount' => $totalDiscount,
-            'total_paid' => $totalPaid,
-            'balance' => max(0, $totalFees - $totalDiscount - $totalPaid),
+            'total_fees'     => (float) $fees->sum('total_amount'),
+            'total_discount' => (float) $fees->sum('grant_discount'),
+            'total_paid'     => (float) $fees->sum('total_paid'),
+            'balance'        => (float) $fees->sum('balance'),
         ];
     }
 }
