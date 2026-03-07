@@ -402,9 +402,17 @@ export default function AccountDashboard({
                                                     {tx.date} {tx.time}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant={tx.type === 'Fee' ? 'default' : 'secondary'} className={
-                                                        tx.type === 'Fee' ? 'bg-blue-500' : tx.type === 'Drop' ? 'bg-orange-500' : 'bg-green-500'
-                                                    }>
+                                                    <Badge
+                                                        variant={tx.type === 'Fee' ? 'default' : 'secondary'}
+                                                        className={`cursor-pointer ${tx.type === 'Fee' ? 'bg-blue-500 hover:bg-blue-600' : tx.type === 'Drop' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}`}
+                                                        onClick={() => router.visit(
+                                                            tx.type === 'Fee'
+                                                                ? '/accounting/payments'
+                                                                : tx.type === 'Document'
+                                                                    ? '/accounting/document-requests'
+                                                                    : '/accounting/drop-requests'
+                                                        )}
+                                                    >
                                                         {tx.type}
                                                     </Badge>
                                                 </TableCell>
