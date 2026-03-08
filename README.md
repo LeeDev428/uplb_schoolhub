@@ -730,6 +730,22 @@ php artisan test --coverage
 - Issue: Students in the Registrar's Dropped tab could only be opened via the small "Edit" button; the row itself was not navigable
 - Fix: `TableRow` in the Dropped tab is now `cursor-pointer` with an `onClick` that navigates to the student detail page; Re-Enroll button uses `e.stopPropagation()` to remain independent
 
+✅ **Student Accounts 404 on View Details** *(Fixed: Apr 2026)*
+- Issue: Clicking "View Details" on a student account row returned a 404 because the link used `account.id` which resolves to `student_fee_id` (not the student's ID) when a fee record exists; Laravel's route model binding then looked for a `Student` with that fee ID
+- Fix: Changed the link in `student-accounts/index.tsx` to use `account.student.id` which always references the real student primary key
+
+✅ **Drop Requests Not Appearing After Registrar Direct Drop** *(Fixed: Apr 2026)*
+- Issue: When the Registrar used the "Drop Student" shortcut on the student detail page, the student's `enrollment_status` was set to `dropped` but no `DropRequest` record was created; the Accounting `/drop-requests` page queries the `drop_requests` table, so nothing appeared there and Accounting could never see or clear the student
+- Fix: `StudentController::dropStudent()` now creates a `DropRequest` record with `registrar_status = 'approved'` and `accounting_status = 'pending'` immediately after updating enrollment status, using `firstOrCreate` to avoid duplicates; `registrar_approved_by` and `registrar_approved_at` are set so the audit trail is complete; semester and school year are pulled from `AppSetting::current()`
+
+✅ **Promissory Notes Using Generic Icon Instead of Student Photo** *(Fixed: Apr 2026)*
+- Issue: Both `accounting/promissory-notes/index.tsx` and `super-accounting/promissory-notes/index.tsx` displayed a generic `<User>` Lucide icon in the student column instead of the student's actual profile photo; the controller also omitted `student_photo_url`, `student_first_name`, `student_last_name`, and `student_lrn` from its transform
+- Fix: `PromissoryNoteController::index()` transform now includes `student_photo_url`, `student_first_name`, `student_last_name`, and `student_lrn`; both frontend pages updated with the `StudentPhoto` component (replacing the `User` icon), extended TypeScript interface, and a sub-row showing the LRN when available
+
+✅ **Promissory Notes Missing from Accounting Sidebar** *(Fixed: Apr 2026)*
+- Issue: Despite a complete route, controller, and page for promissory notes existing for both the accounting (`/accounting/promissory-notes`) and super-accounting (`/super-accounting/promissory-notes`) portals, neither sidebar listed a navigation item for the page
+- Fix: Added `Promissory Notes` nav item (with `ScrollText` icon) to both `accounting-sidebar.tsx` (after Drop Requests) and `super-accounting-sidebar.tsx` (after Student Accounts)
+
 ---
 
 ## 🗺️ Roadmap
