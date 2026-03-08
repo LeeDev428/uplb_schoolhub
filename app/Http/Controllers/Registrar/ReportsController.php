@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Registrar;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Department;
+use App\Models\StudentFee;
+use App\Models\StudentPayment;
 use App\Models\YearLevel;
 use App\Models\Section;
 use Illuminate\Http\Request;
@@ -88,6 +90,25 @@ class ReportsController extends Controller
                 'fill_rate' => $s->capacity > 0 ? round(($s->students_count / $s->capacity) * 100, 1) : 0,
             ]);
 
+        $departmentAnalysis = Department::all()
+            ->map(function ($dept) {
+                $studentIds     = Student::where('department_id', $dept->id)->whereNull('deleted_at')->pluck('id');
+                $totalBilled    = (float) StudentFee::whereIn('student_id', $studentIds)->sum('total_amount');
+                $totalCollected = (float) StudentPayment::whereIn('student_id', $studentIds)->sum('amount');
+                $totalBalance   = (float) StudentFee::whereIn('student_id', $studentIds)->sum('balance');
+                $collectionRate = $totalBilled > 0 ? round(($totalCollected / $totalBilled) * 100, 1) : 0;
+                return [
+                    'department'      => $dept->name,
+                    'students'        => $studentIds->count(),
+                    'billed'          => round($totalBilled, 2),
+                    'collected'       => round($totalCollected, 2),
+                    'balance'         => round($totalBalance, 2),
+                    'collection_rate' => $collectionRate,
+                ];
+            })
+            ->sortByDesc('collected')
+            ->values();
+
         // Get departments filtered by classification for dropdown
         $departmentsQuery = Department::orderBy('name');
         if ($classification !== 'all') {
@@ -107,6 +128,7 @@ class ReportsController extends Controller
             'enrollmentDistribution' => $enrollmentDistribution,
             'sectionFillRates' => $sectionFillRates,
             'departments' => $departmentsQuery->get(),
+            'departmentAnalysis' => $departmentAnalysis,
             'filters' => [
                 'classification' => $classification,
                 'department_id' => $departmentFilter,
