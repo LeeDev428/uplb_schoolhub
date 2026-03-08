@@ -48,6 +48,7 @@ class Student extends Model
         'guardian_relationship',
         'guardian_contact',
         'guardian_email',
+        'guardian_occupation',
         'student_photo_url',
         'remarks',
     ];
