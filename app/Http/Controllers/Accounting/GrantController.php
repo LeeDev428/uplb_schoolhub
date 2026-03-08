@@ -83,6 +83,7 @@ class GrantController extends Controller
             });
 
         $schoolYears = GrantRecipient::distinct()->pluck('school_year')->sort()->values();
+        $currentSchoolYear = \App\Models\AppSetting::current()?->school_year ?? '';
 
         return Inertia::render($this->viewPrefix() . '/grants/index', [
             'tab' => $tab,
@@ -90,6 +91,7 @@ class GrantController extends Controller
             'recipients' => $recipients,
             'students' => $students,
             'schoolYears' => $schoolYears,
+            'currentSchoolYear' => $currentSchoolYear,
             'filters' => $request->only(['search', 'grant_id', 'school_year', 'status']),
         ]);
     }
