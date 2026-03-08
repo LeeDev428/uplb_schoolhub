@@ -173,15 +173,22 @@ class OnlinePaymentController extends Controller
     {
         $fees = StudentFee::where('student_id', $student->id)->get();
 
-        // Sync grant discounts dynamically from GrantRecipient (fixes stale grant_discount = 0)
+        // Sync grant discounts: recalculate from Grant model to fix stale discount_amount=0 records
         foreach ($fees as $feeToSync) {
-            $freshGrant = GrantRecipient::where('student_id', $student->id)
+            $recipients = GrantRecipient::where('student_id', $student->id)
                 ->where('school_year', $feeToSync->school_year)
                 ->where('status', 'active')
-                ->sum('discount_amount');
-            if ((float) $feeToSync->grant_discount !== (float) $freshGrant) {
+                ->with('grant')
+                ->get();
+            $freshGrant = 0.0;
+            foreach ($recipients as $r) {
+                if ($r->grant) {
+                    $freshGrant += $r->grant->calculateDiscount((float) $feeToSync->total_amount);
+                }
+            }
+            if ((float) $feeToSync->grant_discount !== $freshGrant) {
                 $feeToSync->grant_discount = $freshGrant;
-                $feeToSync->balance = max(0, (float) $feeToSync->total_amount - (float) $freshGrant - (float) $feeToSync->total_paid);
+                $feeToSync->balance = max(0, (float) $feeToSync->total_amount - $freshGrant - (float) $feeToSync->total_paid);
                 $feeToSync->save();
             }
         }
