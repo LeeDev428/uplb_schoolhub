@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\GrantRecipient;
 use App\Models\Student;
 use App\Models\StudentFee;
 use Illuminate\Support\Facades\Auth;
@@ -79,7 +80,20 @@ class DashboardController extends Controller
     private function getPaymentSummary(Student $student): ?array
     {
         $currentSchoolYear = \App\Models\AppSetting::current()->school_year ?? '2024-2025';
-        
+
+        // Sync grant discounts dynamically from GrantRecipient (fixes stale grant_discount = 0)
+        foreach (StudentFee::where('student_id', $student->id)->get() as $feeToSync) {
+            $freshGrant = GrantRecipient::where('student_id', $student->id)
+                ->where('school_year', $feeToSync->school_year)
+                ->where('status', 'active')
+                ->sum('discount_amount');
+            if ((float) $feeToSync->grant_discount !== (float) $freshGrant) {
+                $feeToSync->grant_discount = $freshGrant;
+                $feeToSync->balance = max(0, (float) $feeToSync->total_amount - (float) $freshGrant - (float) $feeToSync->total_paid);
+                $feeToSync->save();
+            }
+        }
+
         // Get student fees (same as accounting process page)
         $fees = StudentFee::with(['payments'])
             ->where('student_id', $student->id)
