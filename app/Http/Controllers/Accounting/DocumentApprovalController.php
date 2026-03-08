@@ -129,9 +129,6 @@ class DocumentApprovalController extends Controller
             'releasing' => DocumentRequest::where('registrar_status', 'approved')
                 ->where('accounting_status', 'approved')
                 ->where('status', 'processing')->count(),
-            'ready' => DocumentRequest::where('status', 'ready')->count(),
-            'released' => DocumentRequest::where('registrar_status', 'approved')
-                ->where('status', 'released')->count(),
         ];
 
         // Get document types for filter
