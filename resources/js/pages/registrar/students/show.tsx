@@ -190,6 +190,7 @@ interface Student {
     guardian_relationship: string;
     guardian_contact: string;
     guardian_email: string | null;
+    guardian_occupation: string | null;
     guardian_address: string | null;
     emergency_contact_name: string;
     emergency_contact_relationship: string;
@@ -783,6 +784,12 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                                         <div>
                                             <dt className="text-sm font-medium text-muted-foreground">Email</dt>
                                             <dd className="mt-1">{student.guardian_email}</dd>
+                                        </div>
+                                    )}
+                                    {student.guardian_occupation && (
+                                        <div>
+                                            <dt className="text-sm font-medium text-muted-foreground">Occupation</dt>
+                                            <dd className="mt-1">{student.guardian_occupation}</dd>
                                         </div>
                                     )}
                                     {student.guardian_address && (
