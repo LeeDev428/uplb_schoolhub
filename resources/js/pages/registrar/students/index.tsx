@@ -190,6 +190,8 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
     const [reEnrollYearLevel, setReEnrollYearLevel] = useState('');
     const [reEnrollProgram, setReEnrollProgram] = useState('__none__');
     const [reEnrollAutoClear, setReEnrollAutoClear] = useState(false);
+    const [reEnrollClassification, setReEnrollClassification] = useState('');
+    const [reEnrollDepartmentId, setReEnrollDepartmentId] = useState<string>('');
 
     // ── Global Active School Year ───────────────────────────────────────────────────
     const defaultSyStart = new Date().getMonth() < 5 ? new Date().getFullYear() - 1 : new Date().getFullYear();
@@ -314,6 +316,8 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
         setReEnrollYearLevel('');
         setReEnrollProgram('__none__');
         setReEnrollAutoClear(false);
+        setReEnrollClassification('');
+        setReEnrollDepartmentId('');
         setReEnrollOpen(true);
     };
 
@@ -325,6 +329,7 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
         router.post(`/registrar/students/${reEnrollStudentId}/re-enroll`, {
             year_level: reEnrollYearLevel,
             program: (reEnrollProgram && reEnrollProgram !== '__none__') ? reEnrollProgram : null,
+            department_id: reEnrollDepartmentId ? Number(reEnrollDepartmentId) : null,
             auto_clear: reEnrollAutoClear,
         }, {
             preserveScroll: true,
@@ -1070,6 +1075,34 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
                             </p>
                         </div>
                         <div className="space-y-3">
+                            <div>
+                                <Label htmlFor="re-enroll-classification">Classification</Label>
+                                <Select value={reEnrollClassification} onValueChange={(v) => { setReEnrollClassification(v); setReEnrollDepartmentId(''); }}>
+                                    <SelectTrigger id="re-enroll-classification" className="mt-1">
+                                        <SelectValue placeholder="Select classification..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[...new Set(departments.map(d => d.level))].map((cls) => (
+                                            <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {reEnrollClassification && (
+                                <div>
+                                    <Label htmlFor="re-enroll-department">Department</Label>
+                                    <Select value={reEnrollDepartmentId} onValueChange={setReEnrollDepartmentId}>
+                                        <SelectTrigger id="re-enroll-department" className="mt-1">
+                                            <SelectValue placeholder="Select department..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departments.filter(d => d.level === reEnrollClassification).map((d) => (
+                                                <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
                             <div>
                                 <Label htmlFor="re-enroll-year-level">Year Level <span className="text-destructive">*</span></Label>
                                 <Select value={reEnrollYearLevel} onValueChange={setReEnrollYearLevel}>
