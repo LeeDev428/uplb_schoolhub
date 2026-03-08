@@ -15,51 +15,61 @@ class SyncGrantDiscounts extends Command
     {
         $this->info('Syncing grant discounts to student fees...');
 
-        // Step 1: Recalculate and fix discount_amount in grant_recipients from the Grant model
-        // This repairs records where discount_amount was incorrectly stored as 0
-        $allRecipients = GrantRecipient::where('status', 'active')->with('grant')->get();
+        $currentSchoolYear = \App\Models\AppSetting::current()?->school_year;
 
-        foreach ($allRecipients as $recipient) {
-            if (!$recipient->grant) {
-                continue;
+        // Collect every student that has at least one active grant recipient
+        $studentIds = GrantRecipient::where('status', 'active')
+            ->distinct()
+            ->pluck('student_id');
+
+        foreach ($studentIds as $studentId) {
+            // All active grants for this student (no school_year filter — fixes year-label mismatches)
+            $activeRecipients = GrantRecipient::where('student_id', $studentId)
+                ->where('status', 'active')
+                ->with('grant')
+                ->get();
+
+            // All fee records for this student
+            $studentFees = StudentFee::where('student_id', $studentId)->get();
+
+            foreach ($studentFees as $fee) {
+                // For the current school year, apply ALL active grants.
+                // For historical years, only apply grants whose school_year matches exactly.
+                $applicableRecipients = ($fee->school_year === $currentSchoolYear || !$currentSchoolYear)
+                    ? $activeRecipients
+                    : $activeRecipients->filter(fn($r) => $r->school_year === $fee->school_year);
+
+                // Step 1: fix stale discount_amount on each applicable recipient
+                foreach ($applicableRecipients as $recipient) {
+                    if (!$recipient->grant) {
+                        continue;
+                    }
+                    $correct = $recipient->grant->calculateDiscount((float) $fee->total_amount);
+                    if ((float) $recipient->discount_amount !== $correct) {
+                        $recipient->discount_amount = $correct;
+                        $recipient->save();
+                        $this->info("Fixed recipient {$recipient->id} (student {$studentId}): discount ₱{$correct}");
+                    }
+                }
+
+                // Step 2: sum up and persist to student_fee
+                $totalDiscount = $applicableRecipients->sum(fn($r) => $r->grant
+                    ? $r->grant->calculateDiscount((float) $fee->total_amount)
+                    : 0.0
+                );
+
+                $newBalance = max(0, (float) $fee->total_amount - (float) $fee->total_paid - $totalDiscount);
+
+                if ((float) $fee->grant_discount !== $totalDiscount || (float) $fee->balance !== $newBalance) {
+                    $fee->grant_discount = $totalDiscount;
+                    $fee->balance        = $newBalance;
+                    $fee->save();
+                    $this->info("Updated StudentFee {$fee->id} (student {$studentId}, {$fee->school_year}): grant_discount=₱{$totalDiscount}");
+                }
             }
-            $studentFee = StudentFee::where('student_id', $recipient->student_id)
-                ->where('school_year', $recipient->school_year)
-                ->first();
-            $totalAmount = $studentFee ? (float) $studentFee->total_amount : 0;
-            $correctDiscount = $recipient->grant->calculateDiscount($totalAmount);
-            if ((float) $recipient->discount_amount !== $correctDiscount) {
-                $recipient->discount_amount = $correctDiscount;
-                $recipient->save();
-                $this->info("Fixed recipient {$recipient->id} (student {$recipient->student_id}): discount ₱{$correctDiscount}");
-            }
-        }
 
-        // Step 2: Apply summed grant discounts to StudentFee records
-        $processed = [];
-        foreach ($allRecipients as $recipient) {
-            $key = $recipient->student_id . '_' . $recipient->school_year;
-            if (isset($processed[$key])) {
-                continue;
-            }
-            $processed[$key] = true;
-
-            $studentFee = StudentFee::where('student_id', $recipient->student_id)
-                ->where('school_year', $recipient->school_year)
-                ->first();
-
-            if ($studentFee) {
-                $totalGrants = GrantRecipient::where('student_id', $recipient->student_id)
-                    ->where('school_year', $recipient->school_year)
-                    ->where('status', 'active')
-                    ->sum('discount_amount');
-
-                $studentFee->grant_discount = $totalGrants;
-                $studentFee->balance = max(0, (float) $studentFee->total_amount - (float) $studentFee->total_paid - (float) $totalGrants);
-                $studentFee->save();
-
-                $this->info("Updated StudentFee for student {$recipient->student_id} ({$recipient->school_year}): grant_discount=₱{$totalGrants}");
-            }
+            // Edge case: student has an active grant but no student_fee yet for the current year.
+            // Nothing to do — the fee will be created correctly on next page load.
         }
 
         $this->info('Grant discounts synced successfully!');
