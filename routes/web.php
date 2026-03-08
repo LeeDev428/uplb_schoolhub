@@ -75,6 +75,7 @@ if (!function_exists('registerSettingsRoutes')) {
 if (!function_exists('registerAnnouncementsRoute')) {
     function registerAnnouncementsRoute(): void {
         Route::get('announcements', [App\Http\Controllers\AnnouncementViewController::class, 'index'])->name('announcements.index');
+        Route::post('announcements', [App\Http\Controllers\AnnouncementViewController::class, 'store'])->name('announcements.store');
     }
 }
 
