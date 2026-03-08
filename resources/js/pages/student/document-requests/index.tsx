@@ -128,6 +128,8 @@ export default function DocumentRequestsIndex({ requests, documentFees, feesByCa
         purpose: '',
         receipt_file: null as File | null,
         receipt_number: '',
+        payment_type: '',
+        bank_name: '',
     });
 
     const formatCurrency = (amount: string | number) => {
@@ -324,6 +326,42 @@ export default function DocumentRequestsIndex({ requests, documentFees, feesByCa
                                                     <p className="text-sm text-red-500">{form.errors.receipt_number}</p>
                                                 )}
                                             </div>
+
+                                            {/* Payment Type */}
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="payment_type">Payment Type *</Label>
+                                                <Select
+                                                    value={form.data.payment_type}
+                                                    onValueChange={(val) => form.setData('payment_type', val)}
+                                                >
+                                                    <SelectTrigger id="payment_type">
+                                                        <SelectValue placeholder="Select payment type" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="gcash">GCash</SelectItem>
+                                                        <SelectItem value="bank">Bank Transfer</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {form.errors.payment_type && (
+                                                    <p className="text-sm text-red-500">{form.errors.payment_type}</p>
+                                                )}
+                                            </div>
+
+                                            {/* Bank Name (conditional) */}
+                                            {form.data.payment_type === 'bank' && (
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="bank_name">Bank Name *</Label>
+                                                    <Input
+                                                        id="bank_name"
+                                                        value={form.data.bank_name}
+                                                        onChange={(e) => form.setData('bank_name', e.target.value)}
+                                                        placeholder="e.g. BDO, BPI, Landbank"
+                                                    />
+                                                    {form.errors.bank_name && (
+                                                        <p className="text-sm text-red-500">{form.errors.bank_name}</p>
+                                                    )}
+                                                </div>
+                                            )}
 
                                             {/* Receipt Upload */}
                                             <div className="grid gap-2">
