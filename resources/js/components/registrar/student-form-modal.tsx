@@ -865,6 +865,8 @@ export function StudentFormModal({
                                     placeholder="e.g. Farmer, Teacher, Engineer"
                                 />
                             </div>
+                        </div>
+                    </div>
 
                     {/* Optional Information */}
                     <div className="space-y-4">
