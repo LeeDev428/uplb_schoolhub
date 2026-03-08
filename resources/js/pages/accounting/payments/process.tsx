@@ -115,6 +115,7 @@ interface Payment {
     or_number: string;
     amount: number;
     payment_for: string;
+    payment_mode: string;
     notes: string | null;
     recorded_by: string;
     created_at: string;
@@ -1335,6 +1336,7 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                 <TableHead>OR Number</TableHead>
                                                 <TableHead>Payment For</TableHead>
                                                 <TableHead className="text-right">Amount</TableHead>
+                                                <TableHead>Mode of Payment</TableHead>
                                                 <TableHead>Notes</TableHead>
                                                 <TableHead>Recorded By</TableHead>
                                             </TableRow>
@@ -1360,6 +1362,9 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                                     </TableCell>
                                                     <TableCell className="text-right font-medium text-green-600">
                                                         +{formatCurrency(payment.amount)}
+                                                    </TableCell>
+                                                    <TableCell className="font-medium">
+                                                        {payment.payment_mode || 'CASH'}
                                                     </TableCell>
                                                     <TableCell className="max-w-xs truncate text-muted-foreground">
                                                         {payment.notes || '-'}
