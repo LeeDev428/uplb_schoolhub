@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\PromissoryNote;
+use App\Models\StudentFee;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,47 +18,97 @@ class PromissoryNoteController extends Controller
      */
     public function index(Request $request): Response
     {
-        $status = $request->get('status', 'all');
-        
-        $query = PromissoryNote::with(['student', 'studentFee', 'reviewer'])
+        $status         = $request->get('status', 'all');
+        $search         = $request->get('search', '');
+        $classification = $request->get('classification', 'all');
+        $departmentId   = $request->get('department_id', 'all');
+        $schoolYear     = $request->get('school_year', 'all');
+
+        $query = PromissoryNote::with(['student.department', 'studentFee', 'reviewer'])
             ->latest('submitted_date');
 
         if ($status !== 'all') {
             $query->where('status', $status);
         }
 
+        if ($search) {
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('lrn', 'like', "%{$search}%");
+            });
+        }
+
+        if ($departmentId !== 'all') {
+            $query->whereHas('student', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        if ($classification !== 'all') {
+            $query->whereHas('student.department', function ($q) use ($classification) {
+                $q->where('classification', $classification);
+            });
+        }
+
+        if ($schoolYear !== 'all') {
+            $query->whereHas('studentFee', function ($q) use ($schoolYear) {
+                $q->where('school_year', $schoolYear);
+            });
+        }
+
         $notes = $query->paginate(15)->through(function ($note) {
             return [
-                'id' => $note->id,
-                'student_name' => $note->student?->full_name ?? 'Unknown',
-                'student_first_name' => $note->student?->first_name ?? '',
-                'student_last_name' => $note->student?->last_name ?? '',
-                'student_photo_url' => $note->student?->student_photo_url,
-                'student_lrn' => $note->student?->lrn,
-                'student_id' => $note->student_id,
-                'submitted_date' => $note->submitted_date->format('Y-m-d'),
-                'due_date' => $note->due_date->format('Y-m-d'),
-                'amount' => $note->amount !== null ? (float) $note->amount : null,
-                'reason' => $note->reason,
-                'status' => $note->status,
-                'reviewed_by' => $note->reviewer?->name,
-                'reviewed_at' => $note->reviewed_at?->format('Y-m-d H:i'),
-                'review_notes' => $note->review_notes,
-                'school_year' => $note->studentFee?->school_year,
+                'id'                    => $note->id,
+                'student_name'          => $note->student?->full_name ?? 'Unknown',
+                'student_first_name'    => $note->student?->first_name ?? '',
+                'student_last_name'     => $note->student?->last_name ?? '',
+                'student_photo_url'     => $note->student?->student_photo_url,
+                'student_lrn'           => $note->student?->lrn,
+                'student_id'            => $note->student_id,
+                'student_department'    => $note->student?->department?->name,
+                'student_classification'=> $note->student?->department?->classification,
+                'student_year_level'    => $note->student?->year_level,
+                'submitted_date'        => $note->submitted_date->format('Y-m-d'),
+                'due_date'              => $note->due_date->format('Y-m-d'),
+                'amount'                => $note->amount !== null ? (float) $note->amount : null,
+                'reason'                => $note->reason,
+                'status'                => $note->status,
+                'reviewed_by'           => $note->reviewer?->name,
+                'reviewed_at'           => $note->reviewed_at?->format('Y-m-d H:i'),
+                'review_notes'          => $note->review_notes,
+                'school_year'           => $note->studentFee?->school_year,
             ];
         });
 
         $stats = [
             'pending' => PromissoryNote::pending()->count(),
             'approved' => PromissoryNote::approved()->count(),
-            'total' => PromissoryNote::count(),
+            'total'   => PromissoryNote::count(),
         ];
 
+        $departments = Department::orderBy('name')->get()->map(fn ($d) => [
+            'id'             => $d->id,
+            'name'           => $d->name,
+            'classification' => $d->classification,
+        ]);
+
+        $schoolYears = StudentFee::whereNotNull('school_year')
+            ->distinct()
+            ->orderByDesc('school_year')
+            ->pluck('school_year');
+
         return Inertia::render($this->viewPrefix() . '/promissory-notes/index', [
-            'notes' => $notes,
-            'stats' => $stats,
-            'filters' => [
-                'status' => $status,
+            'notes'       => $notes,
+            'stats'       => $stats,
+            'departments' => $departments,
+            'schoolYears' => $schoolYears,
+            'filters'     => [
+                'status'         => $status,
+                'search'         => $search,
+                'classification' => $classification,
+                'department_id'  => $departmentId,
+                'school_year'    => $schoolYear,
             ],
         ]);
     }
