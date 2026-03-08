@@ -163,9 +163,12 @@ class GrantController extends Controller
             ->where('school_year', $validated['school_year'])
             ->first();
 
-        $discountAmount = 0;
         if ($studentFee) {
             $discountAmount = $grant->calculateDiscount((float) $studentFee->total_amount);
+        } else {
+            // No fee record yet — for fixed grants use the grant value directly;
+            // percentage grants need a total to calculate against, so store 0 for now
+            $discountAmount = $grant->type === 'fixed' ? (float) $grant->value : 0;
         }
 
         // Check if grant already assigned for this student and school year
