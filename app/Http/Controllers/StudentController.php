@@ -909,6 +909,30 @@ class StudentController extends Controller
         $settings = AppSetting::current();
         $currentSchoolYear = $settings->school_year ?? (date('Y') . '-' . (date('Y') + 1));
 
+        // Reset clearances and requirements when re-enrolling a dropped student
+        if ($student->enrollment_status === 'dropped' && $student->user) {
+            $clearance = EnrollmentClearance::where('user_id', $student->user->id)->first();
+            if ($clearance) {
+                $clearance->update([
+                    'registrar_clearance'    => false,
+                    'registrar_cleared_at'   => null,
+                    'registrar_cleared_by'   => null,
+                    'accounting_clearance'   => false,
+                    'accounting_cleared_at'  => null,
+                    'accounting_cleared_by'  => null,
+                    'official_enrollment'    => false,
+                    'officially_enrolled_at' => null,
+                    'officially_enrolled_by' => null,
+                ]);
+            }
+            // Reset all submitted/approved requirements back to pending
+            $student->requirements()->whereIn('status', ['submitted', 'approved', 'rejected', 'overdue'])->update([
+                'status'       => 'pending',
+                'submitted_at' => null,
+                'approved_at'  => null,
+            ]);
+        }
+
         // Check if enrollment is open for student's classification
         $dept = Department::find($student->department_id);
         $classification = $dept?->classification ?? 'K-12';
