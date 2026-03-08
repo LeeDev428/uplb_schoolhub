@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     CheckCircle2,
     Clock,
@@ -338,7 +338,9 @@ export default function AccountingDropRequests({ requests, stats, tab, filters }
                                                                 </AvatarFallback>
                                                             </Avatar>
                                                             <div>
-                                                                <p className="font-medium text-sm">{request.student.full_name}</p>
+                                                                <Link href={`/accounting/payments/process/${request.student.id}`} className="font-medium text-sm hover:underline text-primary">
+                                                                    {request.student.full_name}
+                                                                </Link>
                                                                 <p className="text-xs text-muted-foreground">{request.student.lrn}</p>
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {request.student.program} {request.student.year_level}
