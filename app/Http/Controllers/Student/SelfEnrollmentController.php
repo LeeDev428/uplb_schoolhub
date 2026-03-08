@@ -62,10 +62,10 @@ class SelfEnrollmentController extends Controller
                 ->get()
                 ->map(fn ($p) => [
                     'id'           => $p->id,
-                    'payment_date' => $p->payment_date,
+                    'payment_date' => $p->payment_date?->format('M d, Y'),
                     'or_number'    => $p->or_number,
                     'amount'       => (float) $p->amount,
-                    'payment_mode' => $p->payment_mode ?? $p->payment_method ?? 'CASH',
+                    'payment_mode' => strtoupper($p->payment_mode ?? $p->payment_method ?? 'CASH'),
                     'payment_for'  => $p->payment_for,
                     'notes'        => $p->notes,
                     'school_year'  => $p->studentFee?->school_year,
