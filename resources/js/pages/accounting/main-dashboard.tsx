@@ -279,12 +279,12 @@ export default function MainDashboard({
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
                             {(departmentBalances || []).map((dept, index) => (
-                                <div key={index} className="space-y-1">
-                                    <div className="flex justify-between items-baseline">
-                                        <span className="text-sm font-medium truncate">{dept.department}</span>
-                                        <span className="text-sm font-bold text-red-600">
+                                <div key={index} className="rounded-lg border bg-muted/50 p-3 space-y-1">
+                                    <div className="flex justify-between items-baseline gap-2">
+                                        <span className="text-sm font-semibold truncate">{dept.department}</span>
+                                        <span className="text-sm font-bold text-red-600 shrink-0">
                                             {formatCurrency(dept.balance)}
                                         </span>
                                     </div>
