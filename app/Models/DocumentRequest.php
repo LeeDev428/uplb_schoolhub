@@ -30,6 +30,8 @@ class DocumentRequest extends Model
         'processing_days',
         'receipt_file_path',
         'receipt_number',
+        'payment_type',
+        'bank_name',
         'registrar_status',
         'registrar_approved_by',
         'registrar_approved_at',
