@@ -31,7 +31,7 @@ class SyncGrantDiscounts extends Command
                     ->sum('discount_amount');
                     
                 $studentFee->grant_discount = $totalGrants;
-                $studentFee->balance = $studentFee->total_amount - $studentFee->total_paid - $totalGrants;
+                $studentFee->balance = max(0, (float) $studentFee->total_amount - (float) $studentFee->total_paid - (float) $totalGrants);
                 $studentFee->save();
                 
                 $this->info("Updated student {$recipient->student_id} - {$recipient->school_year}: Grant ₱{$totalGrants}");
