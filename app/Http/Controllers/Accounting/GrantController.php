@@ -158,10 +158,15 @@ class GrantController extends Controller
 
         $grant = Grant::findOrFail($validated['grant_id']);
 
-        // Calculate discount amount based on student's fee
+        // Calculate discount amount based on student's fee.
+        // Fall back to latest student_fee if none matches the submitted school_year
+        // (the form default can differ from the school_year on fee_items).
         $studentFee = StudentFee::where('student_id', $validated['student_id'])
             ->where('school_year', $validated['school_year'])
-            ->first();
+            ->first()
+            ?? StudentFee::where('student_id', $validated['student_id'])
+                ->orderBy('school_year', 'desc')
+                ->first();
 
         if ($studentFee) {
             $discountAmount = $grant->calculateDiscount((float) $studentFee->total_amount);
@@ -191,13 +196,18 @@ class GrantController extends Controller
             'assigned_at' => now(),
         ]);
 
-        // Update student fee grant discount
+        // Update student fee grant discount using fresh Grant model values (not stale sum)
         if ($studentFee) {
-            $totalDiscount = GrantRecipient::where('student_id', $validated['student_id'])
-                ->where('school_year', $validated['school_year'])
+            $allActive = GrantRecipient::where('student_id', $studentFee->student_id)
                 ->where('status', 'active')
-                ->sum('discount_amount');
-            
+                ->with('grant')
+                ->get();
+            $totalDiscount = 0.0;
+            foreach ($allActive as $r) {
+                if ($r->grant) {
+                    $totalDiscount += $r->grant->calculateDiscount((float) $studentFee->total_amount);
+                }
+            }
             $studentFee->applyGrantDiscount($totalDiscount);
         }
 
