@@ -253,11 +253,13 @@ class StudentAccountController extends Controller
         if ($studentFee) {
             $freshTotal    = (float) $totalAmount;
             $freshDiscount = (float) $grantDiscount;
+            $freshBalance  = max(0, $freshTotal - $freshDiscount - $totalPaid);
             if ((float) $studentFee->total_amount !== $freshTotal
-                || (float) $studentFee->grant_discount !== $freshDiscount) {
+                || (float) $studentFee->grant_discount !== $freshDiscount
+                || (float) $studentFee->balance !== $freshBalance) {
                 $studentFee->total_amount   = $freshTotal;
                 $studentFee->grant_discount = $freshDiscount;
-                $studentFee->balance        = max(0, $freshTotal - $freshDiscount - $totalPaid);
+                $studentFee->balance        = $freshBalance;
                 $studentFee->save();
             }
         }
