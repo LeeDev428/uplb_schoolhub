@@ -31,6 +31,7 @@ type Props = {
         guardian_name: string | null;
         guardian_relationship: string | null;
         guardian_contact: string | null;
+        guardian_occupation: string | null;
         guardian_address: string | null;
         created_at: string;
     };
@@ -262,6 +263,13 @@ export default function Profile({ student, user }: Props) {
                                             <Phone className="h-4 w-4 text-muted-foreground" />
                                             <p className="text-base">{student.guardian_contact}</p>
                                         </div>
+                                    </div>
+                                )}
+
+                                {student.guardian_occupation && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Occupation</p>
+                                        <p className="text-base">{student.guardian_occupation}</p>
                                     </div>
                                 )}
 
