@@ -50,7 +50,7 @@ interface AppSettings {
 }
 
 export function RegistrarSidebar() {
-    const { announcementCount, pendingDocumentCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; appSettings?: AppSettings }>().props;
+    const { announcementCount, pendingDocumentCount, pendingDropRequestCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; pendingDropRequestCount?: number; appSettings?: AppSettings }>().props;
     const appName = appSettings?.app_name || 'SchoolHub';
     const logoUrl = appSettings?.logo_url;
     const sidebarColor = appSettings?.sidebar_color || undefined;
@@ -102,6 +102,7 @@ export function RegistrarSidebar() {
         {
             title: 'Drop Requests',
             href: '/registrar/drop-requests',
+            badge: pendingDropRequestCount || undefined,
             icon: UserMinus,
         },
         {
