@@ -611,7 +611,7 @@ function EnrollmentDetails({ student, fees, payments, promissoryNotes, requireme
 }
 
 // â”€â”€â”€ Non-enrolled Form View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function EnrollmentForm({ student, currentSchoolYear, hasPendingRequest, enrollmentOpen, enrollmentPeriod, classification, departments, programs, yearLevels }: NotEnrolledProps) {
+function EnrollmentForm({ student, currentSchoolYear, hasPendingRequest, enrollmentOpen, enrollmentPeriod, classification, collegeEnrollmentOpen, departments, programs, yearLevels }: NotEnrolledProps) {
     const [selectedDeptId, setSelectedDeptId] = useState<number | null>(student.department_id);
 
     const filteredPrograms   = programs.filter(p => !selectedDeptId || p.department_id === selectedDeptId);
@@ -644,12 +644,14 @@ function EnrollmentForm({ student, currentSchoolYear, hasPendingRequest, enrollm
                     >
                         Enrollment Details
                     </Link>
-                    <Link
-                        href="/student/enrollment/subjects"
-                        className="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300 transition-colors"
-                    >
-                        Subject Enrollment
-                    </Link>
+                    {classification === 'College' && collegeEnrollmentOpen && (
+                        <Link
+                            href="/student/enrollment/subjects"
+                            className="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300 transition-colors"
+                        >
+                            Subject Enrollment
+                        </Link>
+                    )}
                 </nav>
             </div>
 
