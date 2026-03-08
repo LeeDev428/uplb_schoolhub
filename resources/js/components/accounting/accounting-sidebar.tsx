@@ -13,6 +13,7 @@ import {
     Megaphone,
     Receipt,
     RotateCcw,
+    ScrollText,
     Settings,
     UserX,
     Users,
@@ -85,6 +86,11 @@ export function AccountingSidebar() {
             href: '/accounting/drop-requests',
             icon: UserX,
             badge: pendingDropRequestCount || undefined,
+        },
+        {
+            title: 'Promissory Notes',
+            href: '/accounting/promissory-notes',
+            icon: ScrollText,
         },
         {
             title: 'Payment Processing',
