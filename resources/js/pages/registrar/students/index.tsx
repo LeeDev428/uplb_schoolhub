@@ -108,7 +108,7 @@ interface Stats {
 interface Department {
     id: number;
     name: string;
-    level: string;
+    classification: string;
 }
 
 interface Program {
@@ -1082,7 +1082,7 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
                                         <SelectValue placeholder="Select classification..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {[...new Set(departments.map(d => d.level))].map((cls) => (
+                                        {[...new Set(departments.map(d => d.classification))].map((cls) => (
                                             <SelectItem key={cls} value={cls}>{cls}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -1096,7 +1096,7 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
                                             <SelectValue placeholder="Select department..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {departments.filter(d => d.level === reEnrollClassification).map((d) => (
+                                            {departments.filter(d => d.classification === reEnrollClassification).map((d) => (
                                                 <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
                                             ))}
                                         </SelectContent>
