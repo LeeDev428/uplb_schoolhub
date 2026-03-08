@@ -148,16 +148,19 @@ export default function OnlineTransactionsIndex({
     };
 
     const handleVerify = (id: number) => {
-        if (confirm('Verify this transaction? This will credit the payment to the student account.')) {
-            router.post(`/accounting/online-transactions/${id}/verify`);
+        const orNumber = prompt('Enter OR number (leave blank to auto-generate):');
+        if (orNumber !== null) {
+            router.post(`/accounting/online-transactions/${id}/verify`, {
+                or_number: orNumber || undefined,
+            });
         }
     };
 
     const handleMarkFailed = (id: number) => {
         const reason = prompt('Enter failure reason:');
         if (reason) {
-            router.post(`/accounting/online-transactions/${id}/mark-failed`, {
-                failure_reason: reason,
+            router.post(`/accounting/online-transactions/${id}/failed`, {
+                remarks: reason,
             });
         }
     };
