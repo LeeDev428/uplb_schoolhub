@@ -109,7 +109,7 @@ interface Props {
 }
 
 export default function GrantsIndex({ tab, grants, recipients, students, schoolYears, filters }: Props) {
-    const [activeTab, setActiveTab] = useState(tab || 'library');
+    const [activeTab, setActiveTab] = useState(tab || 'recipients');
     const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [editingGrant, setEditingGrant] = useState<Grant | null>(null);
@@ -254,13 +254,13 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
 
                 <Tabs value={activeTab} onValueChange={handleTabChange}>
                     <TabsList>
-                        <TabsTrigger value="library" className="flex items-center gap-2">
-                            <Gift className="h-4 w-4" />
-                            Grant Library
-                        </TabsTrigger>
                         <TabsTrigger value="recipients" className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
                             Recipients
+                        </TabsTrigger>
+                        <TabsTrigger value="library" className="flex items-center gap-2">
+                            <Gift className="h-4 w-4" />
+                            Grant Library
                         </TabsTrigger>
                     </TabsList>
 
