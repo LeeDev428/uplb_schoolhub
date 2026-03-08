@@ -21,6 +21,7 @@ import {
     XCircle,
     MinusCircle,
     ChevronRight,
+    RefreshCcw,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -28,6 +29,7 @@ import { EnrollmentClearanceProgress } from '@/components/registrar/enrollment-c
 import { EnrollmentHistoryModal } from '@/components/registrar/enrollment-history-modal';
 import { StudentFormModal } from '@/components/registrar/student-form-modal';
 import { UpdateHistory } from '@/components/registrar/update-history';
+import { ReEnrollDialog } from '@/components/registrar/re-enroll-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -85,7 +87,7 @@ interface EnrollmentClearance {
 interface Department {
     id: number;
     name: string;
-    level: string;
+    classification: string;
 }
 
 interface Program {
@@ -217,6 +219,8 @@ interface Props {
 export default function StudentShow({ student, requirementsCompletion, emailVerified, enrollmentClearance, departments, programs, yearLevels, sections, actionLogs = [], enrollmentHistories = [], collegeSubjects, currentSchoolYear }: Props) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showEnrollmentHistoryModal, setShowEnrollmentHistoryModal] = useState(false);
+    const [showReEnrollDialog, setShowReEnrollDialog] = useState(false);
+    const isDropped = student.enrollment_status === 'dropped';
     const [activeTab, setActiveTab] = useState('requirements');
     const [histSyFilter, setHistSyFilter] = useState<string>('all');
     const [studentNotesText, setStudentNotesText] = useState(student.remarks ?? '');
@@ -416,10 +420,21 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                     </Button>
 
                     <div className="flex items-center space-x-2">
-                        <Button variant="outline" onClick={handleDropStudent}>
-                            <UserX className="mr-2 h-4 w-4" />
-                            Drop
-                        </Button>
+                        {isDropped ? (
+                            <Button
+                                variant="outline"
+                                className="border-green-400 text-green-700 hover:bg-green-50"
+                                onClick={() => setShowReEnrollDialog(true)}
+                            >
+                                <RefreshCcw className="mr-2 h-4 w-4" />
+                                Re-Enroll
+                            </Button>
+                        ) : (
+                            <Button variant="outline" onClick={handleDropStudent}>
+                                <UserX className="mr-2 h-4 w-4" />
+                                Drop
+                            </Button>
+                        )}
                         <Button variant="outline" onClick={() => setShowEditModal(true)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Information
@@ -432,25 +447,29 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                             <Printer className="mr-2 h-4 w-4" />
                             Print Details
                         </Button>
-                        <Button variant="destructive" onClick={handleDelete}>
-                            <Archive className="mr-2 h-4 w-4" />
-                            Archive Student
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
-                            onClick={() => {
-                                if (window.confirm(`Deactivate ${fullName}? This will reset their enrollment to zero. They must re-register to continue.`)) {
-                                    router.post(`/registrar/students/${student.id}/deactivate`, {}, {
-                                        onSuccess: () => toast.success('Student deactivated. They must re-register to enroll again.'),
-                                        onError: () => toast.error('Failed to deactivate student.'),
-                                    });
-                                }
-                            }}
-                        >
-                            <UserX className="mr-2 h-4 w-4" />
-                            Deactivate
-                        </Button>
+                        {!isDropped && (
+                            <>
+                                <Button variant="destructive" onClick={handleDelete}>
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    Archive Student
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+                                    onClick={() => {
+                                        if (window.confirm(`Deactivate ${fullName}? This will reset their enrollment to zero. They must re-register to continue.`)) {
+                                            router.post(`/registrar/students/${student.id}/deactivate`, {}, {
+                                                onSuccess: () => toast.success('Student deactivated. They must re-register to enroll again.'),
+                                                onError: () => toast.error('Failed to deactivate student.'),
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <UserX className="mr-2 h-4 w-4" />
+                                    Deactivate
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -1116,6 +1135,17 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Re-Enroll Dialog */}
+            <ReEnrollDialog
+                open={showReEnrollDialog}
+                onOpenChange={setShowReEnrollDialog}
+                studentId={student.id}
+                studentName={fullName}
+                departments={departments}
+                programs={programs}
+                yearLevels={yearLevels}
+            />
 
             {/* Add Staff Note Dialog */}
             <Dialog open={showAddNoteDialog} onOpenChange={setShowAddNoteDialog}>
