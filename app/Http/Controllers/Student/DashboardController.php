@@ -81,7 +81,7 @@ class DashboardController extends Controller
     {
         $currentSchoolYear = \App\Models\AppSetting::current()->school_year ?? '2024-2025';
 
-        // Sync grant discounts: recalculate from Grant model to fix stale discount_amount=0 records
+        // Sync grant discounts: recalculate from Grant model so stale discount_amount never causes issues
         foreach (StudentFee::where('student_id', $student->id)->get() as $feeToSync) {
             $recipients = GrantRecipient::where('student_id', $student->id)
                 ->where('school_year', $feeToSync->school_year)
@@ -91,24 +91,34 @@ class DashboardController extends Controller
             $freshGrant = 0.0;
             foreach ($recipients as $r) {
                 if ($r->grant) {
-                    $freshGrant += $r->grant->calculateDiscount((float) $feeToSync->total_amount);
+                    $calculated = $r->grant->calculateDiscount((float) $feeToSync->total_amount);
+                    if ((float) $r->discount_amount !== $calculated) {
+                        $r->discount_amount = $calculated;
+                        $r->save();
+                    }
+                    $freshGrant += $calculated;
                 }
             }
-            $expectedBalance = max(0, (float) $feeToSync->total_amount - $freshGrant - (float) $feeToSync->total_paid);
-            if ((float) $feeToSync->grant_discount !== $freshGrant || (float) $feeToSync->balance !== $expectedBalance) {
+            // Use fresh payment sum (never rely on stale total_paid column)
+            $freshPaid = (float) $feeToSync->payments()->sum('amount');
+            $expectedBalance = max(0, (float) $feeToSync->total_amount - $freshGrant - $freshPaid);
+            if ((float) $feeToSync->grant_discount !== $freshGrant
+                || (float) $feeToSync->total_paid  !== $freshPaid
+                || (float) $feeToSync->balance     !== $expectedBalance) {
                 $feeToSync->grant_discount = $freshGrant;
-                $feeToSync->balance = $expectedBalance;
+                $feeToSync->total_paid     = $freshPaid;
+                $feeToSync->balance        = $expectedBalance;
                 $feeToSync->save();
             }
         }
 
-        // Get student fees (same as accounting process page)
+        // Re-fetch fees with fresh data
         $fees = StudentFee::with(['payments'])
             ->where('student_id', $student->id)
             ->orderBy('school_year', 'desc')
             ->get();
-        
-        // Calculate summary stats dynamically (same as accounting process page)
+
+        // Calculate summary stats from up-to-date fee records
         $totalFees = $fees->sum('total_amount');
         $totalDiscount = $fees->sum('grant_discount');
         $totalPaid = $fees->flatMap->payments->sum('amount');
@@ -116,39 +126,38 @@ class DashboardController extends Controller
         // Calculate previous balance (from previous school years) and current fees balance
         $previousBalance = $fees->where('school_year', '!=', $currentSchoolYear)->sum('balance');
         $currentFeesBalance = $fees->where('school_year', $currentSchoolYear)->sum('balance');
-        
+
+        // Always compute balance dynamically: total_fees - grant_discount - total_paid
+        // (never trust the stored balance column alone as it can be stale before sync)
         $balance = max(0, $totalFees - $totalDiscount - $totalPaid);
 
-        // Use stored balance as source of truth (updated by accounting payments)
-        $storedBalance = $fees->sum('balance');
-        
         // Get StudentFee record for overdue status
         $studentFee = $fees->where('school_year', $currentSchoolYear)->first();
-        
+
         // Get approved promissory notes
         $approvedPromissoryNotes = \App\Models\PromissoryNote::where('student_id', $student->id)
             ->where('status', 'approved')
             ->get();
-        
+
         $approvedPromissoryAmount = $approvedPromissoryNotes->sum('amount');
-        $effectiveBalance = max(0, $storedBalance - $approvedPromissoryAmount);
-        
+        $effectiveBalance = max(0, $balance - $approvedPromissoryAmount);
+
         // Check if overdue
-        $isOverdue = $storedBalance > 0 && !$approvedPromissoryNotes->count() && 
+        $isOverdue = $balance > 0 && !$approvedPromissoryNotes->count() &&
                      $studentFee?->due_date && now()->gt($studentFee->due_date);
-        
-        // Only fully paid if fee records exist AND all stored balances are zero
-        $isFullyPaid = !$fees->isEmpty() && $storedBalance <= 0;
+
+        // Only fully paid if fee records exist AND balance is zero
+        $isFullyPaid = !$fees->isEmpty() && $balance <= 0;
 
         return [
             'total_fees' => $totalFees,
             'discount_amount' => $totalDiscount,
             'total_paid' => $totalPaid,
-            'balance' => $storedBalance,
+            'balance' => $balance,
             'effective_balance' => $effectiveBalance,
             'promissory_amount' => $approvedPromissoryAmount,
             'previous_balance' => $previousBalance,
-            'current_fees_balance' => $currentFeesBalance > 0 ? $currentFeesBalance : $storedBalance,
+            'current_fees_balance' => $currentFeesBalance > 0 ? $currentFeesBalance : $balance,
             'is_fully_paid' => $isFullyPaid,
             'is_overdue' => $isOverdue,
             'due_date' => $studentFee?->due_date,
