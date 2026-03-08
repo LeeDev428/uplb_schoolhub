@@ -47,7 +47,9 @@ class Grant extends Model
     public function calculateDiscount(float $totalAmount): float
     {
         if ($this->type === 'fixed') {
-            return min((float) $this->value, $totalAmount);
+            // Fixed grants always apply their full value regardless of total fees
+            // (balance is capped to 0 by applyGrantDiscount)
+            return (float) $this->value;
         }
         
         // Percentage discount
