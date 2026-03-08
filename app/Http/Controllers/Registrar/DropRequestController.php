@@ -212,6 +212,24 @@ class DropRequestController extends Controller
     }
 
     /**
+     * Finalize a drop request after accounting approval — officially drop the student.
+     */
+    public function finalize(DropRequest $dropRequest): RedirectResponse
+    {
+        if ($dropRequest->accounting_status !== 'approved') {
+            return back()->with('error', 'Drop request must be approved by accounting first.');
+        }
+
+        if ($dropRequest->student && $dropRequest->student->enrollment_status === 'dropped') {
+            return back()->with('error', 'Student is already dropped.');
+        }
+
+        $dropRequest->finalizeByRegistrar(Auth::id());
+
+        return back()->with('success', 'Student has been officially dropped.');
+    }
+
+    /**
      * Get applicable drop fee items for a specific drop request.
      * Filters fee items based on the student's classification, department, program, year level, and section.
      */
