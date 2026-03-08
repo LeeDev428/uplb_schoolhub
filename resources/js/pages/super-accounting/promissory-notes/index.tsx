@@ -53,6 +53,9 @@ interface PromissoryNote {
     student_photo_url: string | null;
     student_lrn: string | null;
     student_id: number;
+    student_department: string | null;
+    student_classification: string | null;
+    student_year_level: string | null;
     submitted_date: string;
     due_date: string;
     amount: number | null;
@@ -78,13 +81,25 @@ interface Stats {
     total: number;
 }
 
+interface Department {
+    id: number;
+    name: string;
+    classification: string;
+}
+
 interface Filters {
     status: string;
+    search: string;
+    classification: string;
+    department_id: string;
+    school_year: string;
 }
 
 interface Props {
     notes: PaginatedNotes;
     stats: Stats;
+    departments: Department[];
+    schoolYears: string[];
     filters: Filters;
 }
 
@@ -121,11 +136,15 @@ const statusConfig = {
     },
 };
 
-export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
+export default function PromissoryNotesIndex({ notes, stats, departments, schoolYears, filters }: Props) {
     const [selectedNote, setSelectedNote] = useState<PromissoryNote | null>(null);
     const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
     const [isDeclineDialogOpen, setIsDeclineDialogOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
+    const [search, setSearch] = useState(filters.search || '');
+    const [classification, setClassification] = useState(filters.classification || 'all');
+    const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
+    const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
 
     const approveForm = useForm({
         notes: '',
@@ -135,13 +154,31 @@ export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
         notes: '',
     });
 
-    const handleStatusFilter = (value: string) => {
-        setStatusFilter(value);
-        router.get('/super-accounting/promissory-notes', {
-            status: value !== 'all' ? value : undefined,
-        }, {
-            preserveState: true,
-        });
+    const buildParams = (overrides: Record<string, string> = {}) => {
+        const base = {
+            status: statusFilter,
+            search,
+            classification,
+            department_id: departmentId,
+            school_year: schoolYear,
+            ...overrides,
+        };
+        return Object.fromEntries(
+            Object.entries(base).filter(([, v]) => v && v !== 'all')
+        );
+    };
+
+    const handleFilter = (overrides: Record<string, string> = {}) => {
+        router.get('/super-accounting/promissory-notes', buildParams(overrides), { preserveState: true, preserveScroll: true });
+    };
+
+    const handleReset = () => {
+        setStatusFilter('all');
+        setSearch('');
+        setClassification('all');
+        setDepartmentId('all');
+        setSchoolYear('all');
+        router.get('/super-accounting/promissory-notes');
     };
 
     const openApproveDialog = (note: PromissoryNote) => {
@@ -244,16 +281,68 @@ export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
                 </div>
 
                 {/* Filters */}
-                <FilterBar>
+                <FilterBar onReset={handleReset}>
+                    <SearchBar
+                        value={search}
+                        onChange={(v) => {
+                            setSearch(v);
+                            handleFilter({ search: v });
+                        }}
+                        placeholder="Search by name or LRN..."
+                    />
                     <FilterDropdown
                         label="Status"
                         value={statusFilter}
-                        onChange={handleStatusFilter}
+                        onChange={(v) => {
+                            setStatusFilter(v);
+                            handleFilter({ status: v });
+                        }}
                         options={[
                             { value: 'all', label: 'All Status' },
                             { value: 'pending', label: 'Pending' },
                             { value: 'approved', label: 'Approved' },
                             { value: 'declined', label: 'Declined' },
+                        ]}
+                    />
+                    <FilterDropdown
+                        label="Classification"
+                        value={classification}
+                        onChange={(v) => {
+                            setClassification(v);
+                            setDepartmentId('all');
+                            handleFilter({ classification: v, department_id: 'all' });
+                        }}
+                        options={[
+                            { value: 'all', label: 'All' },
+                            { value: 'K-12', label: 'K-12' },
+                            { value: 'College', label: 'College' },
+                        ]}
+                    />
+                    <FilterDropdown
+                        label="Department"
+                        value={departmentId}
+                        onChange={(v) => {
+                            setDepartmentId(v);
+                            handleFilter({ department_id: v });
+                        }}
+                        options={[
+                            { value: 'all', label: 'All Departments' },
+                            ...(classification !== 'all'
+                                ? departments.filter(d => d.classification === classification)
+                                : departments
+                            ).map(d => ({ value: String(d.id), label: d.name }))
+                        ]}
+                    />
+                    <FilterDropdown
+                        label="School Year"
+                        value={schoolYear}
+                        onChange={(v) => {
+                            setSchoolYear(v);
+                            handleFilter({ school_year: v });
+                        }}
+                        options={[
+                            { value: 'all', label: 'All Years' },
+                            ...schoolYears.map(y => ({ value: y, label: y }))
                         ]}
                     />
                 </FilterBar>
@@ -295,6 +384,11 @@ export default function PromissoryNotesIndex({ notes, stats, filters }: Props) {
                                                         <p className="font-medium text-sm">{note.student_name}</p>
                                                         {note.student_lrn && (
                                                             <p className="text-xs text-muted-foreground">{note.student_lrn}</p>
+                                                        )}
+                                                        {(note.student_department || note.student_year_level) && (
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {[note.student_department, note.student_year_level].filter(Boolean).join(' · ')}
+                                                            </p>
                                                         )}
                                                     </div>
                                                 </div>
