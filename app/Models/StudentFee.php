@@ -75,7 +75,7 @@ class StudentFee extends Model
     public function updateBalance(): void
     {
         $this->total_paid = $this->payments()->sum('amount');
-        $this->balance = $this->total_amount - $this->total_paid;
+        $this->balance = max(0, (float) $this->total_amount - (float) $this->grant_discount - $this->total_paid);
         $this->save();
     }
 
