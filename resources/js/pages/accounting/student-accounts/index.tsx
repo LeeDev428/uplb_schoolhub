@@ -640,7 +640,11 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                 </TableRow>
                             ) : (
                                 accounts.data.map((account) => (
-                                    <TableRow key={account.id} className={account.is_overdue ? 'bg-red-50' : ''}>
+                                    <TableRow
+                                        key={account.id}
+                                        className={`cursor-pointer hover:bg-muted/50 ${account.is_overdue ? 'bg-red-50 hover:bg-red-100' : ''}`}
+                                        onClick={() => router.visit(`/accounting/payments/process/${account.student.id}`)}
+                                    >
                                         <TableCell>
                                             <div className="flex items-center gap-3">
                                                 <StudentPhoto
@@ -684,7 +688,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                             )}
                                         </TableCell>
                                         <TableCell>{getStatusBadge(account)}</TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="sm">
@@ -692,12 +696,6 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem asChild>
-                                                        <Link href={`/accounting/student-accounts/${account.student.id}`}>
-                                                            <Eye className="h-4 w-4 mr-2" />
-                                                            View Details
-                                                        </Link>
-                                                    </DropdownMenuItem>
                                                     <DropdownMenuItem asChild>
                                                         <Link href={`/accounting/payments/process/${account.student.id}`}>
                                                             <PhilippinePeso className="h-4 w-4 mr-2" />
