@@ -72,6 +72,7 @@ interface OnlineTransaction {
     refunded_at?: string;
     failure_reason?: string;
     remarks?: string;
+    or_number?: string;
     created_at: string;
     student: Student;
     verified_by?: { name: string };
@@ -503,6 +504,12 @@ export default function OnlineTransactionsIndex({
                                             <p className="text-muted-foreground">Verified By</p>
                                             <p>{selectedTransaction.verified_by?.name || '-'}</p>
                                         </div>
+                                        {selectedTransaction.or_number && (
+                                            <div className="col-span-2">
+                                                <p className="text-muted-foreground">OR Number</p>
+                                                <p className="font-mono font-medium">{selectedTransaction.or_number}</p>
+                                            </div>
+                                        )}
                                     </>
                                 )}
                                 {selectedTransaction.failed_at && (
