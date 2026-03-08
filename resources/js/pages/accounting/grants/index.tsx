@@ -100,6 +100,7 @@ interface Props {
     recipients: PaginatedRecipients;
     students: Student[];
     schoolYears: string[];
+    currentSchoolYear: string;
     filters: {
         search?: string;
         grant_id?: string;
@@ -108,7 +109,7 @@ interface Props {
     };
 }
 
-export default function GrantsIndex({ tab, grants, recipients, students, schoolYears, filters }: Props) {
+export default function GrantsIndex({ tab, grants, recipients, students, schoolYears, currentSchoolYear, filters }: Props) {
     const [activeTab, setActiveTab] = useState(tab || 'recipients');
     const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -133,7 +134,7 @@ export default function GrantsIndex({ tab, grants, recipients, students, schoolY
     const assignForm = useForm({
         student_id: '',
         grant_id: '',
-        school_year: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
+        school_year: currentSchoolYear || (new Date().getFullYear() + '-' + (new Date().getFullYear() + 1)),
         notes: '',
     });
 
