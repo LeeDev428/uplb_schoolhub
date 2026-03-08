@@ -146,13 +146,14 @@ const StatusBadge = ({ status }: { status: string }) => {
     }
 };
 
-/** 3-step drop clearance flow indicator */
+/** 4-step drop clearance flow indicator */
 const DropFlowBadge = ({ req }: { req: DropRequest }) => {
     const isRejected = req.registrar_status === 'rejected' || req.accounting_status === 'rejected';
-    const officiallyDropped = req.accounting_status === 'approved';
+    const accountingApproved = req.accounting_status === 'approved';
+    const officiallyDropped = accountingApproved && req.student?.enrollment_status === 'dropped';
     const awaitingAccounting = req.registrar_status === 'approved' && req.accounting_status === 'pending';
 
-    const step = isRejected ? -1 : officiallyDropped ? 3 : awaitingAccounting ? 2 : 1;
+    const step = isRejected ? -1 : officiallyDropped ? 4 : accountingApproved ? 3 : awaitingAccounting ? 2 : 1;
 
     const stepClass = (s: number) => {
         if (isRejected) return 'text-red-500';
@@ -177,7 +178,12 @@ const DropFlowBadge = ({ req }: { req: DropRequest }) => {
             <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0 mb-2" />
             <div className="flex flex-col items-center gap-0.5">
                 <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border text-[10px] font-bold ${circleClass(3)}`}>3</span>
-                <span className={stepClass(3)}>{officiallyDropped ? 'Dropped ✓' : 'Accounting'}</span>
+                <span className={stepClass(3)}>Accounting</span>
+            </div>
+            <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0 mb-2" />
+            <div className="flex flex-col items-center gap-0.5">
+                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full border text-[10px] font-bold ${circleClass(4)}`}>4</span>
+                <span className={stepClass(4)}>{officiallyDropped ? 'Dropped ✓' : 'Finalize'}</span>
             </div>
             {isRejected && (
                 <Badge className="ml-1 bg-red-100 text-red-700 border-red-200 text-[10px] px-1.5 py-0">Rejected</Badge>
@@ -511,10 +517,27 @@ export default function DropRequestsIndex({ requests, stats, tab, filters, dropF
                                                                 </Button>
                                                             </div>
                                                         )}
-                                                        {req.registrar_status !== 'pending' && (
+                                                        {req.accounting_status === 'approved' && req.student?.enrollment_status !== 'dropped' && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="default"
+                                                                className="bg-red-600 hover:bg-red-700 text-white"
+                                                                onClick={() => {
+                                                                    if (confirm('Finalize this drop request? The student will be officially dropped and deactivated.')) {
+                                                                        router.post(`/registrar/drop-requests/${req.id}/finalize`);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                Finalize Drop
+                                                            </Button>
+                                                        )}
+                                                        {req.registrar_status !== 'pending' && req.accounting_status !== 'approved' && (
                                                             <span className="text-sm text-muted-foreground">
                                                                 {req.registrar_remarks || '—'}
                                                             </span>
+                                                        )}
+                                                        {req.accounting_status === 'approved' && req.student?.enrollment_status === 'dropped' && (
+                                                            <Badge className="bg-red-100 text-red-700 border-red-200">Dropped</Badge>
                                                         )}
                                                     </TableCell>
                                                 </TableRow>
