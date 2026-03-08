@@ -155,17 +155,30 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Get the count of pending drop requests awaiting accounting approval.
+     * Get the count of pending drop requests for the relevant role.
      */
     protected function getPendingDropRequestCount($user): int
     {
-        if (!$user || !in_array($user->role, ['accounting', 'super-accounting'])) {
+        if (!$user) {
             return 0;
         }
         try {
-            return DropRequest::where('registrar_status', 'approved')
-                ->where('accounting_status', 'pending')
-                ->count();
+            if (in_array($user->role, ['accounting', 'super-accounting'])) {
+                return DropRequest::where('registrar_status', 'approved')
+                    ->where('accounting_status', 'pending')
+                    ->count();
+            } elseif ($user->role === 'registrar') {
+                return DropRequest::where('registrar_status', 'pending')->count();
+            } elseif ($user->role === 'student') {
+                $student = $user->student;
+                if (!$student) {
+                    return 0;
+                }
+                return DropRequest::where('student_id', $student->id)
+                    ->where('status', 'pending')
+                    ->count();
+            }
+            return 0;
         } catch (\Exception $e) {
             return 0;
         }
