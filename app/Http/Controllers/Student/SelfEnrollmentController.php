@@ -45,13 +45,20 @@ class SelfEnrollmentController extends Controller
                 ->orderBy('school_year', 'desc')
                 ->get();
             foreach ($rawFees as $feeToSync) {
-                $freshGrant = GrantRecipient::where('student_id', $student->id)
+                $recipients = GrantRecipient::where('student_id', $student->id)
                     ->where('school_year', $feeToSync->school_year)
                     ->where('status', 'active')
-                    ->sum('discount_amount');
-                if ((float) $feeToSync->grant_discount !== (float) $freshGrant) {
+                    ->with('grant')
+                    ->get();
+                $freshGrant = 0.0;
+                foreach ($recipients as $r) {
+                    if ($r->grant) {
+                        $freshGrant += $r->grant->calculateDiscount((float) $feeToSync->total_amount);
+                    }
+                }
+                if ((float) $feeToSync->grant_discount !== $freshGrant) {
                     $feeToSync->grant_discount = $freshGrant;
-                    $feeToSync->balance = max(0, (float) $feeToSync->total_amount - (float) $freshGrant - (float) $feeToSync->total_paid);
+                    $feeToSync->balance = max(0, (float) $feeToSync->total_amount - $freshGrant - (float) $feeToSync->total_paid);
                     $feeToSync->save();
                 }
             }
@@ -172,7 +179,7 @@ class SelfEnrollmentController extends Controller
 
         $departments = Department::orderBy('name')->get(['id', 'name', 'code', 'classification']);
         $programs    = Program::orderBy('name')->get(['id', 'name', 'department_id']);
-        $yearLevels  = YearLevel::orderBy('order')->get(['id', 'name', 'department_id']);
+        $yearLevels  = YearLevel::orderBy('level_number')->get(['id', 'name', 'department_id']);
 
         return Inertia::render('student/enrollment/index', [
             'isEnrolled'        => false,
