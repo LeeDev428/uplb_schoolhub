@@ -254,6 +254,7 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::get('drop-requests/{dropRequest}/fee-items', [App\Http\Controllers\Registrar\DropRequestController::class, 'getApplicableFeeItems'])->name('drop-requests.fee-items');
     Route::post('drop-requests/{dropRequest}/approve', [App\Http\Controllers\Registrar\DropRequestController::class, 'approve'])->name('drop-requests.approve');
     Route::post('drop-requests/{dropRequest}/reject', [App\Http\Controllers\Registrar\DropRequestController::class, 'reject'])->name('drop-requests.reject');
+    Route::post('drop-requests/{dropRequest}/finalize', [App\Http\Controllers\Registrar\DropRequestController::class, 'finalize'])->name('drop-requests.finalize');
     Route::post('students/{student}/reactivate', [App\Http\Controllers\Registrar\DropRequestController::class, 'reactivate'])->name('students.reactivate');
 
     // Dropped Students (view all officially dropped students)
