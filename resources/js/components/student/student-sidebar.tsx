@@ -103,14 +103,14 @@ export function StudentSidebar() {
             locked: !isEnrolled,
         },
         {
-            title: 'Document Requests',
-            href: '/student/document-requests',
-            icon: FileText,
-        },
-        {
             title: 'Online Payments',
             href: '/student/online-payments',
             icon: CreditCard,
+        },
+        {
+            title: 'Document Requests',
+            href: '/student/document-requests',
+            icon: FileText,
         },
         {
             title: 'Promissory Notes',
