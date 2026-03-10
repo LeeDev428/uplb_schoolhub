@@ -35,7 +35,7 @@ interface AppSettings {
 }
 
 export function SuperAccountingSidebar() {
-    const { announcementCount, pendingDocumentCount, pendingDropRequestCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; pendingDropRequestCount?: number; appSettings?: AppSettings }>().props;
+    const { announcementCount, pendingDocumentCount, pendingDropRequestCount, pendingOnlineTransactionCount, pendingRefundCount, pendingPromissoryCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; pendingDropRequestCount?: number; pendingOnlineTransactionCount?: number; pendingRefundCount?: number; pendingPromissoryCount?: number; appSettings?: AppSettings }>().props;
     const appName = appSettings?.app_name || 'SchoolHub';
     const logoUrl = appSettings?.logo_url;
     const sidebarColor = appSettings?.sidebar_color || undefined;
@@ -63,6 +63,7 @@ export function SuperAccountingSidebar() {
             title: 'Refund Requests',
             href: '/super-accounting/refunds',
             icon: RotateCcw,
+            badge: pendingRefundCount || undefined,
         },
         {
             title: 'Student Accounts',
@@ -73,6 +74,7 @@ export function SuperAccountingSidebar() {
             title: 'Promissory Notes',
             href: '/super-accounting/promissory-notes',
             icon: ScrollText,
+            badge: pendingPromissoryCount || undefined,
         },
         {
             title: 'Reports',
@@ -83,6 +85,7 @@ export function SuperAccountingSidebar() {
             title: 'Online Transactions',
             href: '/super-accounting/online-transactions',
             icon: Globe,
+            badge: pendingOnlineTransactionCount || undefined,
         },
         {
             title: 'Document Approvals',
