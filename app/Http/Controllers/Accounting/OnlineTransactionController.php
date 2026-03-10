@@ -152,9 +152,14 @@ class OnlineTransactionController extends Controller
 
         $orNumber = $validated['or_number'] ?? ('OT-' . $transaction->transaction_id);
         $paymentMode = strtoupper($transaction->payment_method ?? 'CASH');
-        // Map to valid enum values
+        // Map to valid payment_mode enum values (CASH, GCASH, BANK)
         if (!in_array($paymentMode, ['CASH', 'GCASH', 'BANK'])) {
             $paymentMode = 'CASH';
+        }
+        // Map to valid payment_method enum values (cash, gcash, bank, other)
+        $paymentMethod = strtolower($transaction->payment_method ?? 'cash');
+        if (!in_array($paymentMethod, ['cash', 'gcash', 'bank', 'other'])) {
+            $paymentMethod = 'other';
         }
 
         $payment = StudentPayment::create([
@@ -165,7 +170,7 @@ class OnlineTransactionController extends Controller
             'amount' => $transaction->amount,
             'payment_for' => 'tuition',
             'payment_mode' => $paymentMode,
-            'payment_method' => $transaction->payment_method,
+            'payment_method' => $paymentMethod,
             'reference_number' => $transaction->reference_number,
             'notes' => 'Online transaction: ' . $transaction->transaction_id,
             'recorded_by' => auth()->id(),
