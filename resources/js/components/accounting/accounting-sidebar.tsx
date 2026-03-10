@@ -42,7 +42,7 @@ interface AppSettings {
 }
 
 export function AccountingSidebar() {
-    const { announcementCount, pendingDocumentCount, pendingDropRequestCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; pendingDropRequestCount?: number; appSettings?: AppSettings }>().props;
+    const { announcementCount, pendingDocumentCount, pendingDropRequestCount, pendingOnlineTransactionCount, pendingRefundCount, pendingPromissoryCount, appSettings } = usePage<{ announcementCount: number; pendingDocumentCount?: number; pendingDropRequestCount?: number; pendingOnlineTransactionCount?: number; pendingRefundCount?: number; pendingPromissoryCount?: number; appSettings?: AppSettings }>().props;
     const appName = appSettings?.app_name || 'SchoolHub';
     const logoUrl = appSettings?.logo_url;
     const sidebarColor = appSettings?.sidebar_color || undefined;
@@ -84,6 +84,7 @@ export function AccountingSidebar() {
             title: 'Online Transactions',
             href: '/accounting/online-transactions',
             icon: Globe,
+            badge: pendingOnlineTransactionCount || undefined,
         },
         // {
         //     title: 'Document Request',
@@ -100,6 +101,7 @@ export function AccountingSidebar() {
             title: 'Promissory Notes',
             href: '/accounting/promissory-notes',
             icon: ScrollText,
+            badge: pendingPromissoryCount || undefined,
         },
         {
             title: 'Student Grants',
@@ -129,6 +131,7 @@ export function AccountingSidebar() {
             title: 'Refunds',
             href: '/accounting/refunds',
             icon: RotateCcw,
+            badge: pendingRefundCount || undefined,
         },
         {
             title: 'Reports',
