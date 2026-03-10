@@ -1,18 +1,11 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { Check, MoreHorizontal, Plus, Trash2, X, CheckCircle, Users } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import { Users } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { FilterBar } from '@/components/filters/filter-bar';
-import { FilterDropdown } from '@/components/filters/filter-dropdown';
-import { SearchBar } from '@/components/filters/search-bar';
 import { PageHeader } from '@/components/page-header';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import AccountingLayout from '@/layouts/accounting-layout';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Table,
     TableBody,
@@ -22,70 +15,14 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface Student {
-    id: number;
-    full_name: string;
-    lrn: string;
-}
-
-interface ExamApproval {
-    id: number;
-    student_id: number;
-    school_year: string;
-    exam_type: string;
-    term?: string;
-    status: 'pending' | 'approved' | 'denied';
-    required_amount: string;
-    paid_amount: string;
-    remarks?: string;
-    approved_at?: string;
-    student: Student;
-    approved_by?: { name: string };
-}
-
-interface PaginatedApprovals {
-    data: ExamApproval[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    links: { url: string | null; label: string; active: boolean }[];
-}
-
-interface EligibleStudent {
-    id: number;
-    full_name: string;
-    lrn: string;
-    student_photo_url: string | null;
-    balance: string;
-    total_paid: string;
-    school_year: string;
-}
 
 interface FullyPaidStudent {
     id: number;
@@ -108,143 +45,19 @@ interface FullyPaidStudent {
 }
 
 interface Props {
-    approvals: PaginatedApprovals;
-    eligibleStudents: EligibleStudent[];
     fullyPaidMale: FullyPaidStudent[];
     fullyPaidFemale: FullyPaidStudent[];
-    examTypes: Record<string, string>;
-    terms: Record<string, string>;
-    schoolYears: string[];
-    filters: {
-        search?: string;
-        status?: string;
-        exam_type?: string;
-        school_year?: string;
-    };
 }
 
 export default function ExamApprovalIndex({
-    approvals,
-    eligibleStudents,
     fullyPaidMale,
     fullyPaidFemale,
-    examTypes,
-    terms,
-    schoolYears,
-    filters,
 }: Props) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || 'all');
-    const [examType, setExamType] = useState(filters.exam_type || 'all');
-    const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
-
-    // Fully paid section local filters
     const [fpYearLevel, setFpYearLevel] = useState('all');
     const [fpSection, setFpSection] = useState('all');
     const [fpProgram, setFpProgram] = useState('all');
     const [fpClassification, setFpClassification] = useState('all');
     const [fpDepartment, setFpDepartment] = useState('all');
-
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [isDenyModalOpen, setIsDenyModalOpen] = useState(false);
-    const [selectedApproval, setSelectedApproval] = useState<ExamApproval | null>(null);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-    const createForm = useForm({
-        student_id: '',
-        school_year: new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
-        exam_type: '',
-        term: '',
-        required_amount: '',
-        remarks: '',
-    });
-
-    const denyForm = useForm({
-        remarks: '',
-    });
-
-    const handleFilter = () => {
-        router.get('/accounting/exam-approval', {
-            search: search || undefined,
-            status: status !== 'all' ? status : undefined,
-            exam_type: examType !== 'all' ? examType : undefined,
-            school_year: schoolYear !== 'all' ? schoolYear : undefined,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
-    };
-
-    const handleReset = () => {
-        setSearch('');
-        setStatus('all');
-        setExamType('all');
-        setSchoolYear('all');
-        router.get('/accounting/exam-approval');
-    };
-
-    const handleCreate = (e: React.FormEvent) => {
-        e.preventDefault();
-        createForm.post('/accounting/exam-approval', {
-            onSuccess: () => {
-                toast.success('Changes saved successfully');
-                setIsCreateModalOpen(false);
-                createForm.reset();
-            },
-        });
-    };
-
-    const handleApprove = (id: number) => {
-        router.post(`/accounting/exam-approval/${id}/approve`);
-    };
-
-    const handleDeny = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (selectedApproval) {
-            router.post(`/accounting/exam-approval/${selectedApproval.id}/deny`, {
-                remarks: denyForm.data.remarks,
-            }, {
-                onSuccess: () => {
-                    toast.success('Changes saved successfully');
-                    setIsDenyModalOpen(false);
-                    setSelectedApproval(null);
-                    denyForm.reset();
-                },
-            });
-        }
-    };
-
-    const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to delete this approval record?')) {
-            router.delete(`/accounting/exam-approval/${id}`);
-        }
-    };
-
-    const handleBulkApprove = () => {
-        if (selectedIds.length === 0) return;
-        if (confirm(`Are you sure you want to approve ${selectedIds.length} exam(s)?`)) {
-            router.post('/accounting/exam-approval/bulk-approve', {
-                approval_ids: selectedIds,
-            }, {
-                onSuccess: () => setSelectedIds([]),
-            });
-        }
-    };
-
-    const toggleSelectAll = () => {
-        const pendingIds = approvals.data.filter(a => a.status === 'pending').map(a => a.id);
-        if (selectedIds.length === pendingIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(pendingIds);
-        }
-    };
-
-    const toggleSelect = (id: number) => {
-        setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
-    };
 
     const formatCurrency = (amount: string | number) => {
         return `₱${parseFloat(amount.toString()).toLocaleString('en-PH', {
