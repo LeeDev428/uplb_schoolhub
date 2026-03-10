@@ -6,6 +6,7 @@ import {
     LayoutDashboard,
     LayoutGrid,
     Megaphone,
+    MessageCircle,
     RotateCcw,
     ScrollText,
     Settings,
@@ -98,6 +99,11 @@ export function SuperAccountingSidebar() {
             href: '/super-accounting/drop-approvals',
             icon: UserX,
             badge: pendingDropRequestCount || undefined,
+        },
+        {
+            title: 'Chat',
+            href: '/super-accounting/chat',
+            icon: MessageCircle,
         },
     ];
 
