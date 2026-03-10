@@ -765,10 +765,7 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                                         <dt className="text-sm font-medium text-muted-foreground">City/Municipality</dt>
                                         <dd className="mt-1">{student.city_municipality}</dd>
                                     </div>
-                                    <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Province</dt>
-                                        <dd className="mt-1">{student.province || 'N/A'}</dd>
-                                    </div>
+                                
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">Zip Code</dt>
                                         <dd className="mt-1">{student.zip_code}</dd>
