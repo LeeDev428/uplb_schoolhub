@@ -606,6 +606,14 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
     Route::post('drop-approvals/{dropRequest}/reject', [App\Http\Controllers\Accounting\DropApprovalController::class, 'reject'])->name('drop-approvals.reject');
     Route::post('drop-approvals/{dropRequest}/set-fees', [App\Http\Controllers\Accounting\DropApprovalController::class, 'setFees'])->name('drop-approvals.set-fees');
 
+    // Document Approvals (super-accounting oversight)
+    Route::get('document-approvals', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'index'])->name('document-approvals.index');
+    Route::post('document-approvals/{documentRequest}/approve', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'approve'])->name('document-approvals.approve');
+    Route::post('document-approvals/{documentRequest}/reject', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'reject'])->name('document-approvals.reject');
+    Route::post('document-approvals/{documentRequest}/mark-ready', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'markReady'])->name('document-approvals.mark-ready');
+    Route::post('document-approvals/{documentRequest}/release', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'release'])->name('document-approvals.release');
+    Route::get('document-approvals/{documentRequest}/receipt', [App\Http\Controllers\Accounting\DocumentApprovalController::class, 'viewReceipt'])->name('document-approvals.receipt');
+
     // Student Clearance (super-accounting can also toggle accounting clearance)
     Route::put('clearance/{student}', [App\Http\Controllers\Accounting\StudentClearanceController::class, 'updateClearance'])->name('clearance.update');
 
