@@ -19,6 +19,12 @@ type Props = {
         contact_number: string | null;
         email: string | null;
         address: string | null;
+        street_address: string | null;
+        barangay: string | null;
+        city_municipality: string | null;
+        zip_code: string | null;
+        last_school_attended: string | null;
+        school_address_attended: string | null;
         enrollment_status: string;
         lrn: string | null;
         classification: string | null;
@@ -175,6 +181,48 @@ export default function Profile({ student, user }: Props) {
                                             <MapPin className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
                                             <p className="text-base">{student.address}</p>
                                         </div>
+                                    </div>
+                                )}
+
+                                {student.street_address && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Street / House No.</p>
+                                        <p className="text-base">{student.street_address}</p>
+                                    </div>
+                                )}
+
+                                {student.barangay && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Barangay</p>
+                                        <p className="text-base">{student.barangay}</p>
+                                    </div>
+                                )}
+
+                                {student.city_municipality && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">City/Municipality</p>
+                                        <p className="text-base">{student.city_municipality}</p>
+                                    </div>
+                                )}
+
+                                {student.zip_code && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">ZIP Code</p>
+                                        <p className="text-base">{student.zip_code}</p>
+                                    </div>
+                                )}
+
+                                {student.last_school_attended && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Last School Attended</p>
+                                        <p className="text-base">{student.last_school_attended}</p>
+                                    </div>
+                                )}
+
+                                {student.school_address_attended && (
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">School Address</p>
+                                        <p className="text-base">{student.school_address_attended}</p>
                                     </div>
                                 )}
                             </div>

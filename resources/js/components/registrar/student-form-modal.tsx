@@ -132,8 +132,12 @@ export function StudentFormModal({
         dialects: student?.dialects || '',
         ethnicities: student?.ethnicities || '',
         complete_address: student?.complete_address || '',
+        street_address: student?.street_address || '',
+        barangay: student?.barangay || '',
         city_municipality: student?.city_municipality || '',
         zip_code: student?.zip_code || '',
+        last_school_attended: student?.last_school_attended || '',
+        school_address_attended: student?.school_address_attended || '',
         student_type: student?.student_type || 'new',
         school_year: student?.school_year || schoolYear || '',
         department_id: student?.department_id?.toString() || '',
@@ -376,6 +380,34 @@ export function StudentFormModal({
                                 />
                                 {errors.phone && (
                                     <p className="text-xs text-red-500">{errors.phone}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="last_school_attended">Last School Attended</Label>
+                                <Input
+                                    id="last_school_attended"
+                                    value={data.last_school_attended}
+                                    onChange={e => setData('last_school_attended', e.target.value)}
+                                    placeholder="Enter last school attended"
+                                    className={errors.last_school_attended ? 'border-red-500' : ''}
+                                />
+                                {errors.last_school_attended && (
+                                    <p className="text-xs text-red-500">{errors.last_school_attended}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="school_address_attended">School Address</Label>
+                                <Input
+                                    id="school_address_attended"
+                                    value={data.school_address_attended}
+                                    onChange={e => setData('school_address_attended', e.target.value)}
+                                    placeholder="Enter school address"
+                                    className={errors.school_address_attended ? 'border-red-500' : ''}
+                                />
+                                {errors.school_address_attended && (
+                                    <p className="text-xs text-red-500">{errors.school_address_attended}</p>
                                 )}
                             </div>
                         </div>
@@ -744,6 +776,36 @@ export function StudentFormModal({
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Address Information</h3>
                         
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="street_address">Street / House No.</Label>
+                                <Input
+                                    id="street_address"
+                                    value={data.street_address}
+                                    onChange={e => setData('street_address', e.target.value)}
+                                    placeholder="Street name and house number"
+                                    className={errors.street_address ? 'border-red-500' : ''}
+                                />
+                                {errors.street_address && (
+                                    <p className="text-xs text-red-500">{errors.street_address}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="barangay">Barangay</Label>
+                                <Input
+                                    id="barangay"
+                                    value={data.barangay}
+                                    onChange={e => setData('barangay', e.target.value)}
+                                    placeholder="Enter barangay"
+                                    className={errors.barangay ? 'border-red-500' : ''}
+                                />
+                                {errors.barangay && (
+                                    <p className="text-xs text-red-500">{errors.barangay}</p>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="complete_address">Complete Address *</Label>
                             <Textarea

@@ -66,16 +66,16 @@ class ExamApprovalController extends Controller
                 ];
             });
 
-        // Fully paid students — split by gender for male/female tables
+        // Eligible students split by gender — all except those with overdue fees
         $fullyPaidQuery = Student::whereNull('deleted_at')
-            ->whereHas('fees', function ($fq) {
-                $fq->where('balance', '<=', 0)->where('total_amount', '>', 0);
+            ->whereDoesntHave('fees', function ($fq) {
+                $fq->where('is_overdue', true);
             })
             ->with(['fees' => function ($q) {
-                $q->where('balance', '<=', 0)->where('total_amount', '>', 0)->latest();
+                $q->latest();
             }, 'departmentModel']);
 
-        // Apply search to fully paid list if provided
+        // Apply search to the list if provided
         if ($search = $request->input('search')) {
             $fullyPaidQuery->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
@@ -105,6 +105,7 @@ class ExamApprovalController extends Controller
                     'student_photo_url' => $student->student_photo_url,
                     'total_amount'      => (float) ($fee?->total_amount ?? 0),
                     'total_paid'        => (float) ($fee?->total_paid ?? 0),
+                    'balance'           => max(0, (float) ($fee?->balance ?? 0)),
                     'school_year'       => $fee?->school_year ?? '',
                 ];
             });

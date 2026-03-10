@@ -176,9 +176,13 @@ interface Student {
     nationality: string;
     religion: string;
     complete_address: string;
+    street_address: string | null;
+    barangay: string | null;
     city_municipality: string;
     province: string;
     zip_code: string;
+    last_school_attended: string | null;
+    school_address_attended: string | null;
     student_type: string;
     school_year: string;
     program: string;
@@ -741,6 +745,18 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                             </CardHeader>
                             <CardContent>
                                 <dl className="grid grid-cols-2 gap-6">
+                                    {student.street_address && (
+                                    <div>
+                                        <dt className="text-sm font-medium text-muted-foreground">Street / House No.</dt>
+                                        <dd className="mt-1">{student.street_address}</dd>
+                                    </div>
+                                    )}
+                                    {student.barangay && (
+                                    <div>
+                                        <dt className="text-sm font-medium text-muted-foreground">Barangay</dt>
+                                        <dd className="mt-1">{student.barangay}</dd>
+                                    </div>
+                                    )}
                                     <div className="col-span-2">
                                         <dt className="text-sm font-medium text-muted-foreground">Complete Address</dt>
                                         <dd className="mt-1">{student.complete_address}</dd>
@@ -828,7 +844,7 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                         )}
 
                         {/* Previous School */}
-                        {student.previous_school && (
+                        {(student.last_school_attended || student.previous_school) && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Previous School</CardTitle>
@@ -837,12 +853,12 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                                 <dl className="grid grid-cols-2 gap-6">
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">School Name</dt>
-                                        <dd className="mt-1">{student.previous_school}</dd>
+                                        <dd className="mt-1">{student.last_school_attended || student.previous_school}</dd>
                                     </div>
-                                    {student.previous_school_address && (
+                                    {(student.school_address_attended || student.previous_school_address) && (
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">School Address</dt>
-                                        <dd className="mt-1">{student.previous_school_address}</dd>
+                                        <dd className="mt-1">{student.school_address_attended || student.previous_school_address}</dd>
                                     </div>
                                     )}
                                 </dl>

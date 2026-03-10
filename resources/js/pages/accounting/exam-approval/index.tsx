@@ -102,6 +102,7 @@ interface FullyPaidStudent {
     student_photo_url: string | null;
     total_amount: number;
     total_paid: number;
+    balance: number;
     school_year: string;
 }
 
@@ -622,12 +623,12 @@ export default function ExamApprovalIndex({
                 )}
             </div>
 
-            {/* Fully Paid Students — Male / Female Tables */}
+            {/* Eligible Students (Non-Overdue) — Male / Female Tables */}
             <div className="space-y-4 p-6 pt-0">
                 <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-green-600" />
-                    <h2 className="text-lg font-semibold">Fully Paid Students</h2>
-                    <Badge className="bg-green-100 text-green-800 border border-green-200">
+                    <Users className="h-5 w-5 text-blue-600" />
+                    <h2 className="text-lg font-semibold">Eligible Students (Excluding Overdue)</h2>
+                    <Badge className="bg-blue-100 text-blue-800 border border-blue-200">
                         {fullyPaidMale.length + fullyPaidFemale.length} total
                     </Badge>
                 </div>
@@ -698,7 +699,7 @@ export default function ExamApprovalIndex({
                             <TabsContent key={gender} value={gender}>
                                 <Card>
                                     <CardHeader className="pb-2">
-                                        <CardTitle className="text-base capitalize">{gender} Students — Fully Paid</CardTitle>
+                                        <CardTitle className="text-base capitalize">{gender} Students</CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0">
                                         <Table>
@@ -712,14 +713,15 @@ export default function ExamApprovalIndex({
                                                     <TableHead>Program</TableHead>
                                                     <TableHead>Year / Section</TableHead>
                                                     <TableHead className="text-right">Total Paid</TableHead>
+                                                    <TableHead className="text-right">Balance</TableHead>
                                                     <TableHead>School Year</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
                                                 {students.length === 0 ? (
                                                     <TableRow>
-                                                        <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
-                                                            No fully paid {gender} students.
+                                                        <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
+                                                            No eligible {gender} students.
                                                         </TableCell>
                                                     </TableRow>
                                                 ) : (
@@ -743,6 +745,7 @@ export default function ExamApprovalIndex({
                                                             <TableCell className="text-sm">{student.program || '—'}</TableCell>
                                                             <TableCell className="text-sm">{[student.year_level, student.section].filter(Boolean).join(' – ') || '—'}</TableCell>
                                                             <TableCell className="text-right text-green-600 font-medium text-sm">{formatCurrency(student.total_paid)}</TableCell>
+                                                            <TableCell className={`text-right font-medium text-sm ${student.balance > 0 ? 'text-orange-600' : 'text-green-600'}`}>{student.balance > 0 ? formatCurrency(student.balance) : 'Paid'}</TableCell>
                                                             <TableCell className="text-sm">{student.school_year}</TableCell>
                                                         </TableRow>
                                                     ))
