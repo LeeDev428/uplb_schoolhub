@@ -266,6 +266,9 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
 
     // Active Semester (quick toggle from Registrar's Students page)
     Route::patch('active-semester', [App\Http\Controllers\StudentController::class, 'updateActiveSemester'])->name('active-semester.update');
+
+    // Chat
+    Route::get('chat', fn () => \Inertia\Inertia::render('registrar/chat/index'))->name('chat.index');
 });
 
 // Accounting Routes
@@ -626,6 +629,9 @@ Route::prefix('super-accounting')->name('super-accounting.')->middleware(['auth'
     // Dashboard exports
     Route::get('dashboard/export', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'export'])->name('dashboard.export');
     Route::get('account-dashboard/export', [App\Http\Controllers\Accounting\AccountingDashboardController::class, 'exportAccountDashboard'])->name('account-dashboard.export');
+
+    // Chat
+    Route::get('chat', fn () => \Inertia\Inertia::render('super-accounting/chat/index'))->name('chat.index');
 });
 
 require __DIR__.'/settings.php';
