@@ -10,6 +10,7 @@ import {
     ThumbsDown,
     Filter,
     AlertCircle,
+    List,
     Package,
     PackageCheck,
     Send,
@@ -328,6 +329,10 @@ export default function DocumentApprovals({ requests, stats, documentTypes, tab,
                         {/* Tabs */}
                         <Tabs value={activeTab} onValueChange={handleTabChange}>
                             <TabsList>
+                                <TabsTrigger value="all" className="flex gap-2">
+                                    <List className="h-4 w-4" />
+                                    All
+                                </TabsTrigger>
                                 <TabsTrigger value="pending" className="flex gap-2">
                                     <Clock className="h-4 w-4" />
                                     Pending
