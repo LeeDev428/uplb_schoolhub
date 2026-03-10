@@ -11,6 +11,7 @@ import {
     LayoutDashboard,
     LayoutGrid,
     Megaphone,
+    MessageCircle,
     Receipt,
     RotateCcw,
     ScrollText,
@@ -118,6 +119,11 @@ export function AccountingSidebar() {
             href: '/accounting/drop-requests',
             icon: UserX,
             badge: pendingDropRequestCount || undefined,
+        },
+        {
+            title: 'Chat',
+            href: '/accounting/chat',
+            icon: MessageCircle,
         },
     ];
 
