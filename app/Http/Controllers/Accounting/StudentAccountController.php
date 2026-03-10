@@ -39,7 +39,12 @@ class StudentAccountController extends Controller
             ->sort()
             ->values();
 
-        $selectedSchoolYear = $request->input('school_year', $schoolYears->first());
+        // Default to the app-configured school year so it matches what bulkMarkOverdue uses
+        $currentAppYear = \App\Models\AppSetting::current()?->school_year;
+        $defaultYear = $currentAppYear && $schoolYears->contains($currentAppYear)
+            ? $currentAppYear
+            : $schoolYears->first();
+        $selectedSchoolYear = $request->input('school_year', $defaultYear);
 
         // Get students with enrollment clearance (registrar-cleared, in accounting queue or beyond)
         $studentsQuery = Student::with(['department'])
