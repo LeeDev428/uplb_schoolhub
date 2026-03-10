@@ -36,9 +36,10 @@ interface Student {
     section: string | null;
     department: string | null;
     enrollment_status: string;
-    current_balance: number;
-    previous_balance: number;
-    total_balance: number;
+    total_fees: number;
+    discounts: number;
+    total_paid: number;
+    balance: number;
     status: string;
 }
 
@@ -107,7 +108,7 @@ export default function PaymentProcessingIndex({ students, filters, statistics }
     // Calculate stats
     const stats = {
         total: students.data.length,
-        withBalance: students.data.filter(s => s.total_balance > 0).length,
+        withBalance: students.data.filter(s => s.balance > 0).length,
         overdue: students.data.filter(s => s.status === 'overdue').length,
         cleared: students.data.filter(s => s.status === 'approved' || s.status === 'fully_paid').length,
     };
@@ -279,9 +280,10 @@ export default function PaymentProcessingIndex({ students, filters, statistics }
                                         <TableHead>Student No.</TableHead>
                                         <TableHead>Program</TableHead>
                                         <TableHead>Year & Section</TableHead>
-                                        <TableHead className="text-right">Current Balance</TableHead>
-                                        <TableHead className="text-right">Previous Balance</TableHead>
-                                        <TableHead className="text-right">Total Balance</TableHead>
+                                        <TableHead className="text-right">Total Fees</TableHead>
+                                        <TableHead className="text-right">Discounts</TableHead>
+                                        <TableHead className="text-right">Total Paid</TableHead>
+                                        <TableHead className="text-right">Balance</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead></TableHead>
                                     </TableRow>
@@ -289,7 +291,7 @@ export default function PaymentProcessingIndex({ students, filters, statistics }
                                 <TableBody>
                                     {students.data.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                            <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                                                 No students found. Try adjusting your search filters.
                                             </TableCell>
                                         </TableRow>
@@ -322,18 +324,23 @@ export default function PaymentProcessingIndex({ students, filters, statistics }
                                                     {student.year_level} {student.section && `- ${student.section}`}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <span className={student.current_balance > 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}>
-                                                        {formatCurrency(student.current_balance)}
+                                                    <span className="text-muted-foreground">
+                                                        {formatCurrency(student.total_fees)}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <span className={student.previous_balance > 0 ? 'text-orange-600 font-medium' : 'text-muted-foreground'}>
-                                                        {formatCurrency(student.previous_balance)}
+                                                    <span className={student.discounts > 0 ? 'text-green-600 font-medium' : 'text-muted-foreground'}>
+                                                        {student.discounts > 0 ? '-' : ''}{formatCurrency(student.discounts)}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <span className={student.total_balance > 0 ? 'font-bold' : 'text-muted-foreground'}>
-                                                        {formatCurrency(student.total_balance)}
+                                                    <span className={student.total_paid > 0 ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
+                                                        {formatCurrency(student.total_paid)}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <span className={student.balance > 0 ? 'font-bold text-red-600' : 'text-muted-foreground'}>
+                                                        {formatCurrency(student.balance)}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
