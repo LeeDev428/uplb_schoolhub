@@ -21,6 +21,7 @@ class OnlineTransaction extends Model
         'reference_number',
         'account_name',
         'account_number',
+        'bank_name',
         'payment_proof',
         'transaction_date',
         'verified_at',
