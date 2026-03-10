@@ -110,6 +110,7 @@ export default function OnlinePayment({ feeItems, summary, recentPayments, payme
         amount: '',
         payment_method: 'gcash',
         reference_number: '',
+        bank_name: '',
         receipt_image: null as File | null,
         notes: '',
     });
@@ -319,6 +320,22 @@ export default function OnlinePayment({ feeItems, summary, recentPayments, payme
                                             )}
                                         </div>
                                     </div>
+
+                                    {form.data.payment_method === 'bank_transfer' && (
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="bank_name">Bank Name *</Label>
+                                            <Input
+                                                id="bank_name"
+                                                value={form.data.bank_name}
+                                                onChange={(e) => form.setData('bank_name', e.target.value)}
+                                                placeholder="e.g. BDO, BPI, Metrobank"
+                                                required
+                                            />
+                                            {form.errors.bank_name && (
+                                                <p className="text-sm text-red-500">{form.errors.bank_name}</p>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div className="grid gap-2">
                                         <Label htmlFor="reference_number">Reference Number *</Label>
