@@ -70,6 +70,21 @@ export function AccountingSidebar() {
             href: '/accounting/student-accounts',
             icon: Users,
         },
+        {
+            title: 'Payment Processing',
+            href: '/accounting/payments',
+            icon: CreditCard,
+        },
+        {
+            title: 'Student Clearance',
+            href: '/accounting/clearance',
+            icon: ClipboardCheck,
+        },
+        {
+            title: 'Online Transactions',
+            href: '/accounting/online-transactions',
+            icon: Globe,
+        },
         // {
         //     title: 'Document Request',
         //     href: '/accounting/document-requests',
@@ -82,20 +97,9 @@ export function AccountingSidebar() {
             badge: pendingDocumentCount || undefined,
         },
         {
-            title: 'Drop Requests',
-            href: '/accounting/drop-requests',
-            icon: UserX,
-            badge: pendingDropRequestCount || undefined,
-        },
-        {
             title: 'Promissory Notes',
             href: '/accounting/promissory-notes',
             icon: ScrollText,
-        },
-        {
-            title: 'Payment Processing',
-            href: '/accounting/payments',
-            icon: CreditCard,
         },
         {
             title: 'Student Grants',
@@ -108,10 +112,19 @@ export function AccountingSidebar() {
             icon: FileCheck,
         },
         {
-            title: 'Student Clearance',
-            href: '/accounting/clearance',
-            icon: ClipboardCheck,
+            title: 'Drop Requests',
+            href: '/accounting/drop-requests',
+            icon: UserX,
+            badge: pendingDropRequestCount || undefined,
         },
+    ];
+
+    const adminNavItems: NavItem[] = [
+        {
+            title: 'Fee Management',
+            href: '/accounting/fee-management',
+            icon: Calculator,
+        },y
         {
             title: 'Refunds',
             href: '/accounting/refunds',
@@ -121,19 +134,6 @@ export function AccountingSidebar() {
             title: 'Reports',
             href: '/accounting/reports',
             icon: BookOpen,
-        },
-    ];
-
-    const adminNavItems: NavItem[] = [
-        {
-            title: 'Fee Management',
-            href: '/accounting/fee-management',
-            icon: Calculator,
-        },
-        {
-            title: 'Online Transactions',
-            href: '/accounting/online-transactions',
-            icon: Globe,
         },
         {
             title: 'Settings',

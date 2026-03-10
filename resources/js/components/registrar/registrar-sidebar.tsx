@@ -74,9 +74,20 @@ export function RegistrarSidebar() {
             icon: Users,
         },
         {
-            title: 'Subjects',
-            href: '/registrar/subjects',
-            icon: BookOpen,
+            title: 'Document Requests',
+            href: '/registrar/document-approvals',
+            badge: pendingDocumentCount || undefined,
+            icon: ClipboardCheck,
+        },
+        {
+            title: 'Reports',
+            href: '/registrar/reports',
+            icon: FileText,
+        },
+        {
+            title: 'Student Status',
+            href: '/registrar/student-status',
+            icon: UserCog,
         },
         {
             title: 'Requirements',
@@ -94,26 +105,15 @@ export function RegistrarSidebar() {
         //     icon: BookText,
         // },
         {
-            title: 'Document Requests',
-            href: '/registrar/document-approvals',
-            badge: pendingDocumentCount || undefined,
-            icon: ClipboardCheck,
-        },
-        {
             title: 'Drop Requests',
             href: '/registrar/drop-requests',
             badge: pendingDropRequestCount || undefined,
             icon: UserMinus,
         },
         {
-            title: 'Student Status',
-            href: '/registrar/student-status',
-            icon: UserCog,
-        },
-        {
-            title: 'Deadlines',
-            href: '/registrar/deadlines',
-            icon: Calendar,
+            title: 'Subjects',
+            href: '/registrar/subjects',
+            icon: BookOpen,
         },
         {
             title: 'Classes',
@@ -126,9 +126,9 @@ export function RegistrarSidebar() {
             icon: Calendar,
         },
         {
-            title: 'Reports',
-            href: '/registrar/reports',
-            icon: FileText,
+            title: 'Deadlines',
+            href: '/registrar/deadlines',
+            icon: Calendar,
         },
     ];
 
