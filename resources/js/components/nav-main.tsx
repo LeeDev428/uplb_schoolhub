@@ -90,7 +90,9 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
                                 )}
                             </SidebarMenuButton>
                             {item.badge != null && Number(item.badge) > 0 && (
-                                <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                                <SidebarMenuBadge className="bg-red-500 text-white rounded-full h-5 min-w-5 text-[11px] font-semibold">
+                                    {item.badge}
+                                </SidebarMenuBadge>
                             )}
                         </SidebarMenuItem>
                     );
