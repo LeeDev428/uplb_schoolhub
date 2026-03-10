@@ -10,6 +10,29 @@ class Student extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::updated(function (Student $student) {
+            if ($student->wasChanged('enrollment_status') && $student->school_year) {
+                $status = $student->enrollment_status;
+                $tracked = ['enrolled', 'dropped', 'graduated', 'pending-registrar', 'pending-accounting', 'pending-enrollment'];
+                if (in_array($status, $tracked)) {
+                    StudentEnrollmentHistory::updateOrCreate(
+                        ['student_id' => $student->id, 'school_year' => $student->school_year],
+                        [
+                            'status'      => $status === 'enrolled' ? 'officially_enrolled' : $status,
+                            'enrolled_at' => $status === 'enrolled' ? now() : null,
+                            'enrolled_by' => $status === 'enrolled' ? auth()->id() : null,
+                            'program'     => $student->program,
+                            'year_level'  => $student->year_level,
+                            'section'     => $student->section,
+                        ]
+                    );
+                }
+            }
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
