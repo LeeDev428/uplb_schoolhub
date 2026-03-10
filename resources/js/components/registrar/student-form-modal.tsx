@@ -129,7 +129,7 @@ export function StudentFormModal({
         place_of_birth: student?.place_of_birth || '',
         gender: student?.gender || '',
         nationality: student?.nationality || '',
-        religion: student?.religion || '',,
+        religion: student?.religion || '',
         mother_tongue: student?.mother_tongue || '',
         dialects: student?.dialects || '',
         ethnicities: student?.ethnicities || '',
