@@ -6,6 +6,7 @@ import {
     TrendingUp,
     RefreshCw,
     Download,
+    Search,
 } from 'lucide-react';
 import { PhilippinePeso } from '@/components/icons/philippine-peso';
 import { useState } from 'react';
@@ -18,6 +19,14 @@ import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -129,6 +138,18 @@ export default function AccountDashboard({
             ? { from: new Date(filters.date_from), to: new Date(filters.date_to) }
             : undefined
     );
+
+    // Transaction History filters (client-side)
+    const [txSearch, setTxSearch] = useState('');
+    const [txType, setTxType]     = useState('');
+    const [txMode, setTxMode]     = useState('');
+
+    const filteredTransactions = (transactions || []).filter((tx) => {
+        if (txSearch && !tx.or_number?.toLowerCase().includes(txSearch.toLowerCase())) return false;
+        if (txType && tx.type !== txType) return false;
+        if (txMode && tx.mode !== txMode) return false;
+        return true;
+    });
 
     const formatCurrency = (amount: number) => {
         return `₱ ${(amount || 0).toLocaleString('en-PH', {
@@ -379,6 +400,39 @@ export default function AccountDashboard({
                         <CardTitle>Transaction History</CardTitle>
                     </CardHeader>
                     <CardContent>
+                        <div className="flex flex-col md:flex-row gap-3 mb-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search by OR number..."
+                                    value={txSearch}
+                                    onChange={(e) => setTxSearch(e.target.value)}
+                                    className="pl-9"
+                                />
+                            </div>
+                            <Select value={txType || 'all'} onValueChange={(v) => setTxType(v === 'all' ? '' : v)}>
+                                <SelectTrigger className="w-[150px]">
+                                    <SelectValue placeholder="All Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Types</SelectItem>
+                                    <SelectItem value="Fee">Fee</SelectItem>
+                                    <SelectItem value="Document">Document</SelectItem>
+                                    <SelectItem value="Drop">Drop</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Select value={txMode || 'all'} onValueChange={(v) => setTxMode(v === 'all' ? '' : v)}>
+                                <SelectTrigger className="w-[150px]">
+                                    <SelectValue placeholder="All Modes" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Modes</SelectItem>
+                                    <SelectItem value="CASH">CASH</SelectItem>
+                                    <SelectItem value="GCASH">GCASH</SelectItem>
+                                    <SelectItem value="BANK">BANK</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="rounded-md border">
                             <Table>
                                 <TableHeader>
@@ -393,14 +447,14 @@ export default function AccountDashboard({
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {(transactions || []).length === 0 ? (
+                                    {filteredTransactions.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                                 No transactions found for the selected period.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        (transactions || []).map((tx) => (
+                                        filteredTransactions.map((tx) => (
                                             <TableRow key={tx.id}>
                                                 <TableCell>
                                                     {tx.date} {tx.time}
