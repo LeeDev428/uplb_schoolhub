@@ -5,6 +5,7 @@ import {
     LayoutGrid,
     FileCheck,
     Megaphone,
+    MessageCircle,
     User,
     Settings,
     FileQuestion,
