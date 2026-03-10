@@ -280,22 +280,20 @@ class StudentAccountController extends Controller
             ->where('status', 'approved')
             ->exists();
 
-        // Determine if overdue:
-        // NOT overdue if: student has paid something (partial) OR has approved promissory note
+        // Determine if overdue: respects the explicit is_overdue flag; promissory note clears it
         $isOverdue = false;
         if ($studentFee && $studentFee->is_overdue && $balance > 0) {
-            // Only mark as overdue if no partial payment AND no approved promissory
-            $isOverdue = ($totalPaid <= 0) && !$hasApprovedPromissory;
+            $isOverdue = !$hasApprovedPromissory;
         }
 
         // Determine payment status
         $paymentStatus = 'unpaid';
         if ($balance <= 0 && $totalAmount > 0) {
             $paymentStatus = 'paid';
-        } elseif ($totalPaid > 0) {
-            $paymentStatus = 'partial';
         } elseif ($isOverdue) {
             $paymentStatus = 'overdue';
+        } elseif ($totalPaid > 0) {
+            $paymentStatus = 'partial';
         }
 
         return [
@@ -484,6 +482,7 @@ class StudentAccountController extends Controller
         $query->update([
             'is_overdue' => true,
             'due_date' => $request->overdue_date,
+            'payment_status' => 'overdue',
         ]);
 
         return redirect()->back()->with('success', "{$count} accounts marked as overdue.");
