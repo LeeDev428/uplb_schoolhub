@@ -66,7 +66,7 @@ export function SuperAccountingSidebar() {
         },
         {
             title: 'Student Accounts',
-            href: '/super-accounting/student-accounts',
+            href: '/super-accounting/student-accounts?status=overdue',
             icon: Users,
         },
         {
