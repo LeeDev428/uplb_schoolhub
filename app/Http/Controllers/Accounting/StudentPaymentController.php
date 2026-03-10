@@ -224,7 +224,7 @@ class StudentPaymentController extends Controller
         }
 
         // Calculate aggregate financial statistics for all students
-        $currentYear = date('Y') . '-' . (date('Y') + 1);
+        $currentYear = \App\Models\AppSetting::current()?->school_year ?? date('Y') . '-' . (date('Y') + 1);
         
         // Get all fees for current year to calculate statistics
         $allCurrentFees = StudentFee::where('school_year', $currentYear)->get();
