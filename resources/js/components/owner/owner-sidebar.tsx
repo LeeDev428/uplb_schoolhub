@@ -40,7 +40,7 @@ interface AppSettings {
 }
 
 export function OwnerSidebar() {
-    const { appSettings } = usePage<{ appSettings?: AppSettings }>().props;
+    const { announcementCount, appSettings } = usePage<{ announcementCount: number; appSettings?: AppSettings }>().props;
     const appName = appSettings?.app_name || 'SchoolHub';
     const logoUrl = appSettings?.logo_url;
     const sidebarColor = appSettings?.sidebar_color || undefined;
@@ -111,6 +111,7 @@ export function OwnerSidebar() {
             title: 'Announcements',
             href: '/owner/announcements',
             icon: Megaphone,
+            badge: announcementCount || undefined,
         },
         {
             title: 'Export Reports',
