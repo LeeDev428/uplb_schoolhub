@@ -208,9 +208,6 @@ export default function OnlineTransactionsIndex({
         switch (provider.toLowerCase()) {
             case 'gcash':
                 return '';
-            case 'maya':
-            case 'paymaya':
-                return '';
             case 'bpi':
             case 'bdo':
             case 'metrobank':
