@@ -131,6 +131,11 @@ export function RegistrarSidebar() {
             href: '/registrar/deadlines',
             icon: Calendar,
         },
+        {
+            title: 'Chat',
+            href: '/registrar/chat',
+            icon: MessageCircle,
+        },
     ];
 
     return (
