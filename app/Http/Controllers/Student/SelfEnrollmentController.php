@@ -116,11 +116,12 @@ class SelfEnrollmentController extends Controller
                     'review_notes'   => $n->review_notes,
                 ]);
 
-            // Summary
-            $totalFees     = $fees->sum('total_amount');
-            $totalDiscount = $fees->sum('grant_discount');
-            $totalPaid     = $fees->sum('total_paid');
-            $totalBalance  = $fees->sum('balance');
+            // Summary — only for the current school year
+            $currentYearFees = $fees->filter(fn ($f) => $f['school_year'] === $currentSchoolYear);
+            $totalFees     = $currentYearFees->sum('total_amount');
+            $totalDiscount = $currentYearFees->sum('grant_discount');
+            $totalPaid     = $currentYearFees->sum('total_paid');
+            $totalBalance  = $currentYearFees->sum('balance');
 
             // Requirements
             $requirements = $student->requirements->map(fn ($req) => [
