@@ -53,7 +53,7 @@ class StudentPaymentController extends Controller
 
         // Transform students for list with DYNAMIC balance calculation
         $students->through(function ($student) {
-            $currentYear = $student->school_year ?? date('Y') . '-' . (date('Y') + 1);
+            $currentYear = \App\Models\AppSetting::current()?->school_year ?? date('Y') . '-' . (date('Y') + 1);
             
             // Get current fee record
             $currentFee = StudentFee::where('student_id', $student->id)
@@ -130,7 +130,7 @@ class StudentPaymentController extends Controller
                     ->get();
 
                 // Calculate current and previous balances
-                $currentYear = $selectedStudent->school_year ?? date('Y') . '-' . (date('Y') + 1);
+                $currentYear = \App\Models\AppSetting::current()?->school_year ?? date('Y') . '-' . (date('Y') + 1);
                 $currentFee = $studentFees->firstWhere('school_year', $currentYear);
                 $previousFees = $studentFees->where('school_year', '!=', $currentYear);
 
@@ -146,6 +146,7 @@ class StudentPaymentController extends Controller
                         'year_level' => $selectedStudent->year_level,
                         'section' => $selectedStudent->section,
                         'department' => $selectedStudent->department?->name,
+                        'classification' => $selectedStudent->department?->classification,
                         'enrollment_status' => $selectedStudent->enrollment_status,
                         'student_photo_url' => $selectedStudent->student_photo_url,
                     ],
