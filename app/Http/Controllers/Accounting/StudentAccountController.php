@@ -78,8 +78,26 @@ class StudentAccountController extends Controller
 
         // Calculate fees dynamically for each student
         $accounts = $students->through(function ($student) use ($selectedSchoolYear) {
+            // Per-year data for metadata (is_overdue, due_date, student_fee_id, payments_count)
             $feeData = $this->calculateStudentFees($student, $selectedSchoolYear);
-            
+
+            // Combined all-years calculation (same logic as process page)
+            $allFees          = StudentFee::where('student_id', $student->id)->get();
+            $allPaymentSum    = (float) StudentPayment::where('student_id', $student->id)->sum('amount');
+            $combinedTotal    = (float) $allFees->sum('total_amount');
+            $combinedDiscount = (float) $allFees->sum('grant_discount');
+            $combinedBalance  = max(0, $combinedTotal - $combinedDiscount - $allPaymentSum);
+
+            // Payment status based on combined balance
+            $combinedStatus = 'unpaid';
+            if ($combinedTotal > 0 && $combinedBalance <= 0) {
+                $combinedStatus = 'paid';
+            } elseif ($feeData['is_overdue']) {
+                $combinedStatus = 'overdue';
+            } elseif ($allPaymentSum > 0) {
+                $combinedStatus = 'partial';
+            }
+
             // Get grants — no school_year filter so mislabelled grants still show
             $grants = GrantRecipient::where('student_id', $student->id)
                 ->where('status', 'active')
@@ -101,13 +119,13 @@ class StudentAccountController extends Controller
                     'department' => $student->department?->name,
                 ],
                 'school_year' => $selectedSchoolYear,
-                'total_amount' => $feeData['total_amount'],
-                'grant_discount' => $feeData['grant_discount'],
-                'total_paid' => $feeData['total_paid'],
-                'balance' => $feeData['balance'],
+                'total_amount' => $combinedTotal,
+                'grant_discount' => $combinedDiscount,
+                'total_paid' => $allPaymentSum,
+                'balance' => $combinedBalance,
                 'is_overdue' => $feeData['is_overdue'],
                 'due_date' => $feeData['due_date'],
-                'payment_status' => $feeData['payment_status'],
+                'payment_status' => $combinedStatus,
                 'payments_count' => $feeData['payments_count'],
                 'grants' => $grants->map(fn($gr) => [
                     'name' => $gr->grant->name,
