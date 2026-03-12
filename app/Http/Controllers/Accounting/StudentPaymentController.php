@@ -51,33 +51,28 @@ class StudentPaymentController extends Controller
 
         $students = $query->latest()->paginate(20)->withQueryString();
 
-        // Transform students for list with DYNAMIC balance calculation
+        // Transform students for list — aggregate ALL school years to match process page logic
         $students->through(function ($student) {
-            $currentYear = \App\Models\AppSetting::current()?->school_year ?? date('Y') . '-' . (date('Y') + 1);
-            
-            // Get current fee record
-            $currentFee = StudentFee::where('student_id', $student->id)
-                ->where('school_year', $currentYear)
-                ->first();
-            
-            $totalFees = $currentFee ? (float) $currentFee->total_amount + (float) $currentFee->grant_discount : 0;
-            $discounts = $currentFee ? (float) $currentFee->grant_discount : 0;
-            $totalPaid = $currentFee ? (float) $currentFee->total_paid : 0;
-            $balance   = $currentFee ? (float) $currentFee->balance : 0;
+            // Combined calculation across ALL school years (same approach as process page)
+            $allFees   = StudentFee::where('student_id', $student->id)->get();
+            $totalFees = (float) $allFees->sum('total_amount');
+            $discounts = (float) $allFees->sum('grant_discount');
+            $totalPaid = (float) StudentPayment::where('student_id', $student->id)->sum('amount');
+            $balance   = max(0, $totalFees - $discounts - $totalPaid);
 
             // Determine status
             $status = 'pending';
-            
+
             // Check for approved promissory notes
             $hasApprovedPromissory = PromissoryNote::where('student_id', $student->id)
                 ->where('status', 'approved')
                 ->exists();
-            
-            if ($balance <= 0) {
+
+            if ($totalFees > 0 && $balance <= 0) {
                 $status = 'fully_paid';
             } elseif ($hasApprovedPromissory) {
-                $status = 'approved'; // Has approved promissory note
-            } elseif ($currentFee?->is_overdue && $currentFee->total_paid <= 0) {
+                $status = 'approved';
+            } elseif ($allFees->where('is_overdue', true)->isNotEmpty() && $totalPaid <= 0) {
                 $status = 'overdue';
             }
 
