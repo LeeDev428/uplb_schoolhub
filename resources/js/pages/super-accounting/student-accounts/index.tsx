@@ -653,9 +653,11 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                                         <TableCell>{account.school_year}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(account.total_amount)}</TableCell>
                                         <TableCell className="text-right">
-                                            {parseFloat(account.grant_discount) > 0 ? (
+                                            {parseFloat(String(account.grant_discount)) > 0 ? (
                                                 <span className="text-green-600">-{formatCurrency(account.grant_discount)}</span>
-                                            ) : '-'}
+                                            ) : (
+                                                <span className="text-muted-foreground">{formatCurrency(0)}</span>
+                                            )}
                                         </TableCell>
                                         <TableCell className="text-right text-green-600">{formatCurrency(account.total_paid)}</TableCell>
                                         <TableCell className="text-right font-medium">
