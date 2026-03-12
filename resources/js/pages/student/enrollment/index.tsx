@@ -233,7 +233,7 @@ function EnrollmentDetails({ student, fees, payments, promissoryNotes, requireme
                         My Enrollment
                     </h1>
                     <p className="text-muted-foreground">
-                        Enrollment details for School Year {student.school_year ?? currentSchoolYear}
+                        Enrollment details for School Year {currentSchoolYear}
                     </p>
                 </div>
 
