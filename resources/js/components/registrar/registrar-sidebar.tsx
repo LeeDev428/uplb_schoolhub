@@ -112,6 +112,11 @@ export function RegistrarSidebar() {
             icon: UserMinus,
         },
         {
+            title: 'Exam Approval',
+            href: '/registrar/exam-approval',
+            icon: ClipboardCheck,
+        },
+        {
             title: 'Subjects',
             href: '/registrar/subjects',
             icon: BookOpen,
