@@ -236,6 +236,9 @@ Route::prefix('registrar')->name('registrar.')->middleware(['auth', 'verified', 
     Route::delete('archived/{id}', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'forceDelete'])->name('archived.destroy');
     Route::post('archived/bulk-restore', [App\Http\Controllers\Registrar\ArchivedStudentController::class, 'bulkRestore'])->name('archived.bulk-restore');
 
+    // Exam Approval (read-only view)
+    Route::get('exam-approval', [App\Http\Controllers\Registrar\ExamApprovalController::class, 'index'])->name('exam-approval.index');
+
     // Inactive Students (deactivated — is_active = false, not soft-deleted)
     Route::get('inactive-students', [App\Http\Controllers\Registrar\InactiveStudentController::class, 'index'])->name('inactive-students');
 
