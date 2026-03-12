@@ -63,6 +63,7 @@ interface Props {
         original_tuition: number;
         grant_deduction: number;
         total_tuition_fees: number;
+        total_paid: number;
         previous_balance: number;
         total_balance_to_pay: number;
     };
@@ -153,7 +154,7 @@ export default function PaymentProcessingIndex({ students, filters, statistics }
                             <Receipt className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">{formatCurrency(statistics.total_tuition_fees)}</div>
+                            <div className="text-2xl font-bold text-blue-600">{formatCurrency(statistics.total_paid)}</div>
                             <p className="text-xs text-muted-foreground">Payments received</p>
                         </CardContent>
                     </Card>
