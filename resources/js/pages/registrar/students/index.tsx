@@ -561,10 +561,10 @@ export default function StudentsIndex({ students, tab: tabProp = 'active', stats
                                 Active Students
                                 <Badge variant="secondary" className="ml-2 text-xs">{stats.allStudents}</Badge>
                             </TabsTrigger>
-                            <TabsTrigger value="dropped" className="rounded-none border-b-2 border-transparent data-[state=active]:border-destructive data-[state=active]:bg-transparent px-4 py-2 text-sm font-medium">
+                            <TabsTrigger value="dropped" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2 text-sm font-medium">
                                 <UserX className="mr-2 h-4 w-4" />
                                 Dropped
-                                {stats.dropped > 0 && <Badge variant="destructive" className="ml-2 text-xs">{stats.dropped}</Badge>}
+                                {stats.dropped > 0 && <Badge variant="secondary" className="ml-2 text-xs">{stats.dropped}</Badge>}
                             </TabsTrigger>
                             <TabsTrigger value="archived" className="rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:bg-transparent px-4 py-2 text-sm font-medium">
                                 <Archive className="mr-2 h-4 w-4" />
