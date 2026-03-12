@@ -80,6 +80,8 @@ interface Student {
     section: string | null;
     student_photo_url: string | null;
     enrollment_status: string;
+    department: string | null;
+    classification: string | null;
 }
 
 interface FeeItemDetail {
@@ -560,7 +562,9 @@ export default function PaymentProcess({ student, fees, payments, promissoryNote
                                 </div>
                                 <p className="text-muted-foreground">Student No.: {student.lrn}</p>
                                 <div className="flex gap-4 mt-1 text-sm">
-                                    {student.program && <span>{student.program}</span>}
+                                    {student.classification && <span className="capitalize">{student.classification}</span>}
+                                    {student.department && <span>{student.classification ? '• ' : ''}{student.department}</span>}
+                                    {student.program && <span>• {student.program}</span>}
                                     {student.year_level && <span>• {student.year_level}</span>}
                                     {student.section && <span>• {student.section}</span>}
                                 </div>
