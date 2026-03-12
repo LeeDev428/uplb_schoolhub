@@ -204,6 +204,7 @@ interface Student {
     student_photo_url: string | null;
     remarks: string | null;
     requirements: StudentRequirement[];
+    department?: { id: number; name: string; classification: string } | null;
 }
 
 interface Props {
@@ -518,7 +519,19 @@ export default function StudentShow({ student, requirementsCompletion, emailVeri
                                         </Button>
                                     )}
                                 </div>
-                                <div className="mt-4 grid grid-cols-3 gap-4">
+                                <div className="mt-4 grid grid-cols-5 gap-4">
+                                    {student.department && (
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Classification</p>
+                                            <p className="font-medium capitalize">{student.department.classification}</p>
+                                        </div>
+                                    )}
+                                    {student.department && (
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Department</p>
+                                            <p className="font-medium">{student.department.name}</p>
+                                        </div>
+                                    )}
                                     <div>
                                         <p className="text-sm text-muted-foreground">Program</p>
                                         <p className="font-medium">{student.program}</p>
