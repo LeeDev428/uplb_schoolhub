@@ -39,12 +39,12 @@ class StudentAccountController extends Controller
             ->sort()
             ->values();
 
-        // Default to the app-configured school year so it matches what bulkMarkOverdue uses
+        // Keep app year for operational actions (e.g. bulk overdue), but do not force it as list default.
         $currentAppYear = \App\Models\AppSetting::current()?->school_year;
-        $defaultYear = $currentAppYear && $schoolYears->contains($currentAppYear)
-            ? $currentAppYear
-            : $schoolYears->first();
-        $selectedSchoolYear = $request->input('school_year', $defaultYear);
+        $selectedSchoolYear = $request->input('school_year');
+        if ($selectedSchoolYear === 'all' || $selectedSchoolYear === '') {
+            $selectedSchoolYear = null;
+        }
 
         // Get students with enrollment clearance (registrar-cleared, in accounting queue or beyond)
         $studentsQuery = Student::with(['department'])
@@ -81,9 +81,11 @@ class StudentAccountController extends Controller
         $students = $studentsQuery->latest()->paginate(20)->withQueryString();
 
         // Calculate fees dynamically for each student
-        $accounts = $students->through(function ($student) use ($selectedSchoolYear) {
+        $accounts = $students->through(function ($student) use ($selectedSchoolYear, $currentAppYear) {
+            $targetSchoolYear = $selectedSchoolYear ?: ($student->school_year ?: $currentAppYear);
+
             // Per-year data for metadata (is_overdue, due_date, student_fee_id, payments_count)
-            $feeData = $this->calculateStudentFees($student, $selectedSchoolYear);
+            $feeData = $this->calculateStudentFees($student, $targetSchoolYear);
 
             // Get grants — no school_year filter so mislabelled grants still show
             $grants = GrantRecipient::where('student_id', $student->id)
@@ -105,7 +107,7 @@ class StudentAccountController extends Controller
                     'section' => $student->section,
                     'department' => $student->department?->name,
                 ],
-                'school_year' => $student->school_year ?? $selectedSchoolYear,
+                'school_year' => $targetSchoolYear,
                 'total_amount' => (float) $feeData['total_amount'],
                 'grant_discount' => (float) $feeData['grant_discount'],
                 'total_paid' => (float) $feeData['total_paid'],
@@ -173,6 +175,9 @@ class StudentAccountController extends Controller
             });
 
         $classListBase = Student::whereNull('deleted_at')
+            ->whereHas('enrollmentClearance', function ($q) {
+                $q->where('registrar_clearance', true);
+            })
             ->whereNotIn('enrollment_status', ['not-enrolled', 'pending-registrar'])
             ->select('id', 'first_name', 'last_name', 'middle_name', 'suffix', 'lrn', 'gender', 'program', 'year_level', 'section', 'enrollment_status', 'student_photo_url');
 
@@ -411,7 +416,7 @@ class StudentAccountController extends Controller
      */
     private function calculateStats($studentIds, ?string $schoolYear): array
     {
-        if (!$schoolYear || $studentIds->isEmpty()) {
+        if ($studentIds->isEmpty()) {
             return [
                 'total_students' => 0,
                 'total_receivables' => 0,
@@ -432,7 +437,14 @@ class StudentAccountController extends Controller
             $student = Student::with('department')->find($studentId);
             if (!$student) continue;
 
-            $feeData = $this->calculateStudentFees($student, $schoolYear);
+            $effectiveYear = $schoolYear
+                ?: ($student->school_year ?: (\App\Models\AppSetting::current()?->school_year));
+
+            if (!$effectiveYear) {
+                continue;
+            }
+
+            $feeData = $this->calculateStudentFees($student, $effectiveYear);
             
             $totalReceivables += $feeData['total_amount'];
             $totalCollected += $feeData['total_paid'];
