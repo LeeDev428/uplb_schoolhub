@@ -177,7 +177,7 @@ class OnlineTransactionController extends Controller
             'payment_method' => $paymentMethod,
             'reference_number' => $transaction->reference_number,
             'notes' => 'Online transaction: ' . $transaction->transaction_id,
-            'recorded_by' => auth()->id(),
+            'recorded_by' => auth()->user()?->id,
         ]);
 
         // Update student fee balance
@@ -188,7 +188,7 @@ class OnlineTransactionController extends Controller
             'student_payment_id' => $payment->id,
             'status' => 'completed',
             'verified_at' => now(),
-            'verified_by' => auth()->id(),
+            'verified_by' => auth()->user()?->id,
         ]);
 
         return redirect()->back()->with('success', 'Transaction verified and payment recorded.');
