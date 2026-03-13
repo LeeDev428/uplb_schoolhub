@@ -816,12 +816,7 @@ class StudentPaymentController extends Controller
 
         $query->where('department_id', $student->department_id);
 
-        $resolvedYearLevelId = $student->year_level_id;
-        if (!$resolvedYearLevelId && $student->year_level) {
-            $resolvedYearLevelId = \App\Models\YearLevel::where('department_id', $student->department_id)
-                ->where('name', $student->year_level)
-                ->value('id');
-        }
+        $resolvedYearLevelId = $this->resolveStudentYearLevelId($student);
 
         if ($resolvedYearLevelId) {
             $query->where(function ($sq) use ($resolvedYearLevelId) {
@@ -856,11 +851,12 @@ class StudentPaymentController extends Controller
         // department_id provides sufficient program-level scoping for College.
 
         // Match year level if set
-        $query->where(function ($sq) use ($student) {
+        $resolvedYearLevelId = $this->resolveStudentYearLevelId($student);
+        $query->where(function ($sq) use ($student, $resolvedYearLevelId) {
             $sq->whereNull('year_level_id');
 
-            if ($student->year_level_id) {
-                $sq->orWhere('year_level_id', $student->year_level_id);
+            if ($resolvedYearLevelId) {
+                $sq->orWhere('year_level_id', $resolvedYearLevelId);
             } elseif ($student->year_level) {
                 $sq->orWhereRaw('LOWER(TRIM(year_level)) = ?', [strtolower(trim((string) $student->year_level))]);
             }
@@ -928,6 +924,43 @@ class StudentPaymentController extends Controller
         $totalPaid = $studentFee ? (float) $studentFee->payments()->sum('amount') : 0.0;
 
         return max(0, $totalAmount - $grantDiscount - $totalPaid);
+    }
+
+    /**
+     * Resolve student year level id from either FK or year level text.
+     */
+    private function resolveStudentYearLevelId(Student $student): ?int
+    {
+        if ($student->year_level_id) {
+            return (int) $student->year_level_id;
+        }
+
+        $rawYearLevel = trim((string) ($student->year_level ?? ''));
+        if ($rawYearLevel === '' || !$student->department_id) {
+            return null;
+        }
+
+        $exact = \App\Models\YearLevel::where('department_id', $student->department_id)
+            ->whereRaw('LOWER(TRIM(name)) = ?', [strtolower($rawYearLevel)])
+            ->value('id');
+
+        if ($exact) {
+            return (int) $exact;
+        }
+
+        $normalized = preg_replace('/[^a-z0-9]/', '', strtolower($rawYearLevel));
+        if ($normalized === '') {
+            return null;
+        }
+
+        $yearLevel = \App\Models\YearLevel::where('department_id', $student->department_id)
+            ->get(['id', 'name'])
+            ->first(function ($level) use ($normalized) {
+                $candidate = preg_replace('/[^a-z0-9]/', '', strtolower((string) $level->name));
+                return $candidate === $normalized;
+            });
+
+        return $yearLevel ? (int) $yearLevel->id : null;
     }
 
     /**
