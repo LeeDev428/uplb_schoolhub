@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Owner;
 
-use App\Http\Controllers\Accounting\ReportsController as AccountingReportsController;
+use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\DocumentFeeItem;
 use App\Models\DocumentRequest;
@@ -19,16 +19,213 @@ use Illuminate\Support\Facades\Response;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class ReportsController extends AccountingReportsController
+class ReportsController extends Controller
 {
-    public function index(Request $request): InertiaResponse
+    public function index(): InertiaResponse
     {
-        return parent::index($request);
-    }
+        $currentSchoolYear = \App\Models\AppSetting::current()?->school_year ?? (date('Y') . '-' . (date('Y') + 1));
 
-    protected function viewPrefix(): string
-    {
-        return 'owner';
+        $totalStudents = Student::count();
+        $totalRevenue = StudentPayment::sum('amount');
+        $totalExpected = StudentFee::sum('total_amount');
+        $totalBalance = StudentFee::sum('balance');
+
+        $totalEnrolled = Student::where('enrollment_status', 'enrolled')
+            ->whereNull('deleted_at')->count();
+
+        $enrolledByGroup = DB::table('students')
+            ->whereNull('deleted_at')
+            ->where('enrollment_status', 'enrolled')
+            ->select(
+                DB::raw('COALESCE(department_id, 0) as dept_id'),
+                DB::raw('COALESCE(year_level_id, 0) as yl_id'),
+                DB::raw('COUNT(*) as cnt')
+            )
+            ->groupBy('department_id', 'year_level_id')
+            ->get()
+            ->mapWithKeys(fn ($row) => ["{$row->dept_id}_{$row->yl_id}" => (int) $row->cnt]);
+
+        $getAvailed = function (FeeItem $item) use ($totalEnrolled, $enrolledByGroup): int {
+            if ((int) $item->students_availed > 0) {
+                return (int) $item->students_availed;
+            }
+
+            if ($item->assignment_scope === 'specific' && $item->department_id && $item->year_level_id) {
+                return $enrolledByGroup["{$item->department_id}_{$item->year_level_id}"] ?? 0;
+            }
+
+            if ($item->assignment_scope === 'specific' && $item->department_id) {
+                return $enrolledByGroup
+                    ->filter(fn ($value, $key) => str_starts_with($key, "{$item->department_id}_"))
+                    ->sum();
+            }
+
+            return $totalEnrolled;
+        };
+
+        $feeReport = FeeCategory::where('is_active', true)
+            ->with(['items' => fn ($query) => $query->where('is_active', true)->orderBy('name')])
+            ->orderBy('sort_order')->orderBy('name')
+            ->get()
+            ->map(function ($category) use ($getAvailed) {
+                $items = $category->items->map(function ($item) use ($getAvailed) {
+                    $selling = (float) $item->selling_price;
+                    $profit = $selling - (float) ($item->cost_price ?? 0);
+                    $availed = $getAvailed($item);
+
+                    return [
+                        'name' => $item->name,
+                        'selling_price' => round($selling, 2),
+                        'profit' => round($profit, 2),
+                        'students_availed' => $availed,
+                        'total_revenue' => round($selling * $availed, 2),
+                        'total_income' => round($profit * $availed, 2),
+                    ];
+                })->values();
+
+                $categoryKey = strtolower($category->name);
+                $paymentFor = match (true) {
+                    str_contains($categoryKey, 'registration') => 'registration',
+                    str_contains($categoryKey, 'tuition') => 'tuition',
+                    str_contains($categoryKey, 'misc') => 'misc',
+                    str_contains($categoryKey, 'book') => 'books',
+                    default => null,
+                };
+
+                $totalCollected = $paymentFor
+                    ? (float) StudentPayment::where('payment_for', $paymentFor)->sum('amount')
+                    : 0.0;
+
+                return [
+                    'category' => $category->name,
+                    'items' => $items,
+                    'total_assigned' => round($items->sum('total_revenue'), 2),
+                    'total_collected' => round($totalCollected, 2),
+                    'total_revenue' => round($items->sum('total_revenue'), 2),
+                    'total_income' => round($items->sum('total_income'), 2),
+                ];
+            })
+            ->values();
+
+        $documentFeeReport = DocumentFeeItem::where('is_active', true)
+            ->orderBy('category')->orderBy('name')
+            ->get()
+            ->each(function ($item) {
+                $item->actual_availed = DocumentRequest::where('document_fee_item_id', $item->id)
+                    ->where('accounting_status', 'approved')->count();
+                $item->actual_revenue = (float) DocumentRequest::where('document_fee_item_id', $item->id)
+                    ->where('accounting_status', 'approved')->sum('fee');
+            })
+            ->groupBy('category')
+            ->map(function ($fees, $category) {
+                $items = $fees->map(function ($fee) {
+                    $price = (float) $fee->price;
+                    $availed = $fee->actual_availed;
+                    $revenue = $fee->actual_revenue > 0 ? $fee->actual_revenue : round($price * $availed, 2);
+
+                    return [
+                        'name' => $fee->name,
+                        'price' => round($price, 2),
+                        'students_availed' => $availed,
+                        'total_revenue' => round($revenue, 2),
+                    ];
+                })->values();
+
+                return [
+                    'category' => $category,
+                    'items' => $items,
+                    'total_revenue' => round($items->sum('total_revenue'), 2),
+                ];
+            })
+            ->values();
+
+        $departmentAnalysis = Department::all()
+            ->map(function ($department) {
+                $studentIds = Student::where('department_id', $department->id)
+                    ->whereNull('deleted_at')->pluck('id');
+                $totalBilled = (float) StudentFee::whereIn('student_id', $studentIds)->sum('total_amount');
+                $totalCollected = (float) StudentPayment::whereIn('student_id', $studentIds)->sum('amount');
+                $totalBalance = (float) StudentFee::whereIn('student_id', $studentIds)->sum('balance');
+                $collectionRate = $totalBilled > 0 ? round(($totalCollected / $totalBilled) * 100, 1) : 0;
+
+                return [
+                    'department' => $department->name,
+                    'students' => $studentIds->count(),
+                    'billed' => round($totalBilled, 2),
+                    'collected' => round($totalCollected, 2),
+                    'balance' => round($totalBalance, 2),
+                    'collection_rate' => $collectionRate,
+                ];
+            })
+            ->sortByDesc('collected')
+            ->values();
+
+        $cashierSummary = StudentPayment::with('recordedBy:id,name')
+            ->selectRaw('recorded_by, COUNT(*) as transaction_count, SUM(amount) as total_amount,
+                SUM(CASE WHEN payment_method = "cash" THEN amount ELSE 0 END) as cash_total,
+                SUM(CASE WHEN payment_method = "gcash" THEN amount ELSE 0 END) as gcash_total,
+                SUM(CASE WHEN payment_method = "bank" THEN amount ELSE 0 END) as bank_total')
+            ->groupBy('recorded_by')
+            ->orderByDesc('total_amount')
+            ->get()
+            ->map(fn ($payment) => [
+                'cashier' => $payment->recordedBy?->name ?? 'System / Unknown',
+                'transaction_count' => (int) $payment->transaction_count,
+                'total_amount' => round((float) $payment->total_amount, 2),
+                'cash_total' => round((float) $payment->cash_total, 2),
+                'gcash_total' => round((float) $payment->gcash_total, 2),
+                'bank_total' => round((float) $payment->bank_total, 2),
+            ])
+            ->values();
+
+        $recentTransactions = StudentPayment::with([
+                'student:id,first_name,last_name,middle_name,suffix',
+                'recordedBy:id,name',
+            ])
+            ->latest('payment_date')
+            ->take(50)
+            ->get()
+            ->map(fn ($payment) => [
+                'id' => $payment->id,
+                'or_number' => $payment->or_number ?? 'N/A',
+                'date' => $payment->payment_date->format('Y-m-d'),
+                'student' => $payment->student?->full_name ?? 'Unknown',
+                'amount' => round((float) $payment->amount, 2),
+                'method' => $payment->payment_method ?? 'cash',
+                'payment_for' => $payment->payment_for ?? 'general',
+                'cashier' => $payment->recordedBy?->name ?? '—',
+            ]);
+
+        $currentYear = (int) date('Y');
+        $monthlyTrend = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $start = Carbon::create($currentYear, $month, 1)->startOfMonth();
+            $end = Carbon::create($currentYear, $month, 1)->endOfMonth();
+            $amount = (float) StudentPayment::whereBetween('payment_date', [$start, $end])->sum('amount');
+            $monthlyTrend[] = [
+                'month' => Carbon::create($currentYear, $month, 1)->format('M'),
+                'amount' => $amount,
+            ];
+        }
+
+        return Inertia::render('owner/reports', [
+            'summary' => [
+                'total_students' => $totalStudents,
+                'total_revenue' => (float) $totalRevenue,
+                'total_expected' => (float) $totalExpected,
+                'total_balance' => (float) $totalBalance,
+                'collection_rate' => $totalExpected > 0
+                    ? round(((float) $totalRevenue / (float) $totalExpected) * 100, 1)
+                    : 0,
+            ],
+            'school_year' => $currentSchoolYear,
+            'feeReport' => $feeReport,
+            'documentFeeReport' => $documentFeeReport,
+            'departmentAnalysis' => $departmentAnalysis,
+            'cashierSummary' => $cashierSummary,
+            'recentTransactions' => $recentTransactions,
+            'monthlyTrend' => $monthlyTrend,
+        ]);
     }
 
     public function exportFinancial(Request $request)
