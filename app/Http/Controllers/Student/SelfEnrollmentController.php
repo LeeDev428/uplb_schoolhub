@@ -72,21 +72,22 @@ class SelfEnrollmentController extends Controller
                     $feeToSync->save();
                 }
             }
-            $fees = $rawFees->map(fn ($fee) => [
+            $fees = $rawFees->map(function (StudentFee $fee) {
+                $freshPaid = (float) $fee->payments()->sum('amount');
+                $freshBalance = max(0, (float) $fee->total_amount - (float) $fee->grant_discount - $freshPaid);
+
+                return [
                     'id'                => $fee->id,
                     'school_year'       => $fee->school_year,
                     'total_amount'      => (float) $fee->total_amount,
-                    'total_paid'        => (float) $fee->payments()->sum('amount'),
-                    'balance'           => max(0, (float) $fee->total_amount - (float) $fee->grant_discount - (float) $fee->payments()->sum('amount')),
+                    'total_paid'        => $freshPaid,
+                    'balance'           => $freshBalance,
                     'grant_discount'    => (float) $fee->grant_discount,
-                    'payment_status'    => $this->resolvePaymentStatus(
-                        (float) $fee->total_amount,
-                        (float) $fee->payments()->sum('amount'),
-                        max(0, (float) $fee->total_amount - (float) $fee->grant_discount - (float) $fee->payments()->sum('amount'))
-                    ),
+                    'payment_status'    => $this->resolvePaymentStatus((float) $fee->total_amount, $freshPaid, $freshBalance),
                     'is_overdue'        => (bool) $fee->is_overdue,
                     'due_date'          => $fee->due_date?->format('M d, Y'),
-                ]);
+                ];
+            });
 
             // Payment history
             $payments = StudentPayment::where('student_id', $student->id)
