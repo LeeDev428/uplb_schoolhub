@@ -562,31 +562,41 @@ class StudentPaymentController extends Controller
             return null;
         }
 
-        // Get applicable fee items (exclude Drop category - those are only charged via drop requests)
+        // Get applicable fee items (exclude Drop category - those are only charged via drop requests).
+        // Important: assignment-based items are matched using assignment.school_year,
+        // not only fee_items.school_year, to prevent missing assigned tuition rows.
         $feeItems = \App\Models\FeeItem::with('category')
-            ->where('school_year', $templateYear)
             ->where('is_active', true)
             ->whereDoesntHave('category', function ($q) {
                 $q->where('name', 'like', '%Drop%');
             })
             ->where(function ($query) use ($student, $schoolYear) {
-                $query->where(function ($inner) {
-                        $inner->where('assignment_scope', 'all')
-                              ->whereDoesntHave('assignments');
-                    })
-                    ->orWhere(function ($q) use ($student) {
-                        $q->where('assignment_scope', 'specific')
-                          ->where(function ($inner) {
-                              $inner->whereNotNull('classification')
-                                    ->orWhereNotNull('department_id')
-                                    ->orWhereNotNull('program_id')
-                                    ->orWhereNotNull('year_level_id')
-                                    ->orWhereNotNull('section_id');
+                $templateYear = $this->resolveFeeTemplateYear($student, $schoolYear);
+
+                $query->where(function ($q) use ($student, $templateYear) {
+                        $q->where('school_year', $templateYear)
+                          ->where(function ($inner) use ($student) {
+                              $inner->where(function ($allScope) {
+                                        $allScope->where('assignment_scope', 'all')
+                                            ->whereDoesntHave('assignments');
+                                    })
+                                    ->orWhere(function ($specificScope) use ($student) {
+                                        $specificScope->where('assignment_scope', 'specific')
+                                            ->where(function ($hasDirectFilters) {
+                                                $hasDirectFilters->whereNotNull('classification')
+                                                    ->orWhereNotNull('department_id')
+                                                    ->orWhereNotNull('program_id')
+                                                    ->orWhereNotNull('year_level_id')
+                                                    ->orWhereNotNull('section_id');
+                                            });
+                                        $this->applyStudentFilters($specificScope, $student);
+                                    });
                           });
-                        $this->applyStudentFilters($q, $student);
                     })
-                    ->orWhereHas('assignments', function ($q) use ($student, $schoolYear) {
-                        $this->applyAssignmentFilters($q, $student, $schoolYear);
+                    ->orWhere(function ($q) use ($student, $schoolYear) {
+                        $q->whereHas('assignments', function ($assignmentQuery) use ($student, $schoolYear) {
+                            $this->applyAssignmentFilters($assignmentQuery, $student, $schoolYear);
+                        });
                     });
             })
             ->get();
@@ -803,6 +813,10 @@ class StudentPaymentController extends Controller
     private function applyAssignmentFilters($query, Student $student, ?string $schoolYear = null): void
     {
         $query->where('is_active', true);
+
+        if ($schoolYear) {
+            $query->where('school_year', $schoolYear);
+        }
 
         // Students must always have department_id set at creation time
         if (!$student->department_id) {
