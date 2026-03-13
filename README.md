@@ -23,6 +23,15 @@ A **fully functional School Management System (SMS)** with an integrated **Elect
 
 The system serves as a centralized digital platform that manages the school's **academic, administrative, financial, student support, and online learning operations**.
 
+## 📌 Recent Reporting Updates
+
+- Accounting reports now use a safer grouped-date query pattern that avoids MySQL alias ordering issues on payment summary reports.
+- Accounting dashboard overview cards now compute `Fully Paid`, `Partial Payment`, `Unpaid`, projected revenue, and outstanding balance from grouped current-school-year student fee state instead of raw fee-row counts.
+- Owner reporting is now intentionally split into two pages:
+   - **Export Reports** at `/owner/reports` keeps the original owner analytics, cashier, export, and summary workflow.
+   - **Audit Reports** at `/owner/audit-reports` mirrors the accounting reports UI with balance, collection, fee income, and department analysis tabs.
+- Owner sidebar navigation now exposes both report pages independently so the original export workflow is preserved.
+
 ---
 
 ## 🎯 System Coverage (Required Modules)
@@ -45,6 +54,7 @@ The system includes the following modules and user accounts:
 - [x] User management (CRUD with role-based auto password generation)
 - [x] Announcements management (create, pin, target by role, with attachments)
 - [x] Financial reports and exports
+- [x] **Audit Reports** — Separate owner-side audit reporting page that mirrors accounting reports (balance report, collection summary, fee income, and department analysis) without replacing the original owner export reports page
 - [x] **Landing Page CMS** — Edit hero (title, subtitle, image gallery carousel), faculty section, principal's message (with author photo), alumni/notable graduates section, footer, and navigation links — all from a 4-tab settings editor
 - [x] **App Settings** — App name, academic structure type (K12/College), theme colors, logo/favicon upload
 - [x] **Active Semester Management** — Set the active semester (1st Semester, 2nd Semester, Summer) from the Enrollment Period settings; used globally for college subject enrollment
@@ -79,7 +89,9 @@ The system includes the following modules and user accounts:
 - [x] Payment tracking with status filters
 - [x] Financial reports with export functionality
 - [x] Announcements viewing (role-targeted)
+- [x] **Stable reports aggregation** — Payment collection summary avoids grouped alias ordering issues on MySQL by separating grouped report queries from aggregate totals
 - [x] **Comprehensive main dashboard** — Student count by payment status (fully paid/partial/overdue), total projected revenue, total collected, outstanding balance, collection rate progress bar, monthly income bar chart, department balance breakdown, recent payment activity feed
+- [x] **Accurate overview payment-status cards** — Dashboard `Fully Paid`, `Partial Payment`, and `Unpaid` counts are derived from grouped current-school-year balances instead of counting raw `student_fees` rows
 - [x] **Accounting dashboard** — Daily income table per month, colored stat cards with collection rate, payment status breakdown (fully paid/partial/unpaid) with progress indicators, recent payments and top pending balances
 - [x] **Account dashboard** — Per-student account view with payment history, daily collection bar chart, payment method breakdown (Cash/GCash/Bank), transaction history table
 - [x] **Per-unit fee items** — `FeeItem` model supports `is_per_unit` (boolean) and `unit_price`; fee management UI shows an amber per-unit card; `StudentPaymentController` auto-calculates charges based on enrolled unit count from `student_subjects`
@@ -252,6 +264,7 @@ school-mgmt_lms_pos/
 │   │   │   │   ├── UserManagementController.php
 │   │   │   │   ├── AnnouncementController.php
 │   │   │   │   ├── CalendarController.php
+│   │   │   │   ├── AuditReportsController.php
 │   │   │   │   └── ReportsController.php
 │   │   │   ├── Registrar/              # Registrar portal (8 controllers)
 │   │   │   │   ├── ClassController.php
