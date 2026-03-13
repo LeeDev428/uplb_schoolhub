@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\Department;
 use App\Models\DocumentFeeItem;
 use App\Models\DocumentRequest;
@@ -26,7 +27,13 @@ class ReportsController extends Controller
         // Get filters
         $from = $request->input('from');
         $to = $request->input('to');
-        $schoolYear = $request->input('school_year');
+        $schoolYear = $request->input('schoo
+        
+        // If no school year is specified, use the current/active school year to prevent duplicates
+        if (!$schoolYear) {
+            $settings = AppSetting::first();
+            $schoolYear = $settings?->school_year;
+        }l_year');
         $status = $request->input('status');
 
         // Payment Collection Summary (grouped by date)
@@ -61,6 +68,7 @@ class ReportsController extends Controller
         // Student Balance Report
         $balanceQuery = StudentFee::with('student.department');
 
+        // Always filter by school year (either provided or using current)
         if ($schoolYear) {
             $balanceQuery->where('school_year', $schoolYear);
         }
