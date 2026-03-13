@@ -156,7 +156,8 @@ export default function AccountingReports({
 }: Props) {
     const [from, setFrom] = useState(filters.from || '');
     const [to, setTo] = useState(filters.to || '');
-    const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
+    // Initialize with first school year (current) instead of 'all' to prevent duplicate students
+    const [schoolYear, setSchoolYear] = useState(filters.school_year || (schoolYears.length > 0 ? schoolYears[0] : ''));
     const [status, setStatus] = useState(filters.status || 'all');
     const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
     const [classification, setClassification] = useState(filters.classification || 'all');
