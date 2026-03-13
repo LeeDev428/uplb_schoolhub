@@ -92,9 +92,10 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::get('calendar', [App\Http\Controllers\Owner\CalendarController::class, 'index'])->name('calendar');
 
     Route::get('reports', [App\Http\Controllers\Owner\ReportsController::class, 'index'])->name('reports');
-    Route::get('reports/export', [App\Http\Controllers\Owner\ReportsController::class, 'export'])->name('reports.export');
     Route::get('reports/export/financial', [App\Http\Controllers\Owner\ReportsController::class, 'exportFinancial'])->name('reports.export.financial');
     Route::get('reports/export/students', [App\Http\Controllers\Owner\ReportsController::class, 'exportStudents'])->name('reports.export.students');
+    Route::get('audit-reports', [App\Http\Controllers\Owner\AuditReportsController::class, 'index'])->name('audit-reports');
+    Route::get('audit-reports/export', [App\Http\Controllers\Owner\AuditReportsController::class, 'export'])->name('audit-reports.export');
 
     Route::get('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'index'])->name('app-settings');
     Route::post('app-settings', [App\Http\Controllers\Owner\AppSettingsController::class, 'update'])->name('app-settings.update');
