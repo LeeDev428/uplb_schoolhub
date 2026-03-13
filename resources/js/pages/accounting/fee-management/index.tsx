@@ -578,7 +578,12 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
             }
         }
 
-        const specificGroups = Object.values(specific).sort((a, b) => a.label.localeCompare(b.label));
+        const specificGroups = Object.values(specific)
+            .map(group => ({
+                ...group,
+                items: group.items.filter((item, index, arr) => arr.findIndex(i => i.id === item.id) === index),
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
         return { allStudentsItems, specificGroups };
     }, [categories]);
 
@@ -1162,7 +1167,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                 </div>
                                 <div className="px-4 py-2 bg-muted/30 text-sm border-t flex gap-6">
                                     <span className="text-muted-foreground">
-                                        Total Cost: <span className="text-foreground font-medium">{formatCurrency(assignmentBreakdown.allStudentsItems.reduce((s, i) => s + parseFloat(i.cost_price || '0'), 0))}</span>
+                                        Total Fees: <span className="text-foreground font-medium">{formatCurrency(assignmentBreakdown.allStudentsItems.reduce((s, i) => s + parseFloat(i.selling_price || '0'), 0))}</span>
                                     </span>
                                     <span className="text-muted-foreground">
                                         Profit: <span className="text-green-600 font-semibold">{formatCurrency(assignmentBreakdown.allStudentsItems.reduce((s, i) => s + parseFloat(i.profit || '0'), 0))}</span>
@@ -1184,7 +1189,6 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                         <div className="space-y-4">
                             {assignmentBreakdown.specificGroups.map(group => {
                                 const totalSell = group.items.reduce((s, i) => s + parseFloat(i.selling_price || '0'), 0);
-                                const totalCost = group.items.reduce((s, i) => s + parseFloat(i.cost_price || '0'), 0);
                                 const totalProfit = group.items.reduce((s, i) => s + parseFloat(i.profit || '0'), 0);
                                 return (
                                     <div key={group.label} className="border-l-4 border-l-indigo-400 rounded-lg overflow-hidden shadow-sm bg-card">
@@ -1210,7 +1214,7 @@ export default function FeeManagementIndex({ categories, totals, departments, pr
                                         </div>
                                         <div className="px-4 py-2 bg-muted/30 text-sm border-t flex gap-6">
                                             <span className="text-muted-foreground">
-                                                Total Cost: <span className="text-foreground font-medium">{formatCurrency(totalCost)}</span>
+                                                Total Fees: <span className="text-foreground font-medium">{formatCurrency(totalSell)}</span>
                                             </span>
                                             <span className="text-muted-foreground">
                                                 Profit: <span className="text-green-600 font-semibold">{formatCurrency(totalProfit)}</span>
