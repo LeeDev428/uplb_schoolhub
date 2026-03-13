@@ -74,29 +74,16 @@ class StudentAccountController extends Controller
             });
         }
 
+        if ($selectedSchoolYear) {
+            $studentsQuery->where('school_year', $selectedSchoolYear);
+        }
+
         $students = $studentsQuery->latest()->paginate(20)->withQueryString();
 
         // Calculate fees dynamically for each student
         $accounts = $students->through(function ($student) use ($selectedSchoolYear) {
             // Per-year data for metadata (is_overdue, due_date, student_fee_id, payments_count)
             $feeData = $this->calculateStudentFees($student, $selectedSchoolYear);
-
-            // Combined all-years calculation (same logic as process page)
-            $allFees          = StudentFee::where('student_id', $student->id)->get();
-            $allPaymentSum    = (float) StudentPayment::where('student_id', $student->id)->sum('amount');
-            $combinedTotal    = (float) $allFees->sum('total_amount');
-            $combinedDiscount = (float) $allFees->sum('grant_discount');
-            $combinedBalance  = max(0, $combinedTotal - $combinedDiscount - $allPaymentSum);
-
-            // Payment status based on combined balance
-            $combinedStatus = 'unpaid';
-            if ($combinedTotal > 0 && $combinedBalance <= 0) {
-                $combinedStatus = 'paid';
-            } elseif ($feeData['is_overdue']) {
-                $combinedStatus = 'overdue';
-            } elseif ($allPaymentSum > 0) {
-                $combinedStatus = 'partial';
-            }
 
             // Get grants — no school_year filter so mislabelled grants still show
             $grants = GrantRecipient::where('student_id', $student->id)
@@ -119,13 +106,13 @@ class StudentAccountController extends Controller
                     'department' => $student->department?->name,
                 ],
                 'school_year' => $student->school_year ?? $selectedSchoolYear,
-                'total_amount' => $combinedTotal,
-                'grant_discount' => $combinedDiscount,
-                'total_paid' => $allPaymentSum,
-                'balance' => $combinedBalance,
+                'total_amount' => (float) $feeData['total_amount'],
+                'grant_discount' => (float) $feeData['grant_discount'],
+                'total_paid' => (float) $feeData['total_paid'],
+                'balance' => (float) $feeData['balance'],
                 'is_overdue' => $feeData['is_overdue'],
                 'due_date' => $feeData['due_date'],
-                'payment_status' => $combinedStatus,
+                'payment_status' => $feeData['payment_status'],
                 'payments_count' => $feeData['payments_count'],
                 'grants' => $grants->map(fn($gr) => [
                     'name' => $gr->grant->name,
@@ -148,6 +135,11 @@ class StudentAccountController extends Controller
         $allStudentIds = Student::whereHas('enrollmentClearance', function ($q) {
             $q->where('registrar_clearance', true);
         })
+        ->when($request->input('department_id'), fn($q, $departmentId) => $q->where('department_id', $departmentId))
+        ->when($request->input('classification'), function ($q, $classification) {
+            $q->whereHas('department', fn($dq) => $dq->where('classification', $classification));
+        })
+        ->when($selectedSchoolYear, fn($q) => $q->where('school_year', $selectedSchoolYear))
         ->whereNotIn('enrollment_status', ['not-enrolled', 'pending-registrar'])
         ->pluck('id');
 
@@ -216,33 +208,38 @@ class StudentAccountController extends Controller
             ];
         }
 
+        $templateYear = $this->resolveFeeTemplateYear($student, $schoolYear);
+
         // Calculate total from applicable fee items (exclude Drop category - those are only charged via drop requests)
-        $totalAmount = FeeItem::where('school_year', $schoolYear)
-            ->where('is_active', true)
-            ->whereDoesntHave('category', function ($q) {
-                $q->where('name', 'like', '%Drop%');
-            })
-            ->where(function ($query) use ($student, $schoolYear) {
-                $query->where(function ($inner) {
-                        $inner->where('assignment_scope', 'all')
-                              ->whereDoesntHave('assignments');
-                    })
-                    ->orWhere(function ($q) use ($student) {
-                        $q->where('assignment_scope', 'specific')
-                          ->where(function ($inner) {
-                              $inner->whereNotNull('classification')
-                                    ->orWhereNotNull('department_id')
-                                    ->orWhereNotNull('program_id')
-                                    ->orWhereNotNull('year_level_id')
-                                    ->orWhereNotNull('section_id');
-                          });
-                        $this->applyStudentFilters($q, $student);
-                    })
-                    ->orWhereHas('assignments', function ($q) use ($student, $schoolYear) {
-                        $this->applyAssignmentFilters($q, $student, $schoolYear);
-                    });
-            })
-            ->sum('selling_price');
+        $totalAmount = 0.0;
+        if ($templateYear) {
+            $totalAmount = (float) FeeItem::where('school_year', $templateYear)
+                ->where('is_active', true)
+                ->whereDoesntHave('category', function ($q) {
+                    $q->where('name', 'like', '%Drop%');
+                })
+                ->where(function ($query) use ($student, $schoolYear) {
+                    $query->where(function ($inner) {
+                            $inner->where('assignment_scope', 'all')
+                                  ->whereDoesntHave('assignments');
+                        })
+                        ->orWhere(function ($q) use ($student) {
+                            $q->where('assignment_scope', 'specific')
+                              ->where(function ($inner) {
+                                  $inner->whereNotNull('classification')
+                                        ->orWhereNotNull('department_id')
+                                        ->orWhereNotNull('program_id')
+                                        ->orWhereNotNull('year_level_id')
+                                        ->orWhereNotNull('section_id');
+                              });
+                            $this->applyStudentFilters($q, $student);
+                        })
+                        ->orWhereHas('assignments', function ($q) use ($student, $schoolYear) {
+                            $this->applyAssignmentFilters($q, $student, $schoolYear);
+                        });
+                })
+                ->sum('selling_price');
+        }
 
         // Get grant discount — recalculate from Grant model to fix stale discount_amount=0 records.
         // For the current school year apply ALL active grants (fixes year-label mismatch).
@@ -270,7 +267,7 @@ class StudentAccountController extends Controller
             ->where('school_year', $schoolYear)
             ->first();
 
-        $totalPaid = $studentFee ? (float) $studentFee->total_paid : 0;
+        $totalPaid = $studentFee ? (float) $studentFee->payments()->sum('amount') : 0;
         $dueDate = $studentFee?->due_date;
 
         // Sync stored record with freshly calculated amounts (for reports accuracy)
@@ -282,6 +279,7 @@ class StudentAccountController extends Controller
                 || (float) $studentFee->grant_discount !== $freshDiscount
                 || (float) $studentFee->balance !== $freshBalance) {
                 $studentFee->total_amount   = $freshTotal;
+                $studentFee->total_paid     = $totalPaid;
                 $studentFee->grant_discount = $freshDiscount;
                 $studentFee->balance        = $freshBalance;
                 $studentFee->save();
@@ -330,6 +328,51 @@ class StudentAccountController extends Controller
             'payment_status' => $paymentStatus,
             'payments_count' => $paymentsCount,
         ];
+    }
+
+    private function resolveFeeTemplateYear(Student $student, string $targetYear): ?string
+    {
+        $candidateYears = FeeItem::where('is_active', true)
+            ->whereNotNull('school_year')
+            ->where(function ($query) use ($student, $targetYear) {
+                $query->where(function ($inner) {
+                        $inner->where('assignment_scope', 'all')
+                              ->whereDoesntHave('assignments');
+                    })
+                    ->orWhere(function ($q) use ($student) {
+                        $q->where('assignment_scope', 'specific')
+                          ->where(function ($inner) {
+                              $inner->whereNotNull('classification')
+                                    ->orWhereNotNull('department_id')
+                                    ->orWhereNotNull('program_id')
+                                    ->orWhereNotNull('year_level_id')
+                                    ->orWhereNotNull('section_id');
+                          });
+                        $this->applyStudentFilters($q, $student);
+                    })
+                    ->orWhereHas('assignments', function ($q) use ($student, $targetYear) {
+                        $this->applyAssignmentFilters($q, $student, $targetYear);
+                    });
+            })
+            ->distinct()
+            ->pluck('school_year')
+            ->filter()
+            ->values();
+
+        if ($candidateYears->isEmpty()) {
+            return null;
+        }
+
+        if ($candidateYears->contains($targetYear)) {
+            return $targetYear;
+        }
+
+        $fallback = $candidateYears
+            ->filter(fn($year) => strcmp((string) $year, $targetYear) <= 0)
+            ->sortDesc()
+            ->first();
+
+        return $fallback ?: $candidateYears->sortDesc()->first();
     }
 
     /**
