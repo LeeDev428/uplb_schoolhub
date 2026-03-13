@@ -39,6 +39,9 @@ class ReportsController extends Controller
             $schoolYear = null;
         }
 
+        // Ensure report statuses reflect due-date overdue transitions.
+        StudentFee::syncOverdueByDueDate($schoolYear);
+
         // Payment Collection Summary (grouped by date)
         $paymentQuery = StudentPayment::query();
         

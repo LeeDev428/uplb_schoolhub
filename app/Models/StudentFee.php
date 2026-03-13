@@ -90,6 +90,26 @@ class StudentFee extends Model
     }
 
     /**
+     * Sync overdue flags from due dates.
+     * Rule: if due_date is today/past and balance > 0, mark as overdue.
+     * This intentionally includes partial balances; overdue is cleared when a payment is posted.
+     */
+    public static function syncOverdueByDueDate(?string $schoolYear = null): void
+    {
+        $today = now()->toDateString();
+
+        static::query()
+            ->when($schoolYear, fn($q) => $q->where('school_year', $schoolYear))
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', '<=', $today)
+            ->where('balance', '>', 0)
+            ->update([
+                'is_overdue' => true,
+                'payment_status' => 'overdue',
+            ]);
+    }
+
+    /**
      * Check if fully paid.
      */
     public function isFullyPaid(): bool

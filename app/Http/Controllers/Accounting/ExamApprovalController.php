@@ -18,6 +18,8 @@ class ExamApprovalController extends Controller
      */
     public function index(Request $request): Response
     {
+        StudentFee::syncOverdueByDueDate($request->input('school_year'));
+
         $query = ExamApproval::with(['student', 'approvedBy']);
 
         // Search

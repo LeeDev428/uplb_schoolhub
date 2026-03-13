@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\StudentFee;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,6 +16,8 @@ class ExamApprovalController extends Controller
      */
     public function index(Request $request): Response
     {
+        StudentFee::syncOverdueByDueDate();
+
         $search = $request->input('search');
 
         $fullyPaidQuery = Student::whereNull('deleted_at')

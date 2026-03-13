@@ -46,6 +46,9 @@ class StudentAccountController extends Controller
             $selectedSchoolYear = null;
         }
 
+        // Auto-apply overdue status when due date is reached.
+        StudentFee::syncOverdueByDueDate($selectedSchoolYear);
+
         // Get students with enrollment clearance (registrar-cleared, in accounting queue or beyond)
         $studentsQuery = Student::with(['department'])
             ->whereHas('enrollmentClearance', function ($q) {

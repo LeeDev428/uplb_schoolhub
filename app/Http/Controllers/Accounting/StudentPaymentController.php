@@ -30,6 +30,9 @@ class StudentPaymentController extends Controller
         $selectedStudentId = $request->input('student_id');
         $activeSchoolYear = AppSetting::current()?->school_year ?? (date('Y') . '-' . (date('Y') + 1));
 
+        // Auto-apply overdue status when due date is reached.
+        StudentFee::syncOverdueByDueDate($activeSchoolYear);
+
         // Get students from student-accounts (registrar-cleared, in accounting queue or beyond)
         $query = Student::with(['department', 'enrollmentClearance'])
             ->whereHas('enrollmentClearance', function ($q) {
@@ -349,6 +352,9 @@ class StudentPaymentController extends Controller
     {
         // Load student with department for classification matching
         $student->load(['department', 'enrollmentClearance']);
+
+        // Keep this student's fee statuses in sync with due date rules.
+        StudentFee::syncOverdueByDueDate($student->school_year ?? null);
 
         // Get unique school years from fee_items that apply to this student
         $schoolYears = $this->getApplicableSchoolYears($student);
