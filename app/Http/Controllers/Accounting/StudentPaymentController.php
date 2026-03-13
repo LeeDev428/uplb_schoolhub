@@ -820,17 +820,35 @@ class StudentPaymentController extends Controller
         }
 
         if ($student->department) {
-            $query->where('classification', $student->department->classification);
+            $query->where(function ($sq) use ($student) {
+                $sq->whereNull('classification')
+                    ->orWhere('classification', $student->department->classification);
+            });
         }
 
-        $query->where('department_id', $student->department_id);
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('department_id')
+                ->orWhere('department_id', $student->department_id);
+        });
 
         $resolvedYearLevelId = $this->resolveStudentYearLevelId($student);
+        $yearLevelCandidates = $this->buildYearLevelCandidates((string) ($student->year_level ?? ''));
 
         if ($resolvedYearLevelId) {
             $query->where(function ($sq) use ($resolvedYearLevelId) {
                 $sq->whereNull('year_level_id')
                     ->orWhere('year_level_id', $resolvedYearLevelId);
+            });
+        } elseif (!empty($yearLevelCandidates)) {
+            $query->where(function ($sq) use ($yearLevelCandidates) {
+                $sq->whereNull('year_level_id')
+                    ->orWhereHas('yearLevel', function ($ylQuery) use ($yearLevelCandidates) {
+                        $ylQuery->where(function ($nameQuery) use ($yearLevelCandidates) {
+                            foreach ($yearLevelCandidates as $candidate) {
+                                $nameQuery->orWhereRaw('LOWER(TRIM(name)) = ?', [strtolower($candidate)]);
+                            }
+                        });
+                    });
             });
         } else {
             $query->whereNull('year_level_id');
