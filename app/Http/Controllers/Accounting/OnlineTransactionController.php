@@ -151,13 +151,17 @@ class OnlineTransactionController extends Controller
         }
 
         $orNumber = $validated['or_number'] ?? ('OT-' . $transaction->transaction_id);
-        $paymentMode = strtoupper($transaction->payment_method ?? 'CASH');
-        // Map to valid payment_mode enum values (CASH, GCASH, BANK)
-        if (!in_array($paymentMode, ['CASH', 'GCASH', 'BANK'])) {
-            $paymentMode = 'CASH';
-        }
+        $rawMethod = strtolower((string) ($transaction->payment_method ?? 'cash'));
+        $paymentMode = match ($rawMethod) {
+            'gcash' => 'GCASH',
+            'bank', 'bank_transfer' => 'BANK',
+            default => 'CASH',
+        };
         // Map to valid payment_method enum values (cash, gcash, bank, other)
-        $paymentMethod = strtolower($transaction->payment_method ?? 'cash');
+        $paymentMethod = $rawMethod;
+        if ($paymentMethod === 'bank_transfer') {
+            $paymentMethod = 'bank';
+        }
         if (!in_array($paymentMethod, ['cash', 'gcash', 'bank', 'other'])) {
             $paymentMethod = 'other';
         }
