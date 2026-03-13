@@ -210,32 +210,42 @@ class StudentAccountController extends Controller
 
         $templateYear = $this->resolveFeeTemplateYear($student, $schoolYear);
 
-        // Calculate total from applicable fee items (exclude Drop category - those are only charged via drop requests)
+        // Calculate total from applicable fee items (exclude Drop category - those are only charged via drop requests).
+        // Include assignment-based items by assignment.school_year to avoid skipping valid assigned tuition.
         $totalAmount = 0.0;
         if ($templateYear) {
-            $feeItems = FeeItem::where('school_year', $templateYear)
+            $feeItems = FeeItem::query()
                 ->where('is_active', true)
                 ->whereDoesntHave('category', function ($q) {
                     $q->where('name', 'like', '%Drop%');
                 })
                 ->where(function ($query) use ($student, $schoolYear) {
-                    $query->where(function ($inner) {
-                            $inner->where('assignment_scope', 'all')
-                                  ->whereDoesntHave('assignments');
-                        })
-                        ->orWhere(function ($q) use ($student) {
-                            $q->where('assignment_scope', 'specific')
-                              ->where(function ($inner) {
-                                  $inner->whereNotNull('classification')
-                                        ->orWhereNotNull('department_id')
-                                        ->orWhereNotNull('program_id')
-                                        ->orWhereNotNull('year_level_id')
-                                        ->orWhereNotNull('section_id');
+                    $templateYear = $this->resolveFeeTemplateYear($student, $schoolYear);
+
+                    $query->where(function ($q) use ($student, $templateYear) {
+                            $q->where('school_year', $templateYear)
+                              ->where(function ($inner) use ($student) {
+                                  $inner->where(function ($allScope) {
+                                            $allScope->where('assignment_scope', 'all')
+                                                ->whereDoesntHave('assignments');
+                                        })
+                                        ->orWhere(function ($specificScope) use ($student) {
+                                            $specificScope->where('assignment_scope', 'specific')
+                                                ->where(function ($hasDirectFilters) {
+                                                    $hasDirectFilters->whereNotNull('classification')
+                                                        ->orWhereNotNull('department_id')
+                                                        ->orWhereNotNull('program_id')
+                                                        ->orWhereNotNull('year_level_id')
+                                                        ->orWhereNotNull('section_id');
+                                                });
+                                            $this->applyStudentFilters($specificScope, $student);
+                                        });
                               });
-                            $this->applyStudentFilters($q, $student);
                         })
-                        ->orWhereHas('assignments', function ($q) use ($student, $schoolYear) {
-                            $this->applyAssignmentFilters($q, $student, $schoolYear);
+                        ->orWhere(function ($q) use ($student, $schoolYear) {
+                            $q->whereHas('assignments', function ($assignmentQuery) use ($student, $schoolYear) {
+                                $this->applyAssignmentFilters($assignmentQuery, $student, $schoolYear);
+                            });
                         });
                 })
                 ->get();
@@ -490,6 +500,10 @@ class StudentAccountController extends Controller
     private function applyAssignmentFilters($query, Student $student, ?string $schoolYear = null): void
     {
         $query->where('is_active', true);
+
+        if ($schoolYear) {
+            $query->where('school_year', $schoolYear);
+        }
 
         if (!$student->department_id) {
             $query->whereRaw('1 = 0');
