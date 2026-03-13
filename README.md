@@ -491,8 +491,12 @@ school-mgmt_lms_pos/
 5. **Run Migrations & Seeders**
    ```bash
    php artisan migrate:fresh --seed
-   php artisan db:seed --class=AcademicStructureSeeder
    ```
+
+   Notes:
+   - `DatabaseSeeder` is configured to run `RoleBasedUserSeeder` only.
+   - This creates role-based login accounts (including sample student/teacher-linked users from the seeder).
+   - If you need academic structure/demo catalogs, run their seeders explicitly.
 
 6. **Build Frontend Assets**
    ```bash
@@ -506,7 +510,28 @@ school-mgmt_lms_pos/
 
 8. **Access the Application**
    - URL: http://localhost:8000
-   - Default Admin: `admin@example.com` / `password`
+   - Owner: `owner@gmail.com` / `password`
+   - Registrar: `registrar@gmail.com` / `password`
+   - Accounting: `accounting@gmail.com` / `password`
+   - Super Accounting: `super.accounting@gmail.com` / `password`
+
+### **Optional Seeders (Run Only If Needed)**
+
+```bash
+# Academic structure (departments, programs, year levels, etc.)
+php artisan db:seed --class=AcademicStructureSeeder
+
+# Requirements catalogs
+php artisan db:seed --class=RequirementSeeder
+```
+
+### **Users-Only DB Reset (Local/Dev)**
+
+```bash
+php artisan migrate:fresh --seed --seeder=RoleBasedUserSeeder
+```
+
+This wipes all data and reseeds using `RoleBasedUserSeeder` only.
 
 ---
 
@@ -627,6 +652,20 @@ php artisan test --coverage
 
 ## 📝 Development Workflow
 
+### **Database Reset Profiles**
+
+```bash
+# Full reset using the project's default DatabaseSeeder
+php artisan migrate:fresh --seed
+
+# Strict users-only reset
+php artisan migrate:fresh --seed --seeder=RoleBasedUserSeeder
+```
+
+Recommended use:
+- Use users-only reset when QA wants a clean login matrix without historical records.
+- Use explicit module seeders only when testing specific academic/financial flows.
+
 ### **Adding a New Module/Feature**
 
 1. **Create Migration**
@@ -660,6 +699,14 @@ php artisan test --coverage
 ---
 
 ## 🐛 Known Issues & Fixes
+
+✅ **Legacy School Year Records Appearing in Accounting School-Year Tab** *(Fixed: Mar 2026)*
+- Issue: Some students showed historical school-year rows (e.g., `2024-2025`) even when created later, due to earlier logic that could create fee records for broad applicable years.
+- Fix: Fee-year generation now starts from the student's enrolled school year onward and still includes already-existing fee years for data integrity/history.
+
+✅ **School Year Summary Mismatch vs Student Card** *(Fixed: Mar 2026)*
+- Issue: The accounting process page had a confusing School Year Summary layout and inconsistent aggregation visibility.
+- Fix: Removed the `Carried Fwd` visual column from the tab summary and added a consistent TOTAL row for `Total Fees`, `Discount`, `Paid`, and `Balance` to match top-card aggregates.
 
 ### Fixed Issues:
 ✅ **Section Program Relationship Error** *(Fixed: Feb 10, 2026)*
