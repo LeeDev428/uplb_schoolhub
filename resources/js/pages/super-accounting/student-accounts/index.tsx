@@ -127,6 +127,7 @@ interface Props {
         school_year?: string;
         department_id?: string;
         classification?: string;
+        sort_school_year?: 'asc' | 'desc';
     };
     classListMale: {
         id: number;
@@ -159,8 +160,9 @@ interface Props {
 export default function StudentAccounts({ accounts, schoolYears, stats, departments = [], classifications = [], yearLevels = [], filters, classListMale = [], classListFemale = [] }: Props) {
     const [viewMode, setViewMode] = useState<'accounts' | 'classlist'>('accounts');
     const [search, setSearch] = useState(filters.search || '');
-    const [activeTab, setActiveTab] = useState(filters.status || 'overdue');
+    const [activeTab, setActiveTab] = useState(filters.status || 'all');
     const [schoolYear, setSchoolYear] = useState(filters.school_year || 'all');
+    const [schoolYearSort, setSchoolYearSort] = useState<'asc' | 'desc'>(filters.sort_school_year || 'desc');
     const [departmentId, setDepartmentId] = useState(filters.department_id || 'all');
     const [classification, setClassification] = useState(filters.classification || 'all');
     const [isOverdueDialogOpen, setIsOverdueDialogOpen] = useState(false);
@@ -175,8 +177,9 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
     const handleFilter = () => {
         router.get('/super-accounting/student-accounts', {
             search: search || undefined,
-            status: activeTab,
+            status: activeTab !== 'all' ? activeTab : undefined,
             school_year: schoolYear !== 'all' ? schoolYear : undefined,
+            sort_school_year: schoolYearSort,
             department_id: departmentId !== 'all' ? departmentId : undefined,
             classification: classification !== 'all' ? classification : undefined,
         }, {
@@ -189,8 +192,9 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
         setActiveTab(value);
         router.get('/super-accounting/student-accounts', {
             search: search || undefined,
-            status: value,
+            status: value !== 'all' ? value : undefined,
             school_year: schoolYear !== 'all' ? schoolYear : undefined,
+            sort_school_year: schoolYearSort,
             department_id: departmentId !== 'all' ? departmentId : undefined,
             classification: classification !== 'all' ? classification : undefined,
         }, {
@@ -201,8 +205,9 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
 
     const handleReset = () => {
         setSearch('');
-        setActiveTab('overdue');
+        setActiveTab('all');
         setSchoolYear('all');
+        setSchoolYearSort('desc');
         setDepartmentId('all');
         setClassification('all');
         router.get('/super-accounting/student-accounts');
@@ -480,6 +485,18 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                         }}
                     />
                     <FilterDropdown
+                        label="Sort School Year"
+                        value={schoolYearSort}
+                        options={[
+                            { value: 'desc', label: 'Newest First' },
+                            { value: 'asc', label: 'Oldest First' },
+                        ]}
+                        onChange={(value) => {
+                            setSchoolYearSort(value as 'asc' | 'desc');
+                            setTimeout(handleFilter, 0);
+                        }}
+                    />
+                    <FilterDropdown
                         label="Department"
                         value={departmentId}
                         options={departmentOptions}
@@ -509,6 +526,7 @@ export default function StudentAccounts({ accounts, schoolYears, stats, departme
                 }}>
                     <TabsList>
                         <TabsTrigger value="classlist"><Users className="mr-1 h-4 w-4 inline" />Class List</TabsTrigger>
+                        <TabsTrigger value="all">All</TabsTrigger>
                         <TabsTrigger value="overdue">Overdue</TabsTrigger>
                         <TabsTrigger value="partial">Partial</TabsTrigger>
                         <TabsTrigger value="paid">Paid</TabsTrigger>
