@@ -44,10 +44,11 @@ class StudentAccountController extends Controller
         $selectedSchoolYear = $request->input('school_year');
         if ($selectedSchoolYear === 'all' || $selectedSchoolYear === '') {
             $selectedSchoolYear = null;
-        } elseif (!$selectedSchoolYear && $currentAppYear) {
-            // Keep totals aligned with accounting dashboard/reports default scope.
-            $selectedSchoolYear = $currentAppYear;
         }
+
+        $schoolYearSort = strtolower((string) $request->input('sort_school_year', 'desc')) === 'asc'
+            ? 'asc'
+            : 'desc';
 
         // Auto-apply overdue status when due date is reached.
         StudentFee::syncOverdueByDueDate($selectedSchoolYear);
@@ -139,6 +140,12 @@ class StudentAccountController extends Controller
             );
         }
 
+        $accounts->setCollection(
+            $schoolYearSort === 'asc'
+                ? $accounts->getCollection()->sortBy('school_year', SORT_NATURAL)->values()
+                : $accounts->getCollection()->sortByDesc('school_year', SORT_NATURAL)->values()
+        );
+
         // Calculate stats dynamically
         $allStudentIds = Student::whereHas('enrollmentClearance', function ($q) {
             $q->where('registrar_clearance', true);
@@ -194,7 +201,7 @@ class StudentAccountController extends Controller
             'departments' => $departments,
             'classifications' => $classifications,
             'yearLevels' => $yearLevels,
-            'filters' => $request->only(['search', 'status', 'school_year', 'department_id', 'classification']),
+            'filters' => $request->only(['search', 'status', 'school_year', 'department_id', 'classification', 'sort_school_year']),
             'classListMale' => (clone $classListBase)->whereRaw("LOWER(gender) = 'male'")->orderBy('last_name')->orderBy('first_name')->get(),
             'classListFemale' => (clone $classListBase)->whereRaw("LOWER(gender) = 'female'")->orderBy('last_name')->orderBy('first_name')->get(),
         ]);
