@@ -735,6 +735,12 @@ class StudentPaymentController extends Controller
 
     private function resolveFeeTemplateYear(Student $student, string $targetYear): ?string
     {
+        $hasTargetYearAssignments = \App\Models\FeeItem::where('is_active', true)
+            ->whereHas('assignments', function ($q) use ($student, $targetYear) {
+                $this->applyAssignmentFilters($q, $student, $targetYear);
+            })
+            ->exists();
+
         $candidateYears = \App\Models\FeeItem::where('is_active', true)
             ->whereNotNull('school_year')
             ->where(function ($query) use ($student, $targetYear) {
@@ -761,6 +767,10 @@ class StudentPaymentController extends Controller
             ->pluck('school_year')
             ->filter()
             ->values();
+
+        if ($hasTargetYearAssignments) {
+            return $targetYear;
+        }
 
         if ($candidateYears->isEmpty()) {
             return null;
