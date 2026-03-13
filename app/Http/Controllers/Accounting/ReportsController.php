@@ -48,14 +48,14 @@ class ReportsController extends Controller
             $paymentQuery->whereHas('student.department', fn($q) => $q->where('classification', $classification));
         }
 
-        $paymentSummary = $paymentQuery
+        $paymentSummary = (clone $paymentQuery)
             ->select(
                 DB::raw('DATE(payment_date) as date'),
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(amount) as total_amount')
             )
-            ->groupBy('date')
-            ->orderBy('date', 'desc')
+            ->groupBy(DB::raw('DATE(payment_date)'))
+            ->orderByRaw('DATE(payment_date) DESC')
             ->get();
 
         // Student Balance Report
@@ -120,7 +120,7 @@ class ReportsController extends Controller
         $unpaidCount = $summarySource->filter(fn($r) => $r['payment_status'] === 'unpaid')->count();
         $summaryStats = [
             'total_collectibles' => (float) $summarySource->sum('balance'),
-            'total_collected' => (float) $paymentQuery->sum('amount'),
+            'total_collected' => (float) (clone $paymentQuery)->sum('amount'),
             'fully_paid_count' => $fullyPaidCount,
             'partial_paid_count' => $partialCount,
             'unpaid_count' => $unpaidCount,
