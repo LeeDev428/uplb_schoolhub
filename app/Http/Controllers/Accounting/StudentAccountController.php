@@ -508,9 +508,9 @@ class StudentAccountController extends Controller
     {
         $query->where('is_active', true);
 
-        if ($schoolYear) {
-            $query->where('school_year', $schoolYear);
-        }
+        // Do not hard-restrict by assignment school year here.
+        // Existing fee assignments can be encoded under different school-year labels,
+        // and strict filtering causes computed totals to drop to zero.
 
         if (!$student->department_id) {
             $query->whereRaw('1 = 0');

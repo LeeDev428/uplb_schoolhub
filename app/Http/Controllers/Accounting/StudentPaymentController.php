@@ -882,9 +882,9 @@ class StudentPaymentController extends Controller
     {
         $query->where('is_active', true);
 
-        if ($schoolYear) {
-            $query->where('school_year', $schoolYear);
-        }
+        // Do not hard-restrict by assignment school year here.
+        // Many existing records were assigned under a different label/year,
+        // and strict filtering drops valid assigned fee items to zero.
 
         // Students must always have department_id set at creation time
         if (!$student->department_id) {
