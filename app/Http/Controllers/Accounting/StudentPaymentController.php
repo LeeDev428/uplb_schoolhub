@@ -567,6 +567,12 @@ class StudentPaymentController extends Controller
             ->where('school_year', $schoolYear)
             ->first();
 
+        // Preserve posted ledgers: once payments exist, use stored fee totals/discounts
+        // and only refresh paid/balance from payment records.
+        if ($existingStudentFee && $existingStudentFee->payments()->exists()) {
+            return $this->buildFeeDataFromStudentFee($student, $existingStudentFee);
+        }
+
         $templateYear = $this->resolveFeeTemplateYear($student, $schoolYear);
         if (!$templateYear) {
             if ($existingStudentFee) {
@@ -815,22 +821,26 @@ class StudentPaymentController extends Controller
         $totalAmount = (float) $studentFee->total_amount;
         $totalPaid = (float) $studentFee->payments()->sum('amount');
 
-        $grantRecipients = $this->getGrantRecipientsForFeeYear($student, (string) $studentFee->school_year);
         $grantDiscount = (float) $studentFee->grant_discount;
 
-        if ($grantRecipients->isNotEmpty()) {
-            $freshDiscount = 0.0;
-            foreach ($grantRecipients as $recipient) {
-                if ($recipient->grant) {
-                    $calculated = $recipient->grant->calculateDiscount($totalAmount);
-                    if ((float) $recipient->discount_amount !== $calculated) {
-                        $recipient->discount_amount = $calculated;
-                        $recipient->save();
+        // For ledgers with posted payments, do not retroactively recalculate discounts.
+        // This avoids historical drift when assignment/grant definitions are edited later.
+        if ($totalPaid <= 0) {
+            $grantRecipients = $this->getGrantRecipientsForFeeYear($student, (string) $studentFee->school_year);
+            if ($grantRecipients->isNotEmpty()) {
+                $freshDiscount = 0.0;
+                foreach ($grantRecipients as $recipient) {
+                    if ($recipient->grant) {
+                        $calculated = $recipient->grant->calculateDiscount($totalAmount);
+                        if ((float) $recipient->discount_amount !== $calculated) {
+                            $recipient->discount_amount = $calculated;
+                            $recipient->save();
+                        }
+                        $freshDiscount += $calculated;
                     }
-                    $freshDiscount += $calculated;
                 }
+                $grantDiscount = $freshDiscount;
             }
-            $grantDiscount = $freshDiscount;
         }
 
         $balance = max(0, $totalAmount - $grantDiscount - $totalPaid);
