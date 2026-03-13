@@ -236,7 +236,9 @@ class FeeItem extends Model
                     ->where('status', 'enrolled')
                     ->join('subjects', 'subjects.id', '=', 'student_subjects.subject_id')
                     ->sum('subjects.units');
-                $feeAmount = (float) $this->unit_price * (float) $enrolledUnits;
+                $feeAmount = (float) $enrolledUnits > 0
+                    ? (float) $this->unit_price * (float) $enrolledUnits
+                    : (float) $this->selling_price;
             } else {
                 $feeAmount = (float) $this->selling_price;
             }
