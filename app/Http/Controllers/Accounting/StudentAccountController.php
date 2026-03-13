@@ -251,6 +251,7 @@ class StudentAccountController extends Controller
             ->get();
         $grantDiscount = 0.0;
         foreach ($grantRecipients as $recipient) {
+            /** @var \App\Models\GrantRecipient $recipient */
             if ($recipient->grant) {
                 $calculated = $recipient->grant->calculateDiscount((float) $totalAmount);
                 // Fix stale discount_amount in DB if it differs
@@ -568,6 +569,9 @@ class StudentAccountController extends Controller
         $count = 0;
 
         foreach ($studentsQuery->get() as $student) {
+            if (! $student instanceof Student) {
+                continue;
+            }
             $feeData = $this->calculateStudentFees($student, $schoolYear);
 
             // Skip already-overdue or fully-paid students
