@@ -518,17 +518,47 @@ class StudentAccountController extends Controller
         }
 
         if ($student->department) {
-            $query->where('classification', $student->department->classification);
+            $query->where(function ($sq) use ($student) {
+                $sq->whereNull('classification')
+                    ->orWhere('classification', $student->department->classification);
+            });
         }
 
-        $query->where('department_id', $student->department_id);
+        $query->where(function ($sq) use ($student) {
+            $sq->whereNull('department_id')
+                ->orWhere('department_id', $student->department_id);
+        });
 
         $resolvedYearLevelId = $this->resolveStudentYearLevelId($student);
+        $yearLevelCandidates = $this->buildYearLevelCandidates((string) ($student->year_level ?? ''));
 
         if ($resolvedYearLevelId) {
             $query->where(function ($sq) use ($resolvedYearLevelId) {
                 $sq->whereNull('year_level_id')
                     ->orWhere('year_level_id', $resolvedYearLevelId);
+            });
+        } elseif (!empty($yearLevelCandidates)) {
+            $normalizedCandidates = array_values(array_unique(array_filter(array_map(
+                fn(string $value) => preg_replace('/[^a-z0-9]/', '', strtolower($value)),
+                $yearLevelCandidates
+            ))));
+
+            $query->where(function ($sq) use ($yearLevelCandidates, $normalizedCandidates) {
+                $sq->whereNull('year_level_id')
+                    ->orWhereHas('yearLevel', function ($ylQuery) use ($yearLevelCandidates, $normalizedCandidates) {
+                        $ylQuery->where(function ($nameQuery) use ($yearLevelCandidates, $normalizedCandidates) {
+                            foreach ($yearLevelCandidates as $candidate) {
+                                $nameQuery->orWhereRaw('LOWER(TRIM(name)) = ?', [strtolower($candidate)]);
+                            }
+
+                            foreach ($normalizedCandidates as $normalized) {
+                                if ($normalized === '') {
+                                    continue;
+                                }
+                                $nameQuery->orWhereRaw("REPLACE(REPLACE(REPLACE(LOWER(TRIM(name)), ' ', ''), '-', ''), '.', '') LIKE ?", ['%' . $normalized . '%']);
+                            }
+                        });
+                    });
             });
         } else {
             $query->whereNull('year_level_id');
