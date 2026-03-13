@@ -125,7 +125,9 @@ class StudentPaymentController extends Controller
                     ->get();
 
                 // Calculate current and previous balances
-                $currentYear = \App\Models\AppSetting::current()?->school_year ?? date('Y') . '-' . (date('Y') + 1);
+                $currentYear = $selectedStudent->school_year
+                    ?? \App\Models\AppSetting::current()?->school_year
+                    ?? date('Y') . '-' . (date('Y') + 1);
                 $currentFee = $studentFees->firstWhere('school_year', $currentYear);
                 $previousFees = $studentFees->where('school_year', '!=', $currentYear);
 
@@ -506,14 +508,13 @@ class StudentPaymentController extends Controller
      */
     private function getApplicableSchoolYears(Student $student): array
     {
-        // Only auto-generate fee records from the student's enrolled year onwards.
-        // Prevents creating historical fee records for students enrolled in a later year.
+        // Anchor to the registrar-assigned year to avoid auto-creating future-year fees.
         $enrolledYear = $student->school_year ?? \App\Models\AppSetting::current()?->school_year;
 
         $feeItemYears = \App\Models\FeeItem::where('is_active', true)
             ->whereNotNull('school_year')
-            ->when($enrolledYear, fn($q) => $q->where('school_year', '>=', $enrolledYear))
-            ->where(function ($query) use ($student) {
+            ->when($enrolledYear, fn($q) => $q->where('school_year', $enrolledYear))
+            ->where(function ($query) use ($student, $enrolledYear) {
                 // 'all' scope only if no explicit per-group assignments override it
                 $query->where(function ($inner) {
                         $inner->where('assignment_scope', 'all')
@@ -532,8 +533,8 @@ class StudentPaymentController extends Controller
                         $this->applyStudentFilters($q, $student);
                     })
                     // Or items explicitly assigned via the Assignments tab
-                    ->orWhereHas('assignments', function ($q) use ($student) {
-                        $this->applyAssignmentFilters($q, $student);
+                    ->orWhereHas('assignments', function ($q) use ($student, $enrolledYear) {
+                        $this->applyAssignmentFilters($q, $student, $enrolledYear);
                     });
             })
             ->distinct()
@@ -541,7 +542,9 @@ class StudentPaymentController extends Controller
 
         // Always include years that already have StudentFee records
         // (preserves existing payment history even if fee items no longer apply)
-        $existingYears = StudentFee::where('student_id', $student->id)->pluck('school_year');
+        $existingYears = StudentFee::where('student_id', $student->id)
+            ->when($enrolledYear, fn($q) => $q->where('school_year', '<=', $enrolledYear))
+            ->pluck('school_year');
 
         return $feeItemYears->merge($existingYears)
             ->unique()
@@ -562,7 +565,7 @@ class StudentPaymentController extends Controller
             ->whereDoesntHave('category', function ($q) {
                 $q->where('name', 'like', '%Drop%');
             })
-            ->where(function ($query) use ($student) {
+            ->where(function ($query) use ($student, $schoolYear) {
                 $query->where(function ($inner) {
                         $inner->where('assignment_scope', 'all')
                               ->whereDoesntHave('assignments');
@@ -578,8 +581,8 @@ class StudentPaymentController extends Controller
                           });
                         $this->applyStudentFilters($q, $student);
                     })
-                    ->orWhereHas('assignments', function ($q) use ($student) {
-                        $this->applyAssignmentFilters($q, $student);
+                    ->orWhereHas('assignments', function ($q) use ($student, $schoolYear) {
+                        $this->applyAssignmentFilters($q, $student, $schoolYear);
                     });
             })
             ->get();
@@ -740,7 +743,7 @@ class StudentPaymentController extends Controller
     /**
      * Apply student-specific filters to fee_item_assignments query.
      */
-    private function applyAssignmentFilters($query, Student $student): void
+    private function applyAssignmentFilters($query, Student $student, ?string $schoolYear = null): void
     {
         $query->where('is_active', true);
 
@@ -756,8 +759,20 @@ class StudentPaymentController extends Controller
 
         $query->where('department_id', $student->department_id);
 
-        if ($student->year_level_id) {
-            $query->where('year_level_id', $student->year_level_id);
+        $resolvedYearLevelId = $student->year_level_id;
+        if (!$resolvedYearLevelId && $student->year_level) {
+            $resolvedYearLevelId = \App\Models\YearLevel::where('department_id', $student->department_id)
+                ->where('name', $student->year_level)
+                ->value('id');
+        }
+
+        if ($resolvedYearLevelId) {
+            $query->where(function ($sq) use ($resolvedYearLevelId) {
+                $sq->whereNull('year_level_id')
+                    ->orWhere('year_level_id', $resolvedYearLevelId);
+            });
+        } else {
+            $query->whereNull('year_level_id');
         }
     }
 
@@ -785,8 +800,13 @@ class StudentPaymentController extends Controller
 
         // Match year level if set
         $query->where(function ($sq) use ($student) {
-            $sq->whereNull('year_level_id')
-                ->orWhere('year_level_id', $student->year_level_id);
+            $sq->whereNull('year_level_id');
+
+            if ($student->year_level_id) {
+                $sq->orWhere('year_level_id', $student->year_level_id);
+            } elseif ($student->year_level) {
+                $sq->orWhereRaw('LOWER(TRIM(year_level)) = ?', [strtolower(trim((string) $student->year_level))]);
+            }
         });
 
         // Match section if set
@@ -807,7 +827,7 @@ class StudentPaymentController extends Controller
             ->whereDoesntHave('category', function ($q) {
                 $q->where('name', 'like', '%Drop%');
             })
-            ->where(function ($query) use ($student) {
+            ->where(function ($query) use ($student, $schoolYear) {
                 $query->where(function ($inner) {
                         $inner->where('assignment_scope', 'all')
                               ->whereDoesntHave('assignments');
@@ -823,8 +843,8 @@ class StudentPaymentController extends Controller
                           });
                         $this->applyStudentFilters($q, $student);
                     })
-                    ->orWhereHas('assignments', function ($q) use ($student) {
-                        $this->applyAssignmentFilters($q, $student);
+                    ->orWhereHas('assignments', function ($q) use ($student, $schoolYear) {
+                        $this->applyAssignmentFilters($q, $student, $schoolYear);
                     });
             })
             ->sum('selling_price');
