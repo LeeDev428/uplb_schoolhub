@@ -557,8 +557,15 @@ class StudentPaymentController extends Controller
      */
     private function calculateFeesForSchoolYear(Student $student, string $schoolYear): ?array
     {
+        $existingStudentFee = StudentFee::where('student_id', $student->id)
+            ->where('school_year', $schoolYear)
+            ->first();
+
         $templateYear = $this->resolveFeeTemplateYear($student, $schoolYear);
         if (!$templateYear) {
+            if ($existingStudentFee) {
+                return $this->buildFeeDataFromStudentFee($student, $existingStudentFee);
+            }
             return null;
         }
 
@@ -602,6 +609,9 @@ class StudentPaymentController extends Controller
             ->get();
 
         if ($feeItems->isEmpty()) {
+            if ($existingStudentFee) {
+                return $this->buildFeeDataFromStudentFee($student, $existingStudentFee);
+            }
             return null;
         }
 
@@ -766,6 +776,59 @@ class StudentPaymentController extends Controller
             ->first();
 
         return $fallback ?: $candidateYears->sortDesc()->first();
+    }
+
+    /**
+     * Build fee response from an existing student_fees record when no fee item template is currently matched.
+     */
+    private function buildFeeDataFromStudentFee(Student $student, StudentFee $studentFee): array
+    {
+        $totalAmount = (float) $studentFee->total_amount;
+        $totalPaid = (float) $studentFee->payments()->sum('amount');
+
+        $grantRecipients = $this->getGrantRecipientsForFeeYear($student, (string) $studentFee->school_year);
+        $grantDiscount = (float) $studentFee->grant_discount;
+
+        if ($grantRecipients->isNotEmpty()) {
+            $freshDiscount = 0.0;
+            foreach ($grantRecipients as $recipient) {
+                if ($recipient->grant) {
+                    $calculated = $recipient->grant->calculateDiscount($totalAmount);
+                    if ((float) $recipient->discount_amount !== $calculated) {
+                        $recipient->discount_amount = $calculated;
+                        $recipient->save();
+                    }
+                    $freshDiscount += $calculated;
+                }
+            }
+            $grantDiscount = $freshDiscount;
+        }
+
+        $balance = max(0, $totalAmount - $grantDiscount - $totalPaid);
+
+        if ((float) $studentFee->grant_discount !== (float) $grantDiscount
+            || (float) $studentFee->total_paid !== (float) $totalPaid
+            || (float) $studentFee->balance !== (float) $balance) {
+            $studentFee->grant_discount = $grantDiscount;
+            $studentFee->total_paid = $totalPaid;
+            $studentFee->balance = $balance;
+            $studentFee->save();
+        }
+
+        return [
+            'id' => $studentFee->id,
+            'school_year' => (string) $studentFee->school_year,
+            'total_amount' => $totalAmount,
+            'grant_discount' => (float) $grantDiscount,
+            'total_paid' => $totalPaid,
+            'balance' => $balance,
+            'status' => $balance <= 0 ? 'paid' : ($studentFee->is_overdue ? 'overdue' : 'pending'),
+            'is_overdue' => (bool) $studentFee->is_overdue,
+            'due_date' => $studentFee->due_date,
+            'categories' => [],
+            'carried_forward_balance' => (float) ($studentFee->carried_forward_balance ?? 0),
+            'carried_forward_from' => $studentFee->carried_forward_from ?? null,
+        ];
     }
 
     /**
