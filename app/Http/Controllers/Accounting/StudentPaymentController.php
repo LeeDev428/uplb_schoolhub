@@ -580,6 +580,10 @@ class StudentPaymentController extends Controller
             ->where('school_year', $templateYear)
             ->whereHas('assignments', function ($q) use ($student, $schoolYear) {
                 $this->applyAssignmentFilters($q, $student, $schoolYear);
+                $q->where(function ($yearQuery) use ($schoolYear) {
+                    $yearQuery->whereNull('school_year')
+                        ->orWhere('school_year', $schoolYear);
+                });
             })
             ->exists();
 
@@ -597,6 +601,10 @@ class StudentPaymentController extends Controller
                     // Strict mode: explicit assignments override all/specific templates.
                     $query->whereHas('assignments', function ($assignmentQuery) use ($student, $schoolYear) {
                         $this->applyAssignmentFilters($assignmentQuery, $student, $schoolYear);
+                        $assignmentQuery->where(function ($yearQuery) use ($schoolYear) {
+                            $yearQuery->whereNull('school_year')
+                                ->orWhere('school_year', $schoolYear);
+                        });
                     });
 
                     return;
@@ -1004,6 +1012,10 @@ class StudentPaymentController extends Controller
             ->where('school_year', $schoolYear)
             ->whereHas('assignments', function ($q) use ($student, $schoolYear) {
                 $this->applyAssignmentFilters($q, $student, $schoolYear);
+                $q->where(function ($yearQuery) use ($schoolYear) {
+                    $yearQuery->whereNull('school_year')
+                        ->orWhere('school_year', $schoolYear);
+                });
             })
             ->exists();
 
@@ -1017,6 +1029,10 @@ class StudentPaymentController extends Controller
                 if ($hasExplicitAssignmentMatch) {
                     $query->whereHas('assignments', function ($q) use ($student, $schoolYear) {
                         $this->applyAssignmentFilters($q, $student, $schoolYear);
+                        $q->where(function ($yearQuery) use ($schoolYear) {
+                            $yearQuery->whereNull('school_year')
+                                ->orWhere('school_year', $schoolYear);
+                        });
                     });
 
                     return;

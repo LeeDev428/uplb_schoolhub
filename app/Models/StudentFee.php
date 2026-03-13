@@ -103,6 +103,9 @@ class StudentFee extends Model
             ->whereNotNull('due_date')
             ->whereDate('due_date', '<=', $today)
             ->where('balance', '>', 0)
+            // Overdue is auto-applied only to unpaid balances. Once a payment exists,
+            // account stays partial unless accounting manually marks overdue again.
+            ->where('total_paid', '<=', 0)
             ->update([
                 'is_overdue' => true,
                 'payment_status' => 'overdue',
