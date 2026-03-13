@@ -23,12 +23,59 @@ class AccountingDashboardController extends Controller
     public function index(Request $request): Response
     {
         $selectedYear = $request->get('year', date('Y'));
+        $currentSchoolYear = \App\Models\AppSetting::current()?->school_year
+            ?? (date('Y') . '-' . (date('Y') + 1));
+
+        $schoolYearFeeRows = StudentFee::with('payments')
+            ->where('school_year', $currentSchoolYear)
+            ->get()
+            ->groupBy('student_id');
+
+        $fullyPaid = 0;
+        $partialPayment = 0;
+        $unpaid = 0;
+        $totalOutstanding = 0.0;
+        $projectedRevenue = 0.0;
+
+        foreach ($schoolYearFeeRows as $rows) {
+            $totalAmount = (float) $rows->sum('total_amount');
+            $grantDiscount = (float) $rows->sum('grant_discount');
+            $paid = (float) $rows->flatMap->payments->sum('amount');
+            $balance = max(0, $totalAmount - $grantDiscount - $paid);
+
+            if ($totalAmount <= 0) {
+                continue;
+            }
+
+            $projectedRevenue += max(0, $totalAmount - $grantDiscount);
+            $totalOutstanding += $balance;
+
+            if ($balance <= 0) {
+                $fullyPaid++;
+            } elseif ($paid > 0) {
+                $partialPayment++;
+            } else {
+                $unpaid++;
+            }
+        }
+
+        $totalStudents = Student::where('school_year', $currentSchoolYear)
+            ->where('enrollment_status', 'enrolled')
+            ->count();
+
+        if ($totalStudents === 0) {
+            $totalStudents = $schoolYearFeeRows->keys()->count();
+        }
+
+        $totalCollected = StudentPayment::whereHas('studentFee', function ($query) use ($currentSchoolYear) {
+            $query->where('school_year', $currentSchoolYear);
+        })->sum('amount');
         
         $stats = [
-            'total_students' => Student::count(),
-            'fully_paid' => StudentFee::where('balance', '<=', 0)->count(),
-            'partial_payment' => StudentFee::where('total_paid', '>', 0)->where('balance', '>', 0)->count(),
-            'overdue' => StudentFee::where('is_overdue', true)->count(),
+            'total_students' => $totalStudents,
+            'fully_paid' => $fullyPaid,
+            'partial_payment' => $partialPayment,
+            'overdue' => $unpaid,
             'document_payments' => DocumentRequest::where('is_paid', true)->count(),
         ];
 
@@ -82,8 +129,6 @@ class AccountingDashboardController extends Controller
             })
             ->toArray();
 
-        $totalOutstanding = StudentFee::where('balance', '>', 0)->sum('balance');
-
         // Recent payment activities
         $recentPayments = StudentPayment::with(['student'])
             ->latest('payment_date')
@@ -134,8 +179,8 @@ class AccountingDashboardController extends Controller
             'averageCollectionTime' => $averageCollectionTime,
             'years' => $years,
             'selectedYear' => (int) $selectedYear,
-            'projectedRevenue' => (float) StudentFee::sum('total_amount'),
-            'totalCollected' => (float) StudentPayment::sum('amount'),
+            'projectedRevenue' => (float) $projectedRevenue,
+            'totalCollected' => (float) $totalCollected,
         ]);
     }
 
