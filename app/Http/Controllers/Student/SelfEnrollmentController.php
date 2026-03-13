@@ -76,10 +76,14 @@ class SelfEnrollmentController extends Controller
                     'id'                => $fee->id,
                     'school_year'       => $fee->school_year,
                     'total_amount'      => (float) $fee->total_amount,
-                    'total_paid'        => (float) $fee->total_paid,
-                    'balance'           => (float) $fee->balance,
+                    'total_paid'        => (float) $fee->payments()->sum('amount'),
+                    'balance'           => max(0, (float) $fee->total_amount - (float) $fee->grant_discount - (float) $fee->payments()->sum('amount')),
                     'grant_discount'    => (float) $fee->grant_discount,
-                    'payment_status'    => $fee->payment_status,
+                    'payment_status'    => $this->resolvePaymentStatus(
+                        (float) $fee->total_amount,
+                        (float) $fee->payments()->sum('amount'),
+                        max(0, (float) $fee->total_amount - (float) $fee->grant_discount - (float) $fee->payments()->sum('amount'))
+                    ),
                     'is_overdue'        => (bool) $fee->is_overdue,
                     'due_date'          => $fee->due_date?->format('M d, Y'),
                 ]);
@@ -94,7 +98,7 @@ class SelfEnrollmentController extends Controller
                     'payment_date' => $p->payment_date?->format('M d, Y'),
                     'or_number'    => $p->or_number,
                     'amount'       => (float) $p->amount,
-                    'payment_mode' => strtoupper($p->payment_mode ?? $p->payment_method ?? 'CASH'),
+                    'payment_mode' => $this->normalizePaymentMode($p->payment_mode, $p->payment_method),
                     'payment_for'  => $p->payment_for,
                     'notes'        => $p->notes,
                     'school_year'  => $p->studentFee?->school_year,
@@ -297,5 +301,26 @@ class SelfEnrollmentController extends Controller
 
         return redirect()->route('student.dashboard')
             ->with('success', 'Enrollment request submitted successfully! The Registrar will review your application.');
+    }
+
+    private function resolvePaymentStatus(float $totalAmount, float $totalPaid, float $balance): string
+    {
+        if ($totalAmount > 0 && $balance <= 0) {
+            return 'paid';
+        }
+        if ($totalPaid > 0 && $balance > 0) {
+            return 'partial';
+        }
+        return 'unpaid';
+    }
+
+    private function normalizePaymentMode(?string $paymentMode, ?string $paymentMethod): string
+    {
+        $raw = strtoupper((string) ($paymentMode ?: $paymentMethod ?: 'CASH'));
+        return match ($raw) {
+            'GCASH' => 'GCASH',
+            'BANK', 'BANK_TRANSFER' => 'BANK',
+            default => 'CASH',
+        };
     }
 }
