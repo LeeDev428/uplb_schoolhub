@@ -24,16 +24,20 @@ class ReportsController extends Controller
      */
     public function index(Request $request): Response
     {
+        // Get current active school year from settings
+        $settings = AppSetting::first();
+        $currentSchoolYear = $settings?->school_year;
+        
         // Get filters
         $from = $request->input('from');
         $to = $request->input('to');
         $schoolYear = $request->input('school_year');
         $status = $request->input('status');
         
-        // If no school year is specified, use the current/active school year to prevent duplicates
-        if (!$schoolYear) {
-            $settings = AppSetting::first();
-            $schoolYear = $settings?->school_year;
+        // ALWAYS use current school year - filter param can only narrow down further
+        // Never show students from past/future years unless explicitly requested via filter
+        if (!$schoolYear || $schoolYear === 'all') {
+            $schoolYear = $currentSchoolYear;
         }
 
         // Payment Collection Summary (grouped by date)
@@ -65,13 +69,9 @@ class ReportsController extends Controller
             ->orderByRaw('DATE(payment_date) DESC')
             ->get();
 
-        // Student Balance Report
-        $balanceQuery = StudentFee::with('student.department');
-
-        // Always filter by school year (either provided or using current)
-        if ($schoolYear) {
-            $balanceQuery->where('school_year', $schoolYear);
-        }
+        // Student Balance Report - ONLY show current school year
+        $balanceQuery = StudentFee::with('student.department')
+            ->where('school_year', $schoolYear);  // Always filter by school year
 
         // Filter by department
         if ($departmentId = $request->input('department_id')) {
