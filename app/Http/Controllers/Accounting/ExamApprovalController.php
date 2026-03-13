@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\ExamApproval;
 use App\Models\Student;
 use App\Models\StudentFee;
@@ -18,7 +19,11 @@ class ExamApprovalController extends Controller
      */
     public function index(Request $request): Response
     {
-        StudentFee::syncOverdueByDueDate($request->input('school_year'));
+        $selectedSchoolYear = $request->input('school_year')
+            ?: AppSetting::current()?->school_year
+            ?: now()->format('Y') . '-' . (now()->year + 1);
+
+        StudentFee::syncOverdueByDueDate($selectedSchoolYear);
 
         $query = ExamApproval::with(['student', 'approvedBy']);
 
@@ -55,8 +60,9 @@ class ExamApprovalController extends Controller
                 $q->where('registrar_clearance', true);
             })
             ->whereNotIn('enrollment_status', ['not-enrolled', 'pending-registrar'])
-            ->whereHas('fees', function ($fq) {
-                $fq->where('is_overdue', false)
+            ->whereHas('fees', function ($fq) use ($selectedSchoolYear) {
+                $fq->where('school_year', $selectedSchoolYear)
+                    ->where('is_overdue', false)
                     ->where(function ($sq) {
                         $sq->where(function ($paid) {
                             $paid->where('total_amount', '>', 0)
@@ -64,10 +70,12 @@ class ExamApprovalController extends Controller
                         })->orWhere('total_paid', '>', 0);
                     });
             })
-            ->with('fees')
+            ->with(['fees' => function ($q) use ($selectedSchoolYear) {
+                $q->where('school_year', $selectedSchoolYear)->latest();
+            }])
             ->get()
             ->map(function ($student) {
-                $currentFee = $student->fees()->latest()->first();
+                $currentFee = $student->fees->first();
                 return [
                     'id' => $student->id,
                     'full_name' => $student->full_name,
@@ -85,8 +93,9 @@ class ExamApprovalController extends Controller
                 $q->where('registrar_clearance', true);
             })
             ->whereNotIn('enrollment_status', ['not-enrolled', 'pending-registrar'])
-            ->whereHas('fees', function ($fq) {
-                $fq->where('is_overdue', false)
+            ->whereHas('fees', function ($fq) use ($selectedSchoolYear) {
+                $fq->where('school_year', $selectedSchoolYear)
+                    ->where('is_overdue', false)
                     ->where(function ($sq) {
                         $sq->where(function ($paid) {
                             $paid->where('total_amount', '>', 0)
@@ -94,8 +103,8 @@ class ExamApprovalController extends Controller
                         })->orWhere('total_paid', '>', 0);
                     });
             })
-            ->with(['fees' => function ($q) {
-                $q->latest();
+            ->with(['fees' => function ($q) use ($selectedSchoolYear) {
+                $q->where('school_year', $selectedSchoolYear)->latest();
             }, 'departmentModel']);
 
         // Apply search to the list if provided
