@@ -26,9 +26,20 @@ class AccountingDashboardController extends Controller
         $currentSchoolYear = \App\Models\AppSetting::current()?->school_year
             ?? (date('Y') . '-' . (date('Y') + 1));
 
+        $eligibleStudentIds = Student::query()
+            ->whereHas('enrollmentClearance', function ($q) {
+                $q->where(function ($sq) {
+                    $sq->where('registrar_clearance', true)
+                        ->orWhere('enrollment_status', 'completed');
+                });
+            })
+            ->where('enrollment_status', '!=', 'not-enrolled')
+            ->pluck('id');
+
         $schoolYearFeeRows = StudentFee::with('payments')
-            ->where('school_year', $currentSchoolYear)
+            ->whereIn('student_id', $eligibleStudentIds)
             ->get()
+            ->sortByDesc('school_year', SORT_NATURAL)
             ->groupBy('student_id');
 
         $fullyPaid = 0;
@@ -38,9 +49,14 @@ class AccountingDashboardController extends Controller
         $projectedRevenue = 0.0;
 
         foreach ($schoolYearFeeRows as $rows) {
-            $totalAmount = (float) $rows->sum('total_amount');
-            $grantDiscount = (float) $rows->sum('grant_discount');
-            $paid = (float) $rows->flatMap->payments->sum('amount');
+            $latestRow = $rows->first();
+            if (!$latestRow) {
+                continue;
+            }
+
+            $totalAmount = (float) $latestRow->total_amount;
+            $grantDiscount = (float) $latestRow->grant_discount;
+            $paid = (float) $latestRow->payments()->sum('amount');
             $balance = max(0, $totalAmount - $grantDiscount - $paid);
 
             if ($totalAmount <= 0) {
@@ -59,23 +75,19 @@ class AccountingDashboardController extends Controller
             }
         }
 
-        $totalStudents = Student::where('school_year', $currentSchoolYear)
-            ->where('enrollment_status', 'enrolled')
-            ->count();
+        $totalStudents = $eligibleStudentIds->count();
 
-        if ($totalStudents === 0) {
-            $totalStudents = $schoolYearFeeRows->keys()->count();
-        }
-
-        $totalCollected = StudentPayment::whereHas('studentFee', function ($query) use ($currentSchoolYear) {
-            $query->where('school_year', $currentSchoolYear);
-        })->sum('amount');
+        $totalCollected = StudentPayment::whereIn('student_id', $eligibleStudentIds)->sum('amount');
         
         $stats = [
             'total_students' => $totalStudents,
             'fully_paid' => $fullyPaid,
             'partial_payment' => $partialPayment,
-            'overdue' => $unpaid,
+            'overdue' => StudentFee::whereIn('student_id', $eligibleStudentIds)
+                ->where('school_year', $currentSchoolYear)
+                ->where('is_overdue', true)
+                ->where('balance', '>', 0)
+                ->count(),
             'document_payments' => DocumentRequest::where('is_paid', true)->count(),
         ];
 
@@ -398,6 +410,8 @@ class AccountingDashboardController extends Controller
      */
     public function accountDashboard(Request $request): Response
     {
+        $accountId = (int) auth()->id();
+
         // Demographic filters
         $classification = $request->get('classification');
         $departmentId   = $request->get('department_id');
@@ -434,16 +448,36 @@ class AccountingDashboardController extends Controller
         $dailyCollections = [];
 
         $payments  = StudentPayment::with(['recordedBy'])->whereIn('student_id', $studentIds)
+            ->where('recorded_by', $accountId)
             ->whereBetween('payment_date', [$periodStart, $periodEnd])
             ->get();
         $documents = DocumentRequest::whereIn('student_id', $studentIds)
             ->where('is_paid', true)
-            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->where(function ($q) use ($accountId, $periodStart, $periodEnd) {
+                $q->where(function ($inner) use ($accountId, $periodStart, $periodEnd) {
+                    $inner->where('accounting_approved_by', $accountId)
+                        ->whereNotNull('accounting_approved_at')
+                        ->whereBetween('accounting_approved_at', [$periodStart, $periodEnd]);
+                })->orWhere(function ($inner) use ($accountId, $periodStart, $periodEnd) {
+                    $inner->where('processed_by', $accountId)
+                        ->whereBetween('created_at', [$periodStart, $periodEnd]);
+                });
+            })
             ->get();
         $dropRequests = DropRequest::whereIn('student_id', $studentIds)
             ->where('accounting_status', 'approved')
             ->where('is_paid', true)
-            ->whereBetween('accounting_approved_at', [$periodStart, $periodEnd])
+            ->where(function ($q) use ($accountId, $periodStart, $periodEnd) {
+                $q->where(function ($inner) use ($accountId, $periodStart, $periodEnd) {
+                    $inner->where('accounting_approved_by', $accountId)
+                        ->whereNotNull('accounting_approved_at')
+                        ->whereBetween('accounting_approved_at', [$periodStart, $periodEnd]);
+                })->orWhere(function ($inner) use ($accountId, $periodStart, $periodEnd) {
+                    $inner->where('processed_by', $accountId)
+                        ->whereNotNull('processed_at')
+                        ->whereBetween('processed_at', [$periodStart, $periodEnd]);
+                });
+            })
             ->get();
 
         $feeCount    = $payments->count();
@@ -452,11 +486,29 @@ class AccountingDashboardController extends Controller
         $feeSum      = (float) $payments->sum('amount');
         $docSum      = (float) $documents->sum('fee');
         $dropSum     = (float) $dropRequests->sum('fee_amount');
-        $overallPaid = (float) StudentPayment::whereIn('student_id', $studentIds)->sum('amount');
+        $overallFeePaid = (float) StudentPayment::whereIn('student_id', $studentIds)
+            ->where('recorded_by', $accountId)
+            ->sum('amount');
+        $overallDocumentPaid = (float) DocumentRequest::whereIn('student_id', $studentIds)
+            ->where('is_paid', true)
+            ->where(function ($q) use ($accountId) {
+                $q->where('accounting_approved_by', $accountId)
+                    ->orWhere('processed_by', $accountId);
+            })
+            ->sum('fee');
+        $overallDropPaid = (float) DropRequest::whereIn('student_id', $studentIds)
+            ->where('accounting_status', 'approved')
+            ->where('is_paid', true)
+            ->where(function ($q) use ($accountId) {
+                $q->where('accounting_approved_by', $accountId)
+                    ->orWhere('processed_by', $accountId);
+            })
+            ->sum('fee_amount');
+        $overallPaid = $overallFeePaid + $overallDocumentPaid + $overallDropPaid;
         $feesBilled  = (float) StudentFee::whereIn('student_id', $studentIds)->sum('total_amount');
         $rate        = $feesBilled > 0
-            ? min(round(($overallPaid / $feesBilled) * 100, 1), 100)
-            : ($overallPaid > 0 ? 100 : 0);
+            ? min(round(($overallFeePaid / $feesBilled) * 100, 1), 100)
+            : ($overallFeePaid > 0 ? 100 : 0);
 
         $stats = [
             'total_transactions'       => $feeCount + $docCount + $dropCount,

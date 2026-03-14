@@ -785,47 +785,23 @@ class StudentAccountController extends Controller
             $studentsQuery->where('school_year', $requestedSchoolYear);
         }
 
-        $count = 0;
+        $targetSchoolYear = $requestedSchoolYear ?: $appSchoolYear;
+        $eligibleStudentIds = $studentsQuery->pluck('id');
 
-        foreach ($studentsQuery->get() as $student) {
-            if (! $student instanceof Student) {
-                continue;
-            }
-
-            // Mark overdue on the student's actual fee year to avoid updating the wrong ledger row.
-            $targetSchoolYear = $requestedSchoolYear
-                ?? $student->school_year
-                ?? $appSchoolYear;
-
-            $feeData = $this->calculateStudentFees($student, $targetSchoolYear);
-
-            // Skip already-overdue or fully-paid students
-            if ($feeData['is_overdue'] || $feeData['balance'] <= 0) {
-                continue;
-            }
-
-            // Upsert the student_fees record so it always exists
-            $studentFee = StudentFee::firstOrCreate(
-                ['student_id' => $student->id, 'school_year' => $targetSchoolYear],
-                [
-                    'total_amount'   => $feeData['total_amount'],
-                    'grant_discount' => $feeData['grant_discount'],
-                    'total_paid'     => $feeData['total_paid'],
-                    'balance'        => $feeData['balance'],
-                ]
-            );
-
-            $studentFee->update([
-                'is_overdue'     => true,
-                'due_date'       => $request->overdue_date,
+        // Mark all partial/unpaid accounts with outstanding balance as overdue for the target year.
+        $count = StudentFee::query()
+            ->whereIn('student_id', $eligibleStudentIds)
+            ->where('school_year', $targetSchoolYear)
+            ->where('balance', '>', 0)
+            ->where(function ($q) {
+                $q->where('is_overdue', false)
+                    ->orWhereNull('is_overdue');
+            })
+            ->update([
+                'is_overdue' => true,
+                'due_date' => $request->overdue_date,
                 'payment_status' => 'overdue',
-                'total_amount'   => $feeData['total_amount'],
-                'grant_discount' => $feeData['grant_discount'],
-                'balance'        => $feeData['balance'],
             ]);
-
-            $count++;
-        }
 
         $prefix = str_starts_with(request()->route()->getName(), 'super-accounting.')
             ? 'super-accounting'

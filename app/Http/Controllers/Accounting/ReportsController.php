@@ -73,6 +73,15 @@ class ReportsController extends Controller
 
         // Student Balance Report
         $balanceQuery = StudentFee::with('student.department')
+            ->whereHas('student.enrollmentClearance', function ($q) {
+                $q->where(function ($sq) {
+                    $sq->where('registrar_clearance', true)
+                        ->orWhere('enrollment_status', 'completed');
+                });
+            })
+            ->whereHas('student', function ($q) {
+                $q->where('enrollment_status', '!=', 'not-enrolled');
+            })
             ->when($schoolYear, fn($q) => $q->where('school_year', $schoolYear));
 
         // Filter by department
@@ -95,11 +104,22 @@ class ReportsController extends Controller
             ->get();
 
         if (!$schoolYear) {
-            // In all-years mode, keep one row per student using latest school-year ledger.
+            // In all-years mode, mirror student-accounts: prefer student's active school_year row,
+            // fall back to latest existing ledger row.
             $balanceRows = $balanceRows
-                ->sortByDesc('school_year', SORT_NATURAL)
                 ->groupBy('student_id')
-                ->map(fn($rows) => $rows->first())
+                ->map(function ($rows) {
+                    $student = $rows->first()?->student;
+                    if ($student?->school_year) {
+                        $matched = $rows->firstWhere('school_year', $student->school_year);
+                        if ($matched) {
+                            return $matched;
+                        }
+                    }
+
+                    return $rows->sortByDesc('school_year', SORT_NATURAL)->first();
+                })
+                ->filter()
                 ->values();
         }
 
