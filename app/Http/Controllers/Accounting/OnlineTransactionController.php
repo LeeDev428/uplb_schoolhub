@@ -171,6 +171,7 @@ class OnlineTransactionController extends Controller
             'payment_mode' => $paymentMode,
             'payment_method' => $paymentMethod,
             'reference_number' => $transaction->reference_number,
+            'bank_name' => $paymentMode === 'BANK' ? $transaction->bank_name : null,
             'notes' => 'Online transaction: ' . $transaction->transaction_id,
             'recorded_by' => auth()->user()?->id,
         ]);
