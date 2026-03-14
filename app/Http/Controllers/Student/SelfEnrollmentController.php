@@ -34,6 +34,7 @@ class SelfEnrollmentController extends Controller
 
         $settings          = AppSetting::current();
         $currentSchoolYear = $settings->school_year ?? date('Y') . '-' . (date('Y') + 1);
+        $targetSchoolYear  = $student->school_year ?: $currentSchoolYear;
         $classification    = $student->resolveDepartmentClassification() ?? 'K-12';
 
         // ── ENROLLED: show read-only enrollment details ────────────────────────
@@ -54,11 +55,7 @@ class SelfEnrollmentController extends Controller
                     }
                     continue;
                 }
-                $recipients = GrantRecipient::where('student_id', $student->id)
-                    ->when($feeToSync->school_year !== $currentSchoolYear, fn($q) => $q->where('school_year', $feeToSync->school_year))
-                    ->where('status', 'active')
-                    ->with('grant')
-                    ->get();
+                $recipients = $this->getGrantRecipientsForFeeYear($student, (string) $feeToSync->school_year, $targetSchoolYear);
                 $freshGrant = 0.0;
                 foreach ($recipients as $r) {
                     if ($r->grant) {
@@ -121,8 +118,8 @@ class SelfEnrollmentController extends Controller
                     'review_notes'   => $n->review_notes,
                 ]);
 
-            // Summary — only for the current school year
-            $currentYearFees = $fees->filter(fn ($f) => $f['school_year'] === $currentSchoolYear);
+            // Summary — use the student's active billing year so this matches accounting/payment processing.
+            $currentYearFees = $fees->filter(fn ($f) => $f['school_year'] === $targetSchoolYear);
             $totalFees     = $currentYearFees->sum('total_amount');
             $totalDiscount = $currentYearFees->sum('grant_discount');
             $totalPaid     = $currentYearFees->sum('total_paid');
@@ -156,7 +153,7 @@ class SelfEnrollmentController extends Controller
 
             return Inertia::render('student/enrollment/index', [
                 'isEnrolled'           => true,
-                'currentSchoolYear'    => $currentSchoolYear,
+                'currentSchoolYear'    => $targetSchoolYear,
                 'classification'       => $classification,
                 'collegeEnrollmentOpen' => $settings->isEnrollmentOpen('College'),
                 'student' => [
@@ -323,5 +320,35 @@ class SelfEnrollmentController extends Controller
             'BANK', 'BANK_TRANSFER' => 'BANK',
             default => 'CASH',
         };
+    }
+
+    /**
+     * Get grant recipients for a fee year with fallback to active grants on student's billing year.
+     */
+    private function getGrantRecipientsForFeeYear($student, string $schoolYear, string $primaryYear)
+    {
+        $baseQuery = GrantRecipient::where('student_id', $student->id)
+            ->where('status', 'active');
+
+        $exact = (clone $baseQuery)
+            ->where('school_year', $schoolYear)
+            ->orderByDesc('id')
+            ->with('grant')
+            ->get();
+
+        if ($exact->isNotEmpty()) {
+            return $exact->unique('grant_id')->values();
+        }
+
+        if ($schoolYear === $primaryYear) {
+            return $baseQuery
+                ->orderByDesc('id')
+                ->with('grant')
+                ->get()
+                ->unique('grant_id')
+                ->values();
+        }
+
+        return collect();
     }
 }
