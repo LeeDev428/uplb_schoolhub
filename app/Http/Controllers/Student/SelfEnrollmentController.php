@@ -41,8 +41,9 @@ class SelfEnrollmentController extends Controller
         if ($student->enrollment_status === 'enrolled') {
             $student->load(['requirements.requirement.category', 'enrollmentClearance', 'departmentModel']);
 
-            // Fees for all school years — sync grant discounts first
+            // Fees for the student's billing school year only.
             $rawFees = StudentFee::where('student_id', $student->id)
+                ->whereRaw('TRIM(school_year) = ?', [trim((string) $targetSchoolYear)])
                 ->orderBy('school_year', 'desc')
                 ->get();
             foreach ($rawFees as $feeToSync) {
@@ -86,8 +87,11 @@ class SelfEnrollmentController extends Controller
                 ];
             });
 
-            // Payment history
+            // Payment history for the billing school year.
             $payments = StudentPayment::where('student_id', $student->id)
+                ->whereHas('studentFee', function ($query) use ($targetSchoolYear) {
+                    $query->whereRaw('TRIM(school_year) = ?', [trim((string) $targetSchoolYear)]);
+                })
                 ->with('studentFee:id,school_year')
                 ->orderBy('payment_date', 'desc')
                 ->get()
@@ -102,8 +106,11 @@ class SelfEnrollmentController extends Controller
                     'school_year'  => $p->studentFee?->school_year,
                 ]);
 
-            // Promissory notes
+            // Promissory notes for the billing school year.
             $promissoryNotes = \App\Models\PromissoryNote::where('student_id', $student->id)
+                ->whereHas('studentFee', function ($query) use ($targetSchoolYear) {
+                    $query->whereRaw('TRIM(school_year) = ?', [trim((string) $targetSchoolYear)]);
+                })
                 ->with('studentFee:id,school_year')
                 ->orderBy('submitted_date', 'desc')
                 ->get()

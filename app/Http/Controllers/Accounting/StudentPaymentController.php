@@ -285,13 +285,15 @@ class StudentPaymentController extends Controller
 
         $validated['recorded_by'] = $request->user()->id;
 
+        $studentFee = StudentFee::findOrFail($validated['student_fee_id']);
+        if ((int) $studentFee->student_id !== (int) $validated['student_id']) {
+            return redirect()->back()->with('error', 'Selected fee record does not belong to the selected student.');
+        }
+
         StudentPayment::create($validated);
 
         // Update the student fee balance
-        $studentFee = StudentFee::find($validated['student_fee_id']);
-        if ($studentFee) {
-            $studentFee->updateBalance();
-        }
+        $studentFee->updateBalance();
 
         return redirect()->back()->with('success', 'Payment recorded successfully.');
     }
@@ -368,8 +370,11 @@ class StudentPaymentController extends Controller
             $fees->push($feeData);
         }
 
-        // Get all payments
+        // Get payments for the active billing year only.
         $payments = StudentPayment::where('student_id', $student->id)
+            ->whereHas('studentFee', function ($query) use ($activeSchoolYear) {
+                $query->where('school_year', $activeSchoolYear);
+            })
             ->with(['recordedBy', 'studentFee'])
             ->orderBy('payment_date', 'desc')
             ->get()
@@ -392,8 +397,11 @@ class StudentPaymentController extends Controller
                 ];
             });
 
-        // Get promissory notes
+        // Get promissory notes for the active billing year only.
         $promissoryNotes = \App\Models\PromissoryNote::where('student_id', $student->id)
+            ->whereHas('studentFee', function ($query) use ($activeSchoolYear) {
+                $query->where('school_year', $activeSchoolYear);
+            })
             ->with(['studentFee', 'reviewer'])
             ->orderBy('submitted_date', 'desc')
             ->get()
@@ -434,10 +442,8 @@ class StudentPaymentController extends Controller
             'current_fees_balance' => $currentFeesBalance > 0 ? $currentFeesBalance : max(0, $totalFees - $totalDiscount - $totalPaid),
         ];
 
-        // Get grants/scholarships for this student
-        $grants = \App\Models\GrantRecipient::where('student_id', $student->id)
-            ->with('grant')
-            ->get()
+        // Get grants/scholarships for the active billing year.
+        $grants = $this->getGrantRecipientsForFeeYear($student, $activeSchoolYear)
             ->map(function ($recipient) {
                 return [
                     'id' => $recipient->id,

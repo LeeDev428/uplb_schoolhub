@@ -123,23 +123,18 @@ class OnlineTransactionController extends Controller
             'or_number' => 'nullable|string|max:100',
         ]);
 
-        // Create payment record - find or create StudentFee for the student's current school year
-        $currentSchoolYear = \App\Models\AppSetting::current()->school_year
-            ?? now()->year . '-' . (now()->year + 1);
+        // Create payment record for the student's billing school year.
+        $student = Student::find($transaction->student_id);
+        $currentSchoolYear = $student?->school_year
+            ?: (\App\Models\AppSetting::current()->school_year
+                ?? now()->year . '-' . (now()->year + 1));
 
         $studentFee = StudentFee::where('student_id', $transaction->student_id)
             ->where('school_year', $currentSchoolYear)
             ->first();
 
         if (!$studentFee) {
-            // Try falling back to latest fee record regardless of school year
-            $studentFee = StudentFee::where('student_id', $transaction->student_id)
-                ->latest()
-                ->first();
-        }
-
-        if (!$studentFee) {
-            // Create a placeholder StudentFee so the payment can be recorded
+            // Create a placeholder StudentFee in the billing year so payment linkage stays consistent.
             $studentFee = StudentFee::create([
                 'student_id'   => $transaction->student_id,
                 'school_year'  => $currentSchoolYear,
