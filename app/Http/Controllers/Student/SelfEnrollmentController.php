@@ -97,7 +97,7 @@ class SelfEnrollmentController extends Controller
                 ->get()
                 ->map(fn ($p) => [
                     'id'           => $p->id,
-                    'payment_date' => $p->payment_date?->format('M d, Y'),
+                    'payment_date' => trim(($p->payment_date?->format('M d, Y') ?? '') . ' ' . ($p->created_at?->format('h:i A') ?? '')),
                     'or_number'    => $p->or_number,
                     'amount'       => (float) $p->amount,
                     'payment_mode' => $this->normalizePaymentMode($p->payment_mode, $p->payment_method),
