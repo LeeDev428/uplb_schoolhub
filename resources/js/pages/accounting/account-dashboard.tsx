@@ -455,7 +455,17 @@ export default function AccountDashboard({
                                         </TableRow>
                                     ) : (
                                         filteredTransactions.map((tx) => (
-                                            <TableRow key={tx.id}>
+                                            <TableRow
+                                                key={tx.id}
+                                                className={tx.student_id ? 'cursor-pointer hover:bg-muted/60' : ''}
+                                                onClick={() => {
+                                                    if (!tx.student_id) {
+                                                        return;
+                                                    }
+
+                                                    router.visit(`/accounting/payments/process/${tx.student_id}?tab=transactions`);
+                                                }}
+                                            >
                                                 <TableCell>
                                                     {tx.date} {tx.time}
                                                 </TableCell>
