@@ -51,14 +51,13 @@ class AccountingDashboardController extends Controller
             $totalAmount = (float) $snapshot['total_amount'];
             $paid = (float) $snapshot['total_paid'];
             $balance = (float) $snapshot['balance'];
-            $isOverdueOutstanding = (bool) $snapshot['is_overdue'] && $balance > 0;
             if ($totalAmount <= 0) {
                 continue;
             }
 
             $projectedRevenue += $totalAmount;
             $totalCollected += $paid;
-            if ($isOverdueOutstanding) {
+            if ($balance > 0) {
                 $totalOutstanding += $balance;
             }
 
@@ -114,7 +113,7 @@ class AccountingDashboardController extends Controller
             ->map(function ($rows, $department) {
                 $studentCount = $rows->pluck('student_id')->unique()->count();
                 $overdueBalance = $rows
-                    ->filter(fn($row) => (bool) $row['is_overdue'] && (float) $row['balance'] > 0)
+                    ->filter(fn($row) => (float) $row['balance'] > 0)
                     ->sum('balance');
 
                 return [
